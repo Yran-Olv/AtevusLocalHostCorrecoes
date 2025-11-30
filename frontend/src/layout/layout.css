@@ -13,7 +13,7 @@
   --layout-appbar-bg: #0A639C; /*cor do appbar navbar de cima*/
   --layout-appbar-text: #1a1a1a;
   --layout-appbar-border: #e5e7eb;
-  --layout-border: #e5e7eb;
+  --layout-border: #e5e7eb; /*cor da borda do menu lateral*/
   --layout-shadow: rgba(225, 8, 8, 0.08);
   --layout-shadow-lg: rgba(0, 0, 0, 0.12);
   --layout-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
