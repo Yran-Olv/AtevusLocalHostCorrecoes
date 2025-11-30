@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import api from "./services/api";
 import "react-toastify/dist/ReactToastify.css";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { ptBR } from "@material-ui/core/locale";
-import { createTheme, ThemeProvider } from "@material-ui/core/styles";
-import { useMediaQuery } from "@material-ui/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ptBR } from "@mui/material/locale";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { useMediaQuery } from "@mui/material";
 import ColorModeContext from "./layout/themeContext";
 import { ActiveMenuProvider } from "./context/ActiveMenuContext";
 import Favicon from "react-favicon";
@@ -79,7 +79,7 @@ const App = () => {
             },
           },
           palette: {
-            type: mode,
+            mode,
             primary: { main: mode === "light" ? primaryColorLight : primaryColorDark },
             textPrimary: mode === "light" ? primaryColorLight : primaryColorDark,
             borderPrimary: mode === "light" ? primaryColorLight : primaryColorDark,
