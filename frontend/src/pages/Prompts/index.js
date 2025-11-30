@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import usePlans from "../../hooks/usePlans";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import ForbiddenPage from "../../components/ForbiddenPage";
 // import { SocketContext } from "../../context/Socket/SocketContext";
@@ -136,23 +137,25 @@ const Prompts = () => {
   }, []);
 
   useEffect(() => {
-    // const socket = socketManager.GetSocket();
+    if (isSocketValid(socket) && companyId) {
+      // const socket = socketManager.GetSocket();
 
-    const onPromptEvent = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_PROMPTS", payload: data.prompt });
-      }
+      const onPromptEvent = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_PROMPTS", payload: data.prompt });
+        }
 
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_PROMPT", payload: data.promptId });
-      }
-    };
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_PROMPT", payload: data.promptId });
+        }
+      };
 
-    socket.on(`company-${companyId}-prompt`, onPromptEvent);
-    return () => {
-      socket.off(`company-${companyId}-prompt`, onPromptEvent);
-    };
-  }, [socket]);
+      safeSocketOn(socket, `company-${companyId}-prompt`, onPromptEvent);
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-prompt`, onPromptEvent);
+      };
+    }
+  }, [socket, companyId]);
 
   const handleOpenPromptModal = () => {
     setPromptModalOpen(true);

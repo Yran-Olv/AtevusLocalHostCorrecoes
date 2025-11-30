@@ -37,6 +37,7 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
 import { Chip, Tooltip } from "@material-ui/core";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import { MoreHoriz } from "@material-ui/icons";
 import ContactTagListModal from "../../components/ContactTagListModal";
 
@@ -114,20 +115,22 @@ const Tags = () => {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    const onCompanyTags = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_TAGS", payload: data.tag });
-      }
+    if (isSocketValid(socket) && user.companyId) {
+      const onCompanyTags = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_TAGS", payload: data.tag });
+        }
 
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_TAGS", payload: +data.tagId });
-      }
-    };
-    socket.on(`company${user.companyId}-tag`, onCompanyTags);
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_TAGS", payload: +data.tagId });
+        }
+      };
+      safeSocketOn(socket, `company${user.companyId}-tag`, onCompanyTags);
 
-    return () => {
-      socket.off(`company${user.companyId}-tag`, onCompanyTags);
-    };
+      return () => {
+        safeSocketOff(socket, `company${user.companyId}-tag`, onCompanyTags);
+      };
+    }
   }, [socket, user.companyId]);
 
   const handleOpenTagModal = () => {

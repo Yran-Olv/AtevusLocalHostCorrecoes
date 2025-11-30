@@ -32,6 +32,7 @@ import { Grid } from "@material-ui/core";
 import { isArray } from "lodash";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 
 const reducer = (state, action) => {
@@ -127,23 +128,25 @@ const Quickemessages = () => {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    const companyId = user.companyId;
-    // const socket = socketManager.GetSocket();
+    if (isSocketValid(socket) && user.companyId) {
+      const companyId = user.companyId;
+      // const socket = socketManager.GetSocket();
 
-    const onQuickMessageEvent = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_QUICKMESSAGES", payload: data.record });
-      }
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_QUICKMESSAGE", payload: +data.id });
-      }
-    };
-    socket.on(`company-${companyId}-quickemessage`, onQuickMessageEvent);
+      const onQuickMessageEvent = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_QUICKMESSAGES", payload: data.record });
+        }
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_QUICKMESSAGE", payload: +data.id });
+        }
+      };
+      safeSocketOn(socket, `company-${companyId}-quickemessage`, onQuickMessageEvent);
 
-    return () => {
-      socket.off(`company-${companyId}-quickemessage`, onQuickMessageEvent);
-    };
-  }, [socket]);
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-quickemessage`, onQuickMessageEvent);
+      };
+    }
+  }, [socket, user.companyId]);
 
   const fetchQuickemessages = async () => {
     try {

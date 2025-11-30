@@ -28,6 +28,7 @@ import UserModal from "../../components/UserModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
 import { SocketContext, socketManager } from "../../context/Socket/SocketContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import UserStatusIcon from "../../components/UserModal/statusIcon";
 import { getBackendUrl } from "../../config";
 import { AuthContext } from "../../context/Auth/AuthContext";
@@ -148,7 +149,7 @@ const Users = () => {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    if (loggedInUser) {
+    if (loggedInUser && isSocketValid(socket)) {
       const companyId = loggedInUser.companyId;
       const onCompanyUser = (data) => {
         if (data.action === "update" || data.action === "create") {
@@ -158,12 +159,12 @@ const Users = () => {
           dispatch({ type: "DELETE_USER", payload: +data.userId });
         }
       };
-      socket.on(`company-${companyId}-user`, onCompanyUser);
+      safeSocketOn(socket, `company-${companyId}-user`, onCompanyUser);
       return () => {
-        socket.off(`company-${companyId}-user`, onCompanyUser);
+        safeSocketOff(socket, `company-${companyId}-user`, onCompanyUser);
       };
     }
-  }, [socket]);
+  }, [socket, loggedInUser]);
 
   const handleOpenUserModal = () => {
     setSelectedUser(null);

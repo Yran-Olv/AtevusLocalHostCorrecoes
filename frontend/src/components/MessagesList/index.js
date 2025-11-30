@@ -28,6 +28,7 @@ import {
 import MarkdownWrapper from "../MarkdownWrapper";
 import VcardPreview from "../VcardPreview";
 import LocationPreview from "../LocationPreview";
+import { safeSocketOn, safeSocketOff, safeSocketEmit, isSocketValid } from "../../utils/socketHelper";
 import ModalImageCors from "../ModalImageCors";
 import MessageOptionsMenu from "../MessageOptionsMenu";
 import whatsBackground from "../../assets/wa-background.png";
@@ -536,37 +537,38 @@ const MessagesList = ({
       return;
     }
 
-    const companyId = user.companyId;
+    if (isSocketValid(socket) && user.companyId && ticketId) {
+      const companyId = user.companyId;
 
-    //    const socket = socketManager.GetSocket();
-    const connectEventMessagesList = () => {
-      socket.emit("joinChatBox", `${ticketId}`);
+      //    const socket = socketManager.GetSocket();
+      const connectEventMessagesList = () => {
+        safeSocketEmit(socket, "joinChatBox", `${ticketId}`);
+      }
+
+      const onAppMessageMessagesList = (data) => {
+        if (data.action === "create" && data.ticket.uuid === ticketId) {
+          dispatch({ type: "ADD_MESSAGE", payload: data.message });
+          scrollToBottom();
+        }
+
+        if (data.action === "update" && data?.message?.ticket?.uuid === ticketId) {
+          dispatch({ type: "UPDATE_MESSAGE", payload: data.message });
+        }
+
+        if (data.action == "delete" && data.message.ticket?.uuid === ticketId) {
+          dispatch({ type: "DELETE_MESSAGE", payload: data.messageId });
+        }
+      }
+      safeSocketOn(socket, "connect", connectEventMessagesList);
+      safeSocketOn(socket, `company-${companyId}-appMessage`, onAppMessageMessagesList);
+
+      return () => {
+        safeSocketEmit(socket, "joinChatBoxLeave", `${ticketId}`);
+
+        safeSocketOff(socket, "connect", connectEventMessagesList);
+        safeSocketOff(socket, `company-${companyId}-appMessage`, onAppMessageMessagesList);
+      };
     }
-
-    const onAppMessageMessagesList = (data) => {
-      if (data.action === "create" && data.ticket.uuid === ticketId) {
-        dispatch({ type: "ADD_MESSAGE", payload: data.message });
-        scrollToBottom();
-      }
-
-      if (data.action === "update" && data?.message?.ticket?.uuid === ticketId) {
-        dispatch({ type: "UPDATE_MESSAGE", payload: data.message });
-      }
-
-      if (data.action == "delete" && data.message.ticket?.uuid === ticketId) {
-        dispatch({ type: "DELETE_MESSAGE", payload: data.messageId });
-      }
-    }
-    socket.on("connect", connectEventMessagesList);
-    socket.on(`company-${companyId}-appMessage`, onAppMessageMessagesList);
-
-    return () => {
-
-      socket.emit("joinChatBoxLeave", `${ticketId}`)
-
-      socket.off("connect", connectEventMessagesList);
-      socket.off(`company-${companyId}-appMessage`, onAppMessageMessagesList);
-    };
 
   }, [ticketId]);
 

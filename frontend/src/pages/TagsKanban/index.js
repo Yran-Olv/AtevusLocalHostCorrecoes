@@ -38,6 +38,7 @@ import toastError from "../../errors/toastError";
 import { Chip } from "@material-ui/core";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import { CheckCircle } from "@material-ui/icons";
 
 const reducer = (state, action) => {
@@ -137,23 +138,25 @@ const Tags = () => {
   }, [searchParam]);
 
   useEffect(() => {
-    // const socket = socketManager.GetSocket(user.companyId, user.id);
+    if (isSocketValid(socket) && user.companyId) {
+      // const socket = socketManager.GetSocket(user.companyId, user.id);
 
-    const onTagsEvent = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_TAGS", payload: data.tag });
-      }
+      const onTagsEvent = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_TAGS", payload: data.tag });
+        }
 
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_TAGS", payload: +data.tagId });
-      }
-    };
-    socket.on(`company${user.companyId}-tag`, onTagsEvent);
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_TAGS", payload: +data.tagId });
+        }
+      };
+      safeSocketOn(socket, `company${user.companyId}-tag`, onTagsEvent);
 
-    return () => {
-      socket.off(`company${user.companyId}-tag`, onTagsEvent);
-    };
-  }, [socket]);
+      return () => {
+        safeSocketOff(socket, `company${user.companyId}-tag`, onTagsEvent);
+      };
+    }
+  }, [socket, user.companyId]);
 
   const handleOpenTagModal = () => {
     setSelectedTag(null);

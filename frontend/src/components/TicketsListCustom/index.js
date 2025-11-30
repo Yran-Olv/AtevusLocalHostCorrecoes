@@ -10,6 +10,7 @@ import TicketsListSkeleton from "../TicketsListSkeleton";
 import useTickets from "../../hooks/useTickets";
 import { i18n } from "../../translate/i18n";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, safeSocketEmit, isSocketValid } from "../../utils/socketHelper";
 
 const useStyles = makeStyles((theme) => ({
     ticketsListWrapper: {
@@ -351,30 +352,32 @@ const TicketsListCustom = (props) => {
             }
         };
 
-        const onConnectTicketsList = () => {
-            if (status) {
-                socket.emit("joinTickets", status);
-            } else {
-                socket.emit("joinNotification");
+        if (isSocketValid(socket) && companyId) {
+            const onConnectTicketsList = () => {
+                if (status) {
+                    safeSocketEmit(socket, "joinTickets", status);
+                } else {
+                    safeSocketEmit(socket, "joinNotification");
+                }
             }
+
+            safeSocketOn(socket, "connect", onConnectTicketsList);
+            safeSocketOn(socket, `company-${companyId}-ticket`, onCompanyTicketTicketsList);
+            safeSocketOn(socket, `company-${companyId}-appMessage`, onCompanyAppMessageTicketsList);
+            safeSocketOn(socket, `company-${companyId}-contact`, onCompanyContactTicketsList);
+
+            return () => {
+                if (status) {
+                    safeSocketEmit(socket, "leaveTickets", status);
+                } else {
+                    safeSocketEmit(socket, "leaveNotification");
+                }
+                safeSocketOff(socket, "connect", onConnectTicketsList);
+                safeSocketOff(socket, `company-${companyId}-ticket`, onCompanyTicketTicketsList);
+                safeSocketOff(socket, `company-${companyId}-appMessage`, onCompanyAppMessageTicketsList);
+                safeSocketOff(socket, `company-${companyId}-contact`, onCompanyContactTicketsList);
+            };
         }
-
-        socket.on("connect", onConnectTicketsList)
-        socket.on(`company-${companyId}-ticket`, onCompanyTicketTicketsList);
-        socket.on(`company-${companyId}-appMessage`, onCompanyAppMessageTicketsList);
-        socket.on(`company-${companyId}-contact`, onCompanyContactTicketsList);
-
-        return () => {
-            if (status) {
-                socket.emit("leaveTickets", status);
-            } else {
-                socket.emit("leaveNotification");
-            }
-            socket.off("connect", onConnectTicketsList);
-            socket.off(`company-${companyId}-ticket`, onCompanyTicketTicketsList);
-            socket.off(`company-${companyId}-appMessage`, onCompanyAppMessageTicketsList);
-            socket.off(`company-${companyId}-contact`, onCompanyContactTicketsList);
-        };
 
     }, [status, showAll, user, selectedQueueIds, tags, users, profile, queues, sortTickets, showTicketWithoutQueue]);
 

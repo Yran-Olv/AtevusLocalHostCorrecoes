@@ -17,6 +17,7 @@ import { AuthContext } from "../../context/Auth/AuthContext";
 import { i18n } from "../../translate/i18n";
 import toastError from "../../errors/toastError";
 import useCompanySettings from "../../hooks/useSettings/companySettings";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import Favicon from "react-favicon";
 // import { getBackendUrl } from "../../config";
 import defaultLogoFavicon from "../../assets/favicon.ico";
@@ -213,15 +214,17 @@ const NotificationsPopOver = (volume) => {
 				}
 			}
 
-			socket.on("connect", onConnectNotificationsPopover);
-			socket.on(`company-${companyId}-ticket`, onCompanyTicketNotificationsPopover);
-			socket.on(`company-${companyId}-appMessage`, onCompanyAppMessageNotificationsPopover);
+			if (isSocketValid(socket) && companyId) {
+				safeSocketOn(socket, "connect", onConnectNotificationsPopover);
+				safeSocketOn(socket, `company-${companyId}-ticket`, onCompanyTicketNotificationsPopover);
+				safeSocketOn(socket, `company-${companyId}-appMessage`, onCompanyAppMessageNotificationsPopover);
 
-			return () => {
-				socket.off("connect", onConnectNotificationsPopover);
-				socket.off(`company-${companyId}-ticket`, onCompanyTicketNotificationsPopover);
-				socket.off(`company-${companyId}-appMessage`, onCompanyAppMessageNotificationsPopover);
-			};
+				return () => {
+					safeSocketOff(socket, "connect", onConnectNotificationsPopover);
+					safeSocketOff(socket, `company-${companyId}-ticket`, onCompanyTicketNotificationsPopover);
+					safeSocketOff(socket, `company-${companyId}-appMessage`, onCompanyAppMessageNotificationsPopover);
+				};
+			}
 		}
 	}, [user, profile, queues, showTicketWithoutQueue, socket, showNotificationPending, showGroupNotification]);
 

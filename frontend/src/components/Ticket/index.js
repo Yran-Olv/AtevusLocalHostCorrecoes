@@ -18,6 +18,7 @@ import { ForwardMessageProvider } from "../../context/ForwarMessage/ForwardMessa
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { TagsContainer } from "../TagsContainer";
+import { safeSocketOn, safeSocketOff, safeSocketEmit, isSocketValid } from "../../utils/socketHelper";
 import { isNil } from 'lodash';
 import { EditMessageProvider } from "../../context/EditingMessage/EditingMessageContext";
 import { TicketsContext } from "../../context/Tickets/TicketsContext";
@@ -117,11 +118,11 @@ const Ticket = () => {
       return;
     }
 
-    if (user.companyId) {
+    if (user.companyId && isSocketValid(socket) && ticket?.id) {
       //    const socket = socketManager.GetSocket();
 
       const onConnectTicket = () => {
-        socket.emit("joinChatBox", `${ticket.id}`);
+        safeSocketEmit(socket, "joinChatBox", `${ticket.id}`);
       }
 
       const onCompanyTicket = (data) => {
@@ -147,16 +148,15 @@ const Ticket = () => {
         }
       };
 
-      socket.on("connect", onConnectTicket)
-      socket.on(`company-${companyId}-ticket`, onCompanyTicket);
-      socket.on(`company-${companyId}-contact`, onCompanyContactTicket);
+      safeSocketOn(socket, "connect", onConnectTicket);
+      safeSocketOn(socket, `company-${companyId}-ticket`, onCompanyTicket);
+      safeSocketOn(socket, `company-${companyId}-contact`, onCompanyContactTicket);
 
       return () => {
-
-        socket.emit("joinChatBoxLeave", `${ticket.id}`);
-        socket.off("connect", onConnectTicket);
-        socket.off(`company-${companyId}-ticket`, onCompanyTicket);
-        socket.off(`company-${companyId}-contact`, onCompanyContactTicket);
+        safeSocketEmit(socket, "joinChatBoxLeave", `${ticket.id}`);
+        safeSocketOff(socket, "connect", onConnectTicket);
+        safeSocketOff(socket, `company-${companyId}-ticket`, onCompanyTicket);
+        safeSocketOff(socket, `company-${companyId}-contact`, onCompanyContactTicket);
       };
     }
   }, [ticketId, ticket, history]);

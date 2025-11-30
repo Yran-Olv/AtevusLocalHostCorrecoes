@@ -6,6 +6,7 @@ import AnnouncementIcon from "@material-ui/icons/Announcement";
 
 import { i18n } from "../../translate/i18n";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 import {
   Avatar,
@@ -168,7 +169,7 @@ export default function AnnouncementsPopover() {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    if (user.companyId) {
+    if (user.companyId && isSocketValid(socket)) {
       const companyId = user.companyId;
 //    const socket = socketManager.GetSocket();
 
@@ -181,13 +182,13 @@ export default function AnnouncementsPopover() {
           dispatch({ type: "DELETE_ANNOUNCEMENT", payload: +data.id });
         }
       };
-      socket.on(`company-announcement`, onCompanyAnnouncement);
+      safeSocketOn(socket, `company-announcement`, onCompanyAnnouncement);
 
       return () => {
-        socket.off(`company-announcement`, onCompanyAnnouncement);
+        safeSocketOff(socket, `company-announcement`, onCompanyAnnouncement);
       };
     }
-  }, [user]);
+  }, [user, socket]);
 
   const fetchAnnouncements = async () => {
     try {

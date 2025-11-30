@@ -22,6 +22,7 @@ import ListAltIcon from "@material-ui/icons/ListAlt";
 import { useDate } from "../../hooks/useDate";
 import usePlans from "../../hooks/usePlans";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { i18n } from "../../translate/i18n";
@@ -120,28 +121,30 @@ const CampaignReport = () => {
   }, [delivered, validContacts]);
 
   useEffect(() => {
-    const companyId = user.companyId;
-    // const socket = socketManager.GetSocket();
+    if (isSocketValid(socket) && user.companyId && campaignId) {
+      const companyId = user.companyId;
+      // const socket = socketManager.GetSocket();
 
-    const onCampaignEvent = (data) => {
+      const onCampaignEvent = (data) => {
 
-      if (data.record.id === +campaignId) {
-        setCampaign(data.record);
+        if (data.record.id === +campaignId) {
+          setCampaign(data.record);
 
-        if (data.record.status === "FINALIZADA") {
-          setTimeout(() => {
-            findCampaign();
-          }, 5000);
+          if (data.record.status === "FINALIZADA") {
+            setTimeout(() => {
+              findCampaign();
+            }, 5000);
+          }
         }
-      }
-    };
-    socket.on(`company-${companyId}-campaign`, onCampaignEvent);
+      };
+      safeSocketOn(socket, `company-${companyId}-campaign`, onCampaignEvent);
 
-    return () => {
-      socket.off(`company-${companyId}-campaign`, onCampaignEvent);
-    };
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-campaign`, onCampaignEvent);
+      };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignId]);
+  }, [campaignId, socket, user.companyId]);
 
   const findCampaign = async () => {
     setLoading(true);

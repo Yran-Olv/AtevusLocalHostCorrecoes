@@ -8,6 +8,7 @@ import { AuthContext } from "../../context/Auth/AuthContext";
 import {  ReportProblem, VisibilityOutlined } from "@mui/icons-material";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { toast } from "react-toastify";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import { yellow } from "@mui/material/colors";
 import { Avatar, CardHeader, Divider, List, ListItem, ListItemAvatar, ListItemText, Paper, Typography, Card, makeStyles, Container, Badge, Grid, Tooltip } from "@material-ui/core";
 import { format, isSameDay, parseISO } from "date-fns";
@@ -155,16 +156,18 @@ const DashboardManage = () => {
       }
     }
   
-    // socket.on("connect", onConnect);
-    socket.on(`company-${companyId}-ticket`, onAppMessage)
-    socket.on(`company-${companyId}-appMessage`, onAppMessage);
+    if (isSocketValid(socket) && companyId) {
+      // socket.on("connect", onConnect);
+      safeSocketOn(socket, `company-${companyId}-ticket`, onAppMessage);
+      safeSocketOn(socket, `company-${companyId}-appMessage`, onAppMessage);
   
-    return () => {
-      // socket.off("connect", onConnect);
-      socket.off(`company-${companyId}-ticket`, onAppMessage)
-      socket.off(`company-${companyId}-appMessage`, onAppMessage);
-    };
-  }, [socket]);
+      return () => {
+        // socket.off("connect", onConnect);
+        safeSocketOff(socket, `company-${companyId}-ticket`, onAppMessage);
+        safeSocketOff(socket, `company-${companyId}-appMessage`, onAppMessage);
+      };
+    }
+  }, [socket, companyId]);
 
   const Moments = useMemo(() => {
     // console.log(tickets)

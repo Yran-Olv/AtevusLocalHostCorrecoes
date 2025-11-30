@@ -5,6 +5,7 @@ import api from "../../services/api";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { isNill } from "lodash";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_WHATSAPPS") {
@@ -79,7 +80,7 @@ const useWhatsApps = () => {
   }, []);
 
   useEffect(() => {
-    if (user.companyId) {
+    if (user.companyId && isSocketValid(socket)) {
 
       const companyId = user.companyId;
 //    const socket = socketManager.GetSocket();
@@ -99,15 +100,15 @@ const useWhatsApps = () => {
         }
       }
 
-      socket.on(`company-${companyId}-whatsapp`, onCompanyWhatsapp);
-      socket.on(`company-${companyId}-whatsappSession`, onCompanyWhatsappSession);
+      safeSocketOn(socket, `company-${companyId}-whatsapp`, onCompanyWhatsapp);
+      safeSocketOn(socket, `company-${companyId}-whatsappSession`, onCompanyWhatsappSession);
 
       return () => {
-        socket.off(`company-${companyId}-whatsapp`, onCompanyWhatsapp);
-        socket.off(`company-${companyId}-whatsappSession`, onCompanyWhatsappSession);
+        safeSocketOff(socket, `company-${companyId}-whatsapp`, onCompanyWhatsapp);
+        safeSocketOff(socket, `company-${companyId}-whatsappSession`, onCompanyWhatsappSession);
       };
     }
-  }, [socket]);
+  }, [socket, user.companyId]);
 
   return { whatsApps, loading };
 };

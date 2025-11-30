@@ -34,6 +34,7 @@ import { isArray } from "lodash";
 
 
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_ANNOUNCEMENTS") {
@@ -140,7 +141,7 @@ const Announcements = () => {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    if (user.companyId) {
+    if (user.companyId && isSocketValid(socket)) {
 //    const socket = socketManager.GetSocket();
 
       const onCompanyAnnouncement = (data) => {
@@ -152,12 +153,12 @@ const Announcements = () => {
         }
       }
 
-      socket.on(`company-announcement`, onCompanyAnnouncement);
+      safeSocketOn(socket, `company-announcement`, onCompanyAnnouncement);
       return () => {
-        socket.off(`company-announcement`, onCompanyAnnouncement);
+        safeSocketOff(socket, `company-announcement`, onCompanyAnnouncement);
       }
     }
-  }, [user]);
+  }, [user, socket]);
 
   const fetchAnnouncements = async () => {
     try {

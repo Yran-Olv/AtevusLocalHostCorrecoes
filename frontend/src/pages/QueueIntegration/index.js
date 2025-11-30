@@ -43,6 +43,7 @@ import api from "../../services/api";
 import { i18n } from "../../translate/i18n";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import usePlans from "../../hooks/usePlans";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import ForbiddenPage from "../../components/ForbiddenPage";
@@ -165,23 +166,25 @@ const QueueIntegration = () => {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    // const socket = socketManager.GetSocket();
+    if (isSocketValid(socket) && companyId) {
+      // const socket = socketManager.GetSocket();
 
-    const onQueueEvent = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_INTEGRATIONS", payload: data.queueIntegration });
-      }
+      const onQueueEvent = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_INTEGRATIONS", payload: data.queueIntegration });
+        }
 
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_INTEGRATION", payload: +data.integrationId });
-      }
-    };
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_INTEGRATION", payload: +data.integrationId });
+        }
+      };
 
-    socket.on(`company-${companyId}-queueIntegration`, onQueueEvent);
-    return () => {
-      socket.off(`company-${companyId}-queueIntegration`, onQueueEvent);
-    };
-  }, []);
+      safeSocketOn(socket, `company-${companyId}-queueIntegration`, onQueueEvent);
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-queueIntegration`, onQueueEvent);
+      };
+    }
+  }, [socket, companyId]);
 
   const handleOpenUserModal = () => {
     setSelectedIntegration(null);

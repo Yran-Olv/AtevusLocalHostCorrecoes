@@ -23,6 +23,7 @@ import { isArray } from "lodash";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { useDate } from "../../hooks/useDate";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 import notifySound from "../../assets/sound.mp3";
 import useSound from "use-sound";
@@ -138,7 +139,7 @@ export default function ChatPopover() {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    if (user.companyId) {
+    if (user.companyId && isSocketValid(socket)) {
 
       const companyId = user.companyId;
 //    const socket = socketManager.GetSocket();
@@ -156,14 +157,14 @@ export default function ChatPopover() {
         }
       }
 
-      socket.on(`company-${companyId}-chat`, onCompanyChatPopover);
+      safeSocketOn(socket, `company-${companyId}-chat`, onCompanyChatPopover);
 
       return () => {
-        socket.off(`company-${companyId}-chat`, onCompanyChatPopover);
+        safeSocketOff(socket, `company-${companyId}-chat`, onCompanyChatPopover);
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, socket]);
 
 
   useEffect(() => {

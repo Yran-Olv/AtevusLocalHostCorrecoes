@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { i18n } from "../../translate/i18n";
 import { AuthContext } from "../../context/Auth/AuthContext";
 // import { SocketContext } from "../../context/Socket/SocketContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const useUserMoments = () => {
   const [users, setUsers] = useState([]);
@@ -33,7 +34,7 @@ const useUserMoments = () => {
   }, [update]);
 
   useEffect(() => {
-    if (user.id && socket) { // Verifica se user.id e socket estão definidos
+    if (user.id && isSocketValid(socket)) { // Verifica se user.id e socket estão definidos
       const companyId = user.companyId;
       
       const onTicketEvent = (data) => {
@@ -49,14 +50,14 @@ const useUserMoments = () => {
         }
       };
   
-      socket.on(`company-${companyId}-ticket`, onTicketEvent);
-      socket.on(`company-${companyId}-appMessage`, onAppMessage);
+      safeSocketOn(socket, `company-${companyId}-ticket`, onTicketEvent);
+      safeSocketOn(socket, `company-${companyId}-appMessage`, onAppMessage);
       return () => {
-        socket.off(`company-${companyId}-ticket`, onTicketEvent);
-        socket.off(`company-${companyId}-appMessage`, onAppMessage);
+        safeSocketOff(socket, `company-${companyId}-ticket`, onTicketEvent);
+        safeSocketOff(socket, `company-${companyId}-appMessage`, onAppMessage);
       };
     }
-  }, [user.id, socket]); // Dependências especificadas aqui  
+  }, [user.id, socket, user.companyId]); // Dependências especificadas aqui  
 
   return { users };
 };

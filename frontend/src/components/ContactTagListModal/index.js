@@ -17,6 +17,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import CloseIcon from "@material-ui/icons/Close";
 import api from "../../services/api";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const useStyles = makeStyles((theme) => ({
   modal: {
@@ -53,25 +54,27 @@ const ContactTagListModal = ({ open, onClose, tag }) => {
   }, [tagList])
 
   useEffect(() => {
-    // const socket = socketManager.GetSocket(user.companyId, user.id);
+    if (isSocketValid(socket) && user.companyId) {
+      // const socket = socketManager.GetSocket(user.companyId, user.id);
 
-    const onCompanyTags = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        if (data.tag.id === tag.id && data.tag?.contacts?.length > 0) {
-          setTagList(data.tag.contacts);
+      const onCompanyTags = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          if (data.tag.id === tag.id && data.tag?.contacts?.length > 0) {
+            setTagList(data.tag.contacts);
+          }
+          if (data.tag.id === tag.id && data.tag?.contacts?.length === 0) {
+            setTagList([]);
+            onClose();
+          }
         }
-        if (data.tag.id === tag.id && data.tag?.contacts?.length === 0) {
-          setTagList([]);
-          onClose();
-        }
-      }
-    };
-    socket.on(`company${user.companyId}-tag`, onCompanyTags);
+      };
+      safeSocketOn(socket, `company${user.companyId}-tag`, onCompanyTags);
 
-    return () => {
-      socket.off(`company${user.companyId}-tag`, onCompanyTags);
-    };
-  }, []); // Dependência do estado auxiliar updateFlag
+      return () => {
+        safeSocketOff(socket, `company${user.companyId}-tag`, onCompanyTags);
+      };
+    }
+  }, [socket, user.companyId, tag, onClose]); // Dependência do estado auxiliar updateFlag
 
   return tagList.length > 0 ? (
     <Modal

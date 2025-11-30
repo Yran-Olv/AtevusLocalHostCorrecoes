@@ -29,6 +29,7 @@ import MainContainer from "../../components/MainContainer";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { Can } from "../../components/Can";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import NewTicketModal from "../../components/NewTicketModal";
 import { SocketContext } from "../../context/Socket/SocketContext";
 import WebhookModal from "../../components/WebhookModal";
@@ -163,27 +164,26 @@ const FlowBuilder = () => {
   }, [searchParam, pageNumber, reloadData]);
 
   useEffect(() => {
-    const companyId = user.companyId
-   
+    if (isSocketValid(socket) && user.companyId) {
+      const companyId = user.companyId;
 
-   const onContact = (data) => {
-    if (data.action === "update" || data.action === "create") {
-      dispatch({ type: "UPDATE_CONTACTS", payload: data.contact });
+      const onContact = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_CONTACTS", payload: data.contact });
+        }
+
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_CONTACT", payload: +data.contactId });
+        }
+      }
+      
+      safeSocketOn(socket, `company-${companyId}-contact`, onContact);
+
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-contact`, onContact);
+      };
     }
-
-    if (data.action === "delete") {
-      dispatch({ type: "DELETE_CONTACT", payload: +data.contactId });
-    }
-  }
-  
-  socket.on(`company-${companyId}-contact`, onContact);
-
-  return () => {
-    socket.disconnect();
-  };
-
-
-  }, []);
+  }, [socket, user.companyId]);
 
   const handleSearch = event => {
     setSearchParam(event.target.value.toLowerCase());

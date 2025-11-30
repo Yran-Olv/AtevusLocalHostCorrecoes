@@ -44,6 +44,7 @@ import MainContainer from "../../components/MainContainer";
 import toastError from "../../errors/toastError";
 
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import { Can } from "../../components/Can";
 import NewTicketModal from "../../components/NewTicketModal";
 import { TagsFilter } from "../../components/TagsFilter";
@@ -211,24 +212,26 @@ const Contacts = () => {
     }, [searchParam, pageNumber, selectedTags]);
 
     useEffect(() => {
-        const companyId = user.companyId;
-        //    const socket = socketManager.GetSocket();
+        if (isSocketValid(socket) && user.companyId) {
+          const companyId = user.companyId;
+          //    const socket = socketManager.GetSocket();
 
-        const onContactEvent = (data) => {
-            if (data.action === "update" || data.action === "create") {
-                dispatch({ type: "UPDATE_CONTACTS", payload: data.contact });
-            }
+          const onContactEvent = (data) => {
+              if (data.action === "update" || data.action === "create") {
+                  dispatch({ type: "UPDATE_CONTACTS", payload: data.contact });
+              }
 
-            if (data.action === "delete") {
-                dispatch({ type: "DELETE_CONTACT", payload: +data.contactId });
-            }
-        };
-        socket.on(`company-${companyId}-contact`, onContactEvent);
+              if (data.action === "delete") {
+                  dispatch({ type: "DELETE_CONTACT", payload: +data.contactId });
+              }
+          };
+          safeSocketOn(socket, `company-${companyId}-contact`, onContactEvent);
 
-        return () => {
-            socket.off(`company-${companyId}-contact`, onContactEvent);
-        };
-    }, [socket]);
+          return () => {
+            safeSocketOff(socket, `company-${companyId}-contact`, onContactEvent);
+          };
+        }
+    }, [socket, user.companyId]);
 
     const handleSelectTicket = (ticket) => {
         const code = uuidv4();

@@ -30,14 +30,19 @@ const useUser = () => {
   useEffect(() => {
     const socket = openSocket(process.env.REACT_APP_BACKEND_URL);
 
-    socket.on("users", (data) => {
-      setUpdate(true);
-    });
+    if (socket && typeof socket.on === 'function') {
+      socket.on("users", (data) => {
+        setUpdate(true);
+      });
 
-    return () => {
-      console.log("OFF USERS SOCKET")
-      socket.off("users");
-    };
+      return () => {
+        console.log("OFF USERS SOCKET")
+        if (socket && typeof socket.off === 'function') {
+          socket.off("users");
+        }
+        socket.disconnect();
+      };
+    }
   }, [users]);
 
   return { users };

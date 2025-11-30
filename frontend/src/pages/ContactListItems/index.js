@@ -39,6 +39,7 @@ import MainContainer from "../../components/MainContainer";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { Can } from "../../components/Can";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import useContactLists from "../../hooks/useContactLists";
 import { Grid } from "@material-ui/core";
 
@@ -157,28 +158,30 @@ const ContactListItems = () => {
   }, [searchParam, pageNumber, contactListId]);
 
   useEffect(() => {
-    const companyId = user.companyId;
-    // const socket = socketManager.GetSocket();
+    if (isSocketValid(socket) && user.companyId && contactListId) {
+      const companyId = user.companyId;
+      // const socket = socketManager.GetSocket();
 
-    const onCompanyContactLists = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_CONTACTS", payload: data.record });
-      }
+      const onCompanyContactLists = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_CONTACTS", payload: data.record });
+        }
 
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_CONTACT", payload: +data.id });
-      }
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_CONTACT", payload: +data.id });
+        }
 
-      if (data.action === "reload") {
-        dispatch({ type: "LOAD_CONTACTS", payload: data.records });
+        if (data.action === "reload") {
+          dispatch({ type: "LOAD_CONTACTS", payload: data.records });
+        }
       }
+      safeSocketOn(socket, `company-${companyId}-ContactListItem`, onCompanyContactLists);
+
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-ContactListItem`, onCompanyContactLists);
+      };
     }
-    socket.on(`company-${companyId}-ContactListItem`, onCompanyContactLists);
-
-    return () => {
-      socket.off(`company-${companyId}-ContactListItem`, onCompanyContactLists);
-    };
-  }, [contactListId]);
+  }, [contactListId, socket, user.companyId]);
 
   const handleSearch = (event) => {
     setSearchParam(event.target.value.toLowerCase());

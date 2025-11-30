@@ -12,6 +12,7 @@ import { i18n } from "../../translate/i18n.js";
 import toastError from "../../errors/toastError";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -58,22 +59,24 @@ const Settings = () => {
     const companyId = user.companyId;
     // const socket = socketManager.GetSocket();
 
-    const onSettingsEvent = (data) => {
-      if (data.action === "update") {
-        setSettings((prevState) => {
-          const aux = [...prevState];
-          const settingIndex = aux.findIndex((s) => s.key === data.setting.key);
-          aux[settingIndex].value = data.setting.value;
-          return aux;
-        });
-      }
-    };
-    socket.on(`company-${companyId}-settings`, onSettingsEvent);
+    if (isSocketValid(socket) && companyId) {
+      const onSettingsEvent = (data) => {
+        if (data.action === "update") {
+          setSettings((prevState) => {
+            const aux = [...prevState];
+            const settingIndex = aux.findIndex((s) => s.key === data.setting.key);
+            aux[settingIndex].value = data.setting.value;
+            return aux;
+          });
+        }
+      };
+      safeSocketOn(socket, `company-${companyId}-settings`, onSettingsEvent);
 
-    return () => {
-      socket.off(`company-${companyId}-settings`, onSettingsEvent);
-    };
-  }, [socket]);
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-settings`, onSettingsEvent);
+      };
+    }
+  }, [socket, companyId]);
 
   const handleChangeSetting = async (e) => {
     const selectedValue = e.target.value;

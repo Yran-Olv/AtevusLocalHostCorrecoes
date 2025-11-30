@@ -40,6 +40,7 @@ import { useDate } from "../../hooks/useDate";
 import ForbiddenPage from "../../components/ForbiddenPage";
 import usePlans from "../../hooks/usePlans";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_CAMPAIGNS") {
@@ -148,23 +149,25 @@ const Campaigns = () => {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    const companyId = user.companyId;
-    // const socket = socketManager.GetSocket();
+    if (isSocketValid(socket) && user.companyId) {
+      const companyId = user.companyId;
+      // const socket = socketManager.GetSocket();
 
-    const onCompanyCampaign = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_CAMPAIGNS", payload: data.record });
+      const onCompanyCampaign = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_CAMPAIGNS", payload: data.record });
+        }
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_CAMPAIGN", payload: +data.id });
+        }
       }
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_CAMPAIGN", payload: +data.id });
-      }
+
+      safeSocketOn(socket, `company-${companyId}-campaign`, onCompanyCampaign);
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-campaign`, onCompanyCampaign);
+      };
     }
-
-    socket.on(`company-${companyId}-campaign`, onCompanyCampaign);
-    return () => {
-      socket.off(`company-${companyId}-campaign`, onCompanyCampaign);
-    };
-  }, [user]);
+  }, [user, socket]);
 
   const fetchCampaigns = async () => {
     try {

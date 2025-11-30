@@ -28,6 +28,7 @@ import { has, isObject } from "lodash";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import withWidth, { isWidthUp } from "@material-ui/core/withWidth";
 import { i18n } from "../../translate/i18n";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const useStyles = makeStyles((theme) => ({
   mainContainer: {
@@ -400,19 +401,21 @@ function Chat(props) {
       }
     };
 
-    socket.on(`company-${companyId}-chat-user-${user.id}`, onChatUser);
-    socket.on(`company-${companyId}-chat`, onChat);
-    if (isObject(currentChat) && has(currentChat, "id")) {
-      socket.on(`company-${companyId}-chat-${currentChat.id}`, onCurrentChat);
-    }
-
-    return () => {
-      socket.off(`company-${companyId}-chat-user-${user.id}`, onChatUser);
-      socket.off(`company-${companyId}-chat`, onChat);
+    if (isSocketValid(socket) && companyId && user?.id) {
+      safeSocketOn(socket, `company-${companyId}-chat-user-${user.id}`, onChatUser);
+      safeSocketOn(socket, `company-${companyId}-chat`, onChat);
       if (isObject(currentChat) && has(currentChat, "id")) {
-        socket.off(`company-${companyId}-chat-${currentChat.id}`, onCurrentChat);
+        safeSocketOn(socket, `company-${companyId}-chat-${currentChat.id}`, onCurrentChat);
       }
-    };
+
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-chat-user-${user.id}`, onChatUser);
+        safeSocketOff(socket, `company-${companyId}-chat`, onChat);
+        if (isObject(currentChat) && has(currentChat, "id")) {
+          safeSocketOff(socket, `company-${companyId}-chat-${currentChat.id}`, onCurrentChat);
+        }
+      };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChat]);
 

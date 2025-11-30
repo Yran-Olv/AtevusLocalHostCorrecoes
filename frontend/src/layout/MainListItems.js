@@ -50,6 +50,7 @@ import {
 
 import { WhatsAppsContext } from "../context/WhatsApp/WhatsAppsContext";
 import { AuthContext } from "../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../utils/socketHelper";
 import { useActiveMenu } from "../context/ActiveMenuContext";
 
 import { Can } from "../components/Can";
@@ -322,7 +323,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    if (user.id) {
+    if (user.id && isSocketValid(socket)) {
       const companyId = user.companyId;
       //    const socket = socketManager.GetSocket();
       // console.log('socket nListItems')
@@ -335,12 +336,12 @@ const MainListItems = ({ collapsed, drawerClose }) => {
         }
       };
 
-      socket.on(`company-${companyId}-chat`, onCompanyChatMainListItems);
+      safeSocketOn(socket, `company-${companyId}-chat`, onCompanyChatMainListItems);
       return () => {
-        socket.off(`company-${companyId}-chat`, onCompanyChatMainListItems);
+        safeSocketOff(socket, `company-${companyId}-chat`, onCompanyChatMainListItems);
       };
     }
-  }, [socket]);
+  }, [socket, user.id, user.companyId]);
 
   useEffect(() => {
     let unreadsCount = 0;

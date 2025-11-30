@@ -28,6 +28,7 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import ForbiddenPage from "../../components/ForbiddenPage";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const useStyles = makeStyles((theme) => ({
   mainPaper: {
@@ -116,21 +117,22 @@ const Queues = () => {
   }, []);
 
   useEffect(() => {
+    if (isSocketValid(socket) && companyId) {
+      const onQueueEvent = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_QUEUES", payload: data.queue });
+        }
 
-    const onQueueEvent = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_QUEUES", payload: data.queue });
-      }
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_QUEUE", payload: data.queueId });
+        }
+      };
+      safeSocketOn(socket, `company-${companyId}-queue`, onQueueEvent);
 
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_QUEUE", payload: data.queueId });
-      }
-    };
-    socket.on(`company-${companyId}-queue`, onQueueEvent);
-
-    return () => {
-      socket.off(`company-${companyId}-queue`, onQueueEvent);
-    };
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-queue`, onQueueEvent);
+      };
+    }
   }, [socket, companyId]);
 
   const handleOpenQueueModal = () => {

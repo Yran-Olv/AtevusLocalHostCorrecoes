@@ -36,6 +36,7 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import ForbiddenPage from "../../components/ForbiddenPage";
 
 const reducer = (state, action) => {
@@ -135,23 +136,25 @@ const FileLists = () => {
     }, [searchParam, pageNumber, fetchFileLists]);
 
     useEffect(() => {
-        // const socket = socketManager.GetSocket(user.companyId, user.id);
+        if (isSocketValid(socket) && user.companyId) {
+          // const socket = socketManager.GetSocket(user.companyId, user.id);
 
-        const onFileEvent = (data) => {
-            if (data.action === "update" || data.action === "create") {
-                dispatch({ type: "UPDATE_FILES", payload: data.files });
-            }
+          const onFileEvent = (data) => {
+              if (data.action === "update" || data.action === "create") {
+                  dispatch({ type: "UPDATE_FILES", payload: data.files });
+              }
 
-            if (data.action === "delete") {
-                dispatch({ type: "DELETE_FILE", payload: +data.fileId });
-            }
-        };
+              if (data.action === "delete") {
+                  dispatch({ type: "DELETE_FILE", payload: +data.fileId });
+              }
+          };
 
-        socket.on(`company-${user.companyId}-file`, onFileEvent);
-        return () => {
-            socket.off(`company-${user.companyId}-file`, onFileEvent);
-        };
-    }, [socket]);
+          safeSocketOn(socket, `company-${user.companyId}-file`, onFileEvent);
+          return () => {
+              safeSocketOff(socket, `company-${user.companyId}-file`, onFileEvent);
+          };
+        }
+    }, [socket, user.companyId]);
 
     const handleOpenFileListModal = () => {
         setSelectedFileList(null);

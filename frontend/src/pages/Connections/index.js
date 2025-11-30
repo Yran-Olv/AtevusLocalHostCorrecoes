@@ -55,6 +55,7 @@ import { WhatsAppsContext } from "../../context/WhatsApp/WhatsAppsContext";
 import toastError from "../../errors/toastError";
 import formatSerializedId from '../../utils/formatSerializedId';
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import usePlans from "../../hooks/usePlans";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import ForbiddenPage from "../../components/ForbiddenPage";
@@ -223,16 +224,22 @@ const Connections = () => {
   };
 
   useEffect(() => {
-    // const socket = socketManager.GetSocket();
-    socket.on(`importMessages-${user.companyId}`, (data) => {
-      if (data.action === "refresh") {
-        setStatusImport([]);
-        history.go(0);
-      }
-      if (data.action === "update") {
-        setStatusImport(data.status);
-      }
-    });
+    if (isSocketValid(socket) && user.companyId) {
+      // const socket = socketManager.GetSocket();
+      safeSocketOn(socket, `importMessages-${user.companyId}`, (data) => {
+        if (data.action === "refresh") {
+          setStatusImport([]);
+          history.go(0);
+        }
+        if (data.action === "update") {
+          setStatusImport(data.status);
+        }
+      });
+
+      return () => {
+        safeSocketOff(socket, `importMessages-${user.companyId}`);
+      };
+    }
 
     /* return () => {
       socket.disconnect();

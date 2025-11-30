@@ -19,6 +19,7 @@ import toastError from "../../errors/toastError";
 import moment from "moment";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import usePlans from "../../hooks/usePlans";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "moment/locale/pt-br";
@@ -226,12 +227,14 @@ const Schedules = () => {
       }
     }
 
-    socket.on(`company${user.companyId}-schedule`, onCompanySchedule)
+    if (isSocketValid(socket) && user.companyId) {
+      safeSocketOn(socket, `company${user.companyId}-schedule`, onCompanySchedule);
 
-    return () => {
-      socket.off(`company${user.companyId}-schedule`, onCompanySchedule)
-    };
-  }, [socket]);
+      return () => {
+        safeSocketOff(socket, `company${user.companyId}-schedule`, onCompanySchedule);
+      };
+    }
+  }, [socket, user.companyId]);
 
   const cleanContact = () => {
     setContactId("");

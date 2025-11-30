@@ -39,6 +39,7 @@ import { useDate } from "../hooks/useDate";
 import ColorModeContext from "./themeContext";
 import { getBackendUrl } from "../config";
 import useSettings from "../hooks/useSettings";
+import { safeSocketOn, safeSocketOff, safeSocketEmit, isSocketValid } from "../utils/socketHelper";
 
 // import { SocketContext } from "../context/Socket/SocketContext";
 
@@ -450,17 +451,19 @@ const LoggedInLayout = ({ children, themeToggle }) => {
         }
       }
 
-      socket.on(`company-${companyId}-auth`, onCompanyAuthLayout);
+      if (isSocketValid(socket)) {
+        safeSocketOn(socket, `company-${companyId}-auth`, onCompanyAuthLayout);
 
-      socket.emit("userStatus");
-      const interval = setInterval(() => {
-        socket.emit("userStatus");
-      }, 1000 * 60 * 5);
+        safeSocketEmit(socket, "userStatus");
+        const interval = setInterval(() => {
+          safeSocketEmit(socket, "userStatus");
+        }, 1000 * 60 * 5);
 
-      return () => {
-        socket.off(`company-${companyId}-auth`, onCompanyAuthLayout);
-        clearInterval(interval);
-      };
+        return () => {
+          safeSocketOff(socket, `company-${companyId}-auth`, onCompanyAuthLayout);
+          clearInterval(interval);
+        };
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);

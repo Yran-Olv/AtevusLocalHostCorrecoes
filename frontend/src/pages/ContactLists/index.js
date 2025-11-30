@@ -36,6 +36,7 @@ import { Grid } from "@material-ui/core";
 import planilhaExemplo from "../../assets/planilha.xlsx";
 // import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_CONTACTLISTS") {
@@ -133,25 +134,27 @@ const ContactLists = () => {
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    const companyId = user.companyId;
-    // const socket = socketManager.GetSocket();
+    if (isSocketValid(socket) && user.companyId) {
+      const companyId = user.companyId;
+      // const socket = socketManager.GetSocket();
 
-    const onContactListEvent = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_CONTACTLIST", payload: data.record });
-      }
+      const onContactListEvent = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_CONTACTLIST", payload: data.record });
+        }
 
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_CONTACTLIST", payload: +data.id });
-      }
-    };
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_CONTACTLIST", payload: +data.id });
+        }
+      };
 
-    socket.on(`company-${companyId}-ContactList`, onContactListEvent);
+      safeSocketOn(socket, `company-${companyId}-ContactList`, onContactListEvent);
 
-    return () => {
-      socket.off(`company-${companyId}-ContactList`, onContactListEvent);
-    };
-  }, []);
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-ContactList`, onContactListEvent);
+      };
+    }
+  }, [socket, user.companyId]);
 
   const handleOpenContactListModal = () => {
     setSelectedContactList(null);

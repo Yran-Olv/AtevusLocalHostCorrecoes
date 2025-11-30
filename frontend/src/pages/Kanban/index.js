@@ -6,6 +6,7 @@ import Board from 'react-trello';
 import { toast } from "react-toastify";
 import { i18n } from "../../translate/i18n";
 import { useHistory } from 'react-router-dom';
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import { Facebook, Instagram, WhatsApp } from "@material-ui/icons";
 import { Badge, Tooltip, Typography, Button, TextField, Box } from "@material-ui/core";
 import { format, isSameDay, parseISO } from "date-fns";
@@ -106,20 +107,22 @@ const Kanban = () => {
   };
 
   useEffect(() => {
-    const companyId = user.companyId;
-    const onAppMessage = (data) => {
-      if (data.action === "create" || data.action === "update" || data.action === "delete") {
-        fetchTickets();
-      }
-    };
-    socket.on(`company-${companyId}-ticket`, onAppMessage);
-    socket.on(`company-${companyId}-appMessage`, onAppMessage);
+    if (isSocketValid(socket) && user.companyId) {
+      const companyId = user.companyId;
+      const onAppMessage = (data) => {
+        if (data.action === "create" || data.action === "update" || data.action === "delete") {
+          fetchTickets();
+        }
+      };
+      safeSocketOn(socket, `company-${companyId}-ticket`, onAppMessage);
+      safeSocketOn(socket, `company-${companyId}-appMessage`, onAppMessage);
 
-    return () => {
-      socket.off(`company-${companyId}-ticket`, onAppMessage);
-      socket.off(`company-${companyId}-appMessage`, onAppMessage);
-    };
-  }, [socket, startDate, endDate]);
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-ticket`, onAppMessage);
+        safeSocketOff(socket, `company-${companyId}-appMessage`, onAppMessage);
+      };
+    }
+  }, [socket, startDate, endDate, user.companyId]);
 
   const handleSearchClick = () => {
     fetchTickets();

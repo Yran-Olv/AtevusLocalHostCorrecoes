@@ -17,6 +17,7 @@ import MainContainer from "../../components/MainContainer";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import NewTicketModal from "../../components/NewTicketModal";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import { SocketContext } from "../../context/Socket/SocketContext";
 
 import {
@@ -178,17 +179,23 @@ const FlowDefault = () => {
   useEffect(() => {
     const companyId = localStorage.getItem("companyId");
 
-    const onContact = (data) => {
-      if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_CONTACTS", payload: data.contact });
+    if (isSocketValid(socket) && companyId) {
+      const onContact = (data) => {
+        if (data.action === "update" || data.action === "create") {
+          dispatch({ type: "UPDATE_CONTACTS", payload: data.contact });
+        }
+
+        if (data.action === "delete") {
+          dispatch({ type: "DELETE_CONTACT", payload: +data.contactId });
+        }
       }
 
-      if (data.action === "delete") {
-        dispatch({ type: "DELETE_CONTACT", payload: +data.contactId });
-      }
+      safeSocketOn(socket, `company-${companyId}-contact`, onContact);
+
+      return () => {
+        safeSocketOff(socket, `company-${companyId}-contact`, onContact);
+      };
     }
-
-    socket.on(`company-${companyId}-contact`, onContact);
 
     getFlows().then(res => {
       getFlowsDefault(res)

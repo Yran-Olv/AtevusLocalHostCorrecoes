@@ -7,6 +7,7 @@ import { FaCopy, FaCheckCircle } from 'react-icons/fa';
 import { useDate } from "../../../hooks/useDate";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../../utils/socketHelper";
 
 function CheckoutSuccess(props) {
 
@@ -22,7 +23,7 @@ function CheckoutSuccess(props) {
 
   useEffect(() => {
     const companyId = user.companyId;
-    if (companyId) {
+    if (companyId && isSocketValid(socket)) {
       // const socket = socketManager.GetSocket();
 
       const onCompanyPayment = (data) => {
@@ -35,13 +36,13 @@ function CheckoutSuccess(props) {
         }
       }
 
-      socket.on(`company-${companyId}-payment`, onCompanyPayment);
+      safeSocketOn(socket, `company-${companyId}-payment`, onCompanyPayment);
 
       return () => {
-        socket.off(`company-${companyId}-payment`, onCompanyPayment);
+        safeSocketOff(socket, `company-${companyId}-payment`, onCompanyPayment);
       }
     }
-  }, [socket]);
+  }, [socket, user.companyId, history, dateToClient]);
 
   const handleCopyQR = () => {
     setTimeout(() => {

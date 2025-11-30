@@ -7,6 +7,7 @@ import { i18n } from "../../translate/i18n";
 import api from "../../services/api";
 
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -35,7 +36,7 @@ const QrcodeModal = ({ open, onClose, whatsAppId }) => {
   }, [whatsAppId]);
 
   useEffect(() => {
-    if (!whatsAppId) return;
+    if (!whatsAppId || !isSocketValid(socket)) return;
     const companyId = user.companyId;
     // const socket = socketConnection({ companyId, userId: user.id });
 
@@ -48,12 +49,12 @@ const QrcodeModal = ({ open, onClose, whatsAppId }) => {
         onClose();
       }
     }
-    socket.on(`company-${companyId}-whatsappSession`, onWhatsappData);
+    safeSocketOn(socket, `company-${companyId}-whatsappSession`, onWhatsappData);
 
     return () => {
-      socket.off(`company-${companyId}-whatsappSession`, onWhatsappData);
+      safeSocketOff(socket, `company-${companyId}-whatsappSession`, onWhatsappData);
     };
-  }, [whatsAppId, onClose]);
+  }, [whatsAppId, onClose, socket, user.companyId]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" scroll="paper">
