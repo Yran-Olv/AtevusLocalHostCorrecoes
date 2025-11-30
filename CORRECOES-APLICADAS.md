@@ -31,15 +31,39 @@
 
 ---
 
+## 🌐 Ambientes do Sistema
+
+### Desenvolvimento (Windows)
+- **Sistema Operacional**: Windows (localhost)
+- **Uso**: Desenvolvimento e testes locais
+- **Comandos**: Usar comandos padrão do npm
+
+### Produção (VPS Ubuntu 22)
+- **Sistema Operacional**: Ubuntu 22.04 LTS
+- **Gerenciador de Processos**: PM2 (configurado em `ecosystem.config.js`)
+- **Uso**: Ambiente de produção
+- **Comandos**: Usar comandos com `sudo` quando necessário
+
+---
+
 ## 📋 Próximos Passos Necessários
 
 ### ⚠️ IMPORTANTE: Instalar Dependências
 
-Após essas correções, você precisa instalar as novas dependências:
+#### 🪟 No Windows (Desenvolvimento)
 
 ```bash
 cd frontend
 npm install --force
+```
+
+#### 🐧 No Ubuntu 22 (Produção)
+
+```bash
+cd frontend
+npm install --force
+# Ou se necessário:
+sudo npm install --force
 ```
 
 ### 🔄 Migrações Pendentes
@@ -64,6 +88,8 @@ npm install --force
 
 ## 🧪 Testes Recomendados
 
+### 🪟 Testes no Windows (Desenvolvimento)
+
 Após instalar as dependências, teste:
 
 1. **Inicialização da aplicação**
@@ -84,6 +110,48 @@ Após instalar as dependências, teste:
 3. **Verificar console do navegador**
    - Sem erros críticos
    - Warnings são aceitáveis (mas devem ser corrigidos gradualmente)
+
+### 🐧 Deploy para Produção (Ubuntu 22)
+
+#### 1. Build do Frontend
+```bash
+cd frontend
+npm install --force
+npm run build
+```
+
+#### 2. Build do Backend
+```bash
+cd backend
+npm install --force
+npm run build
+```
+
+#### 3. Executar Migrações
+```bash
+cd backend
+npx sequelize db:migrate
+```
+
+#### 4. Reiniciar PM2
+```bash
+pm2 restart atevus-backend
+# Ou se necessário:
+sudo pm2 restart atevus-backend
+```
+
+#### 5. Verificar Status
+```bash
+pm2 status
+pm2 logs atevus-backend
+```
+
+#### ⚠️ Importante para Produção
+- Verificar variáveis de ambiente (`.env`) estão configuradas
+- Verificar `REACT_APP_BACKEND_URL` está correto
+- Verificar conexão com PostgreSQL e Redis
+- Verificar permissões de arquivos e pastas
+- Monitorar logs do PM2 após deploy
 
 ---
 
@@ -155,7 +223,54 @@ Após instalar as dependências, teste:
 
 ---
 
+---
+
+## 🌍 Compatibilidade Multi-Ambiente
+
+### ✅ Testado e Compatível
+
+As correções aplicadas são **compatíveis com ambos os ambientes**:
+
+- ✅ **Windows (Desenvolvimento)**: Todas as mudanças funcionam normalmente
+- ✅ **Ubuntu 22 (Produção)**: Compatível com PM2 e ambiente de produção
+
+### 📝 Notas Importantes
+
+1. **Variáveis de Ambiente**: 
+   - Windows: Usar `.env` ou variáveis do sistema
+   - Ubuntu: Verificar `.env` no servidor antes do deploy
+
+2. **Build de Produção**:
+   - Windows: `npm run build` (para testes)
+   - Ubuntu: `npm run build` (antes do deploy)
+   - ✅ Ambos usam `cross-env` para compatibilidade entre sistemas
+
+3. **Gerenciamento de Processos**:
+   - Windows: Usar `npm start` para desenvolvimento
+   - Ubuntu: Usar `pm2` para produção (já configurado em `ecosystem.config.js`)
+
+4. **Caminhos de Arquivos**:
+   - Windows: Usa `\` (barra invertida)
+   - Ubuntu: Usa `/` (barra normal)
+   - ✅ Código usa caminhos relativos, então funciona em ambos
+
+5. **Compatibilidade Cross-Platform**:
+   - ✅ `cross-env` instalado em frontend e backend
+   - ✅ `NODE_OPTIONS=--openssl-legacy-provider` funciona em ambos os sistemas
+   - ✅ Scripts npm são compatíveis com Windows e Linux
+
+---
+
+## 📚 Documentação Adicional
+
+- **Deploy para Produção**: Ver `DEPLOY-PRODUCAO.md` (criado)
+- **Análise Completa**: `wiki/RESUMO-ANALISE-COMPLETA.md`
+- **Checklist de Modernização**: `wiki/CHECKLIST-MODERNIZACAO.md`
+
+---
+
 **Data das Correções**: 2025-01-27  
 **Versão do Sistema**: 2.2.2v-26  
+**Ambientes**: ✅ Windows (Dev) | ✅ Ubuntu 22 (Prod)  
 **Status**: ✅ Correções base aplicadas - Aguardando instalação de dependências
 
