@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useTheme } from "@material-ui/core/styles";
 import {
 	CartesianGrid,
 	XAxis,
@@ -12,13 +11,10 @@ import {
 	Legend,
 } from "recharts";
 import { startOfHour, parseISO, format } from "date-fns";
-
-import Title from "./Title";
 import useTickets from "../../hooks/useTickets";
+import "./style.css";
 
 const Chart = ({ dateStartTicket, dateEndTicket, queueTicket }) => {
-	const theme = useTheme();
-
 	const { tickets, count } = useTickets({
 		dateStart: dateStartTicket,
 		dateEnd: dateEndTicket,
@@ -68,53 +64,83 @@ const Chart = ({ dateStartTicket, dateEndTicket, queueTicket }) => {
 	}, [tickets]);
 
 	return (
-		<React.Fragment>
-			<Title>{`${"Atendimentos Criados: "}${count}`}</Title>
-			<ResponsiveContainer>
-				<LineChart
-					data={chartData}
-					width={730}
-					height={250}
-					margin={{
-						top: 5,
-						right: 30,
-						left: 20,
-						bottom: 5,
-					}}
-				>
-					<CartesianGrid strokeDasharray="3 3" />
-					<XAxis
-						dataKey="time"
-						stroke={theme.palette.text.secondary}
-					/>
-					<YAxis
-						type="number"
-						allowDecimals={false}
-						stroke={theme.palette.text.secondary}
+		<div className="dashboard-chart-wrapper">
+			<h3 className="dashboard-chart-title">
+				Atendimentos Criados: <span className="dashboard-chart-count">{count}</span>
+			</h3>
+			<div className="dashboard-chart-container-inner">
+				<ResponsiveContainer width="100%" height={300}>
+					<LineChart
+						data={chartData}
+						margin={{
+							top: 20,
+							right: 30,
+							left: 20,
+							bottom: 20,
+						}}
 					>
-						<Tooltip />
-						<Legend />
-						<Label
-							angle={270}
-							position="left"
-							style={{
-								textAnchor: "middle",
-								fill: theme.palette.text.primary,
-							}}
+						<CartesianGrid 
+							strokeDasharray="3 3" 
+							stroke="var(--dashboard-border)"
+							opacity={0.3}
+						/>
+						<XAxis
+							dataKey="time"
+							stroke="var(--dashboard-text-light)"
+							fontSize={12}
+							tick={{ fill: "var(--dashboard-text-light)" }}
+						/>
+						<YAxis
+							type="number"
+							allowDecimals={false}
+							stroke="var(--dashboard-text-light)"
+							fontSize={12}
+							tick={{ fill: "var(--dashboard-text-light)" }}
 						>
-							Tickets
-						</Label>
-					</YAxis>
-					<Line
-						type="monotone"
-						dataKey="amount"
-						stroke="#8884d8"
-						strokeWidth={2}
-					// fill={theme.palette.primary.main}
-					/>
-				</LineChart>
-			</ResponsiveContainer>
-		</React.Fragment>
+							<Label
+								angle={270}
+								position="left"
+								style={{
+									textAnchor: "middle",
+									fill: "var(--dashboard-text)",
+									fontSize: "0.875rem",
+									fontWeight: 500,
+								}}
+							>
+								Tickets
+							</Label>
+						</YAxis>
+						<Tooltip
+							contentStyle={{
+								backgroundColor: "var(--dashboard-card-bg)",
+								border: "1px solid var(--dashboard-border)",
+								borderRadius: "8px",
+								color: "var(--dashboard-text)",
+								boxShadow: "0 4px 12px var(--dashboard-shadow)",
+							}}
+							labelStyle={{
+								color: "var(--dashboard-text)",
+								fontWeight: 600,
+							}}
+						/>
+						<Legend
+							wrapperStyle={{
+								color: "var(--dashboard-text)",
+								fontSize: "0.875rem",
+							}}
+						/>
+						<Line
+							type="monotone"
+							dataKey="amount"
+							stroke="var(--dashboard-primary)"
+							strokeWidth={3}
+							dot={{ fill: "var(--dashboard-primary)", r: 4 }}
+							activeDot={{ r: 6, fill: "var(--dashboard-primary-light)" }}
+						/>
+					</LineChart>
+				</ResponsiveContainer>
+			</div>
+		</div>
 	);
 };
 

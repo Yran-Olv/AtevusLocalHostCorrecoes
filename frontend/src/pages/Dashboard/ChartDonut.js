@@ -1,9 +1,9 @@
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Customized } from 'recharts';
-
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import "./style.css";
 
 const DonutChart = (props) => {
-  const {title, value, data , color} = props;
+  const { title, value, data, color } = props;
   
   const data1 = JSON.parse(`[${String(data).replace(/'/g, '"')}]`);
   
@@ -16,16 +16,24 @@ const DonutChart = (props) => {
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
   
     return (
-      <text x={x} y={y} fill="#000" textAnchor='middle'  dominantBaseline="middle" fontWeight="bold">
-        <tspan fontWeight="bold">{`${title}`}</tspan> 
-        <tspan x={x +1} y={y} dy="1.2em" fontWeight="bold">{`${value}%`}</tspan>
+      <text 
+        x={x} 
+        y={y} 
+        fill="var(--dashboard-text)" 
+        textAnchor='middle' 
+        dominantBaseline="middle" 
+        fontWeight="bold"
+        fontSize="0.875rem"
+      >
+        <tspan fontWeight="600" fontSize="0.75rem" fill="var(--dashboard-text-light)">{`${title}`}</tspan> 
+        <tspan x={x} y={y} dy="1.2em" fontWeight="700" fontSize="1.1rem" fill="var(--dashboard-primary)">{`${value}%`}</tspan>
       </text>
     );
   };
 
   return (
-    <div>
-       <ResponsiveContainer width={300} height={300}>
+    <div className="dashboard-donut-chart">
+      <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
             data={data1}
@@ -48,4 +56,5 @@ const DonutChart = (props) => {
     </div>
   );
 };
+
 export default DonutChart;

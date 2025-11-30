@@ -1,11 +1,15 @@
 import React from "react";
-import Typography from "@material-ui/core/Typography";
+import "./style.css";
 
-const Title = props => {
+/**
+ * Componente de título customizado para substituir o Typography do Material-UI
+ * Mantido para compatibilidade com código legado
+ */
+const Title = (props) => {
 	return (
-		<Typography component="h2" variant="h6" color="primary" gutterBottom>
+		<h2 className="dashboard-title">
 			{props.children}
-		</Typography>
+		</h2>
 	);
 };
 
