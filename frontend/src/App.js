@@ -4,6 +4,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ptBR } from "@mui/material/locale";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider as MuiStylesThemeProvider } from "@mui/styles";
+import { ThemeProvider as MaterialUIThemeProvider } from "@material-ui/styles";
 import { useMediaQuery } from "@mui/material";
 import ColorModeContext from "./layout/themeContext";
 import { ActiveMenuProvider } from "./context/ActiveMenuContext";
@@ -80,7 +82,26 @@ const App = () => {
           },
           palette: {
             mode,
-            primary: { main: mode === "light" ? primaryColorLight : primaryColorDark },
+            primary: { 
+              main: mode === "light" ? primaryColorLight : primaryColorDark,
+              light: mode === "light" ? primaryColorLight : primaryColorDark,
+              dark: mode === "light" ? primaryColorDark : primaryColorLight,
+            },
+            secondary: {
+              main: mode === "light" ? "#f50057" : "#f48fb1",
+            },
+            error: {
+              main: "#f44336",
+            },
+            warning: {
+              main: "#ff9800",
+            },
+            info: {
+              main: "#2196f3",
+            },
+            success: {
+              main: "#4caf50",
+            },
             textPrimary: mode === "light" ? primaryColorLight : primaryColorDark,
             borderPrimary: mode === "light" ? primaryColorLight : primaryColorDark,
             dark: { main: mode === "light" ? "#333333" : "#F3F3F3" },
@@ -93,6 +114,14 @@ const App = () => {
             messageIcons: mode === "light" ? "grey" : "#F3F3F3",
             inputBackground: mode === "light" ? "#FFFFFF" : "#333",
             barraSuperior: mode === "light" ? primaryColorLight : "#666",
+            background: {
+              paper: mode === "light" ? "#fff" : "#424242",
+              default: mode === "light" ? "#fafafa" : "#303030",
+            },
+            text: {
+              primary: mode === "light" ? "rgba(0, 0, 0, 0.87)" : "#fff",
+              secondary: mode === "light" ? "rgba(0, 0, 0, 0.6)" : "rgba(255, 255, 255, 0.7)",
+            },
           },
           mode,
           appLogoLight,
@@ -205,11 +234,15 @@ const App = () => {
       <Favicon url={appLogoFavicon ? getBackendUrl() + "/public/" + appLogoFavicon : defaultLogoFavicon} />
       <ColorModeContext.Provider value={{ colorMode }}>
         <ThemeProvider theme={theme}>
-          <QueryClientProvider client={queryClient}>
-            <ActiveMenuProvider>
-              <Routes />
-            </ActiveMenuProvider>
-          </QueryClientProvider>
+          <MuiStylesThemeProvider theme={theme}>
+            <MaterialUIThemeProvider theme={theme}>
+              <QueryClientProvider client={queryClient}>
+                <ActiveMenuProvider>
+                  <Routes />
+                </ActiveMenuProvider>
+              </QueryClientProvider>
+            </MaterialUIThemeProvider>
+          </MuiStylesThemeProvider>
         </ThemeProvider>
       </ColorModeContext.Provider>
     </>
