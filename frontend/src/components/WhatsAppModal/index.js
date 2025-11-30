@@ -203,8 +203,10 @@ const WhatsAppModal = ({ open, onClose, whatsAppId }) => {
       const companyId = user.companyId;
       const planConfigs = await getPlanCompany(undefined, companyId);
 
-      setShowOpenAi(planConfigs.plan.useOpenAi);
-      setShowIntegrations(planConfigs.plan.useIntegrations);
+      if (planConfigs && planConfigs.plan) {
+        setShowOpenAi(planConfigs.plan.useOpenAi || false);
+        setShowIntegrations(planConfigs.plan.useIntegrations || false);
+      }
     }
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps

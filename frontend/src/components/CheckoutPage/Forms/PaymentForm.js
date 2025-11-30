@@ -95,22 +95,27 @@ export default function Pricing(props) {
       const companyId = user.companyId;
       const _planList = await getPlanCompany(undefined, companyId);
 
-      const planList = _planList.plan;
+      const planList = _planList && _planList.plan ? _planList.plan : null;
+
+      if (!planList) {
+        setLoading(false);
+        return;
+      }
 
       const plans = []
 
       plans.push({
-        title: planList.name,
-        planId: planList.id,
-        price: planList.amount,
+        title: planList.name || "",
+        planId: planList.id || 0,
+        price: planList.amount || 0,
         description: [
-          `${planList.users} Usuários`,
-          `${planList.connections} Conexão`,
-          `${planList.queues} Filas`
+          `${planList.users || 0} Usuários`,
+          `${planList.connections || 0} Conexão`,
+          `${planList.queues || 0} Filas`
         ],
-        users: planList.users,
-        connections: planList.connections,
-        queues: planList.queues,
+        users: planList.users || 0,
+        connections: planList.connections || 0,
+        queues: planList.queues || 0,
         buttonText: 'SELECIONAR',
         buttonVariant: 'outlined',
       })

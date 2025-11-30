@@ -64,7 +64,13 @@ const SignUp = () => {
         const planList = await getPlanList({ listPublic: "false" });
         setPlans(planList);
       } catch (err) {
-        toastError(err);
+        // Ignorar erro de rede se backend não estiver disponível
+        if (err.message === "Network Error") {
+          console.warn("Backend não disponível. Continuando sem planos.");
+          setPlans([]);
+        } else {
+          toastError(err);
+        }
       } finally {
         setLoading(false);
       }

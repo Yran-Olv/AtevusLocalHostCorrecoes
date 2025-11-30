@@ -302,13 +302,16 @@ const MainListItems = ({ collapsed, drawerClose }) => {
       const companyId = user.companyId;
       const planConfigs = await getPlanCompany(undefined, companyId);
 
-      setShowCampaigns(planConfigs.plan.useCampaigns);
-      setShowKanban(planConfigs.plan.useKanban);
-      setShowOpenAi(planConfigs.plan.useOpenAi);
-      setShowIntegrations(planConfigs.plan.useIntegrations);
-      setShowSchedules(planConfigs.plan.useSchedules);
-      setShowInternalChat(planConfigs.plan.useInternalChat);
-      setShowExternalApi(planConfigs.plan.useExternalApi);
+      // Verificar se planConfigs e plan existem antes de acessar propriedades
+      if (planConfigs && planConfigs.plan) {
+        setShowCampaigns(planConfigs.plan.useCampaigns || false);
+        setShowKanban(planConfigs.plan.useKanban || false);
+        setShowOpenAi(planConfigs.plan.useOpenAi || false);
+        setShowIntegrations(planConfigs.plan.useIntegrations || false);
+        setShowSchedules(planConfigs.plan.useSchedules || false);
+        setShowInternalChat(planConfigs.plan.useInternalChat || false);
+        setShowExternalApi(planConfigs.plan.useExternalApi || false);
+      }
     }
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps

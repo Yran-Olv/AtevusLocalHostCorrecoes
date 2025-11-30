@@ -48,11 +48,14 @@ const MessagesAPI = () => {
     async function fetchData() {
       const companyId = user.companyId;
       const planConfigs = await getPlanCompany(undefined, companyId);
-      if (!planConfigs.plan.useExternalApi) {
-        toast.error("Esta empresa não possui permissão para acessar essa página! Estamos lhe redirecionando.");
-        setTimeout(() => {
-          history.push(`/`)
-        }, 1000);
+      if (!planConfigs || !planConfigs.plan || !planConfigs.plan.useExternalApi) {
+        if (planConfigs && planConfigs.plan) {
+          toast.error("Esta empresa não possui permissão para acessar essa página! Estamos lhe redirecionando.");
+          setTimeout(() => {
+            history.push(`/`)
+          }, 1000);
+        }
+        // Se planConfigs estiver vazio (erro de rede), não redirecionar
       }
     }
     fetchData();

@@ -47,12 +47,27 @@ const usePlans = () => {
     }
 
     const getPlanCompany = async (params, id) => {
-        const { data } = await api.request({
-            url: `/companies/listPlan/${id}`,
-            method: 'GET',
-            params
-        });
-        return data;
+        // Se não houver ID, retornar objeto vazio sem fazer requisição
+        if (!id) {
+            return {};
+        }
+        
+        try {
+            const { data } = await api.request({
+                url: `/companies/listPlan/${id}`,
+                method: 'GET',
+                params
+            });
+            return data;
+        } catch (error) {
+            // Se erro de rede, retornar objeto vazio
+            if (error.message === "Network Error" || error.code === "ERR_NETWORK") {
+                console.warn("Erro de rede ao buscar plano da empresa. Verifique se o backend está rodando.");
+                return {};
+            }
+            // Para outros erros, ainda lançar para que o componente possa tratar
+            throw error;
+        }
     }
 
     return {

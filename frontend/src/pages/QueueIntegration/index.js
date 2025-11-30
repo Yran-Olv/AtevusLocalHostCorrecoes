@@ -129,11 +129,14 @@ const QueueIntegration = () => {
   useEffect(() => {
     async function fetchData() {
       const planConfigs = await getPlanCompany(undefined, companyId);
-      if (!planConfigs.plan.useIntegrations) {
-        toast.error("Esta empresa não possui permissão para acessar essa página! Estamos lhe redirecionando.");
-        setTimeout(() => {
-          history.push(`/`)
-        }, 1000);
+      if (!planConfigs || !planConfigs.plan || !planConfigs.plan.useIntegrations) {
+        if (planConfigs && planConfigs.plan) {
+          toast.error("Esta empresa não possui permissão para acessar essa página! Estamos lhe redirecionando.");
+          setTimeout(() => {
+            history.push(`/`)
+          }, 1000);
+        }
+        // Se planConfigs estiver vazio (erro de rede), não redirecionar
       }
     }
     fetchData();
