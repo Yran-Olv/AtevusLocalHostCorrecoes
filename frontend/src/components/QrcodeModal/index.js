@@ -44,17 +44,23 @@ const QrcodeModal = ({ open, onClose, whatsAppId }) => {
     }
   }, [whatsAppId, open, showPhoneModal]);
 
+  /**
+   * Listener para eventos de atualização da sessão do WhatsApp via Socket.IO
+   * Recebe atualizações em tempo real sobre QR Code, código de conexão e status
+   */
   useEffect(() => {
     if (!whatsAppId || !isSocketValid(socket) || !open) return;
     const companyId = user.companyId;
 
     const onWhatsappData = (data) => {
       if (data.action === "update" && data.session.id === whatsAppId) {
+        // Se receber novo QR Code, atualizar e parar loading
         if (data.session.qrcode) {
           setQrCode(data.session.qrcode);
           setIsLoading(false);
         }
         
+        // Se receber código de conexão, exibir tela de código
         if (data.session.connectionCode) {
           setConnectionCode(data.session.connectionCode);
           setRequiresCode(true);
@@ -62,18 +68,25 @@ const QrcodeModal = ({ open, onClose, whatsAppId }) => {
         }
       }
 
+      // Se a sessão foi conectada (QR Code foi escaneado ou código foi verificado), fechar modal
       if (data.action === "update" && data.session.qrcode === "" && data.session.status === "CONNECTED") {
         onClose();
       }
     }
     
+    // Registrar listener para eventos de sessão do WhatsApp
     safeSocketOn(socket, `company-${companyId}-whatsappSession`, onWhatsappData);
 
+    // Limpar listener quando o componente desmontar ou dependências mudarem
     return () => {
       safeSocketOff(socket, `company-${companyId}-whatsappSession`, onWhatsappData);
     };
   }, [whatsAppId, onClose, socket, user.companyId, open]);
 
+  /**
+   * Envia o número de telefone para o backend gerar código de conexão
+   * O backend retorna um código no formato XXXX-XXXX que deve ser inserido no WhatsApp do celular
+   */
   const handlePhoneConnect = async (e) => {
     e.preventDefault();
     
@@ -81,9 +94,10 @@ const QrcodeModal = ({ open, onClose, whatsAppId }) => {
       return;
     }
 
-    // Formatar número completo
+    // Formatar número completo: código do país + número (apenas dígitos)
     const fullPhoneNumber = countryCode + phoneNumber.replace(/\D/g, "");
     
+    // Validar se o número tem pelo menos 10 dígitos (DDD + número)
     if (phoneNumber.replace(/\D/g, "").length < 10) {
       alert("Por favor, insira um número de telefone válido");
       return;
@@ -91,16 +105,18 @@ const QrcodeModal = ({ open, onClose, whatsAppId }) => {
 
     setIsSubmitting(true);
     try {
+      // Enviar número para o backend gerar código de conexão
       const { data } = await api.post(`/whatsappsession/${whatsAppId}/phone`, {
         phoneNumber: fullPhoneNumber
       });
       
-      // Se retornar código de conexão, mostrar tela de código
+      // Se o backend retornar código de conexão, exibir tela de código
       if (data.connectionCode) {
         setConnectionCode(data.connectionCode);
         setRequiresCode(true);
         setIsSubmitting(false);
       } else if (data.note) {
+        // Se retornar nota informativa, mostrar mensagem e voltar para QR Code
         alert("A autenticação por número de telefone requer integração com WhatsApp Business API. Por favor, use o QR Code para conectar.");
         setShowPhoneModal(false);
         setPhoneNumber("");
@@ -118,9 +134,15 @@ const QrcodeModal = ({ open, onClose, whatsAppId }) => {
     }
   };
 
+  /**
+   * Verifica o código de conexão inserido pelo usuário
+   * NOTA: Esta funcionalidade completa requer integração com WhatsApp Business API
+   * Atualmente apenas valida o formato do código
+   */
   const handleVerifyCode = async (e) => {
     e.preventDefault();
     
+    // Validar se o código tem exatamente 6 dígitos
     if (!verificationCode.trim() || verificationCode.length !== 6) {
       alert("Por favor, insira o código de 6 dígitos");
       return;
@@ -128,12 +150,13 @@ const QrcodeModal = ({ open, onClose, whatsAppId }) => {
 
     setIsSubmitting(true);
     try {
+      // Enviar código para o backend verificar
       const { data } = await api.post(`/whatsappsession/${whatsAppId}/verify`, {
         code: verificationCode
       });
       
       if (data.message) {
-        // Aguardar conexão
+        // Código verificado - aguardar conexão ser estabelecida
         setShowPhoneModal(false);
       }
     } catch (err) {
@@ -160,11 +183,17 @@ const QrcodeModal = ({ open, onClose, whatsAppId }) => {
     setConnectionCode("");
   };
 
+  /**
+   * Formata o número de telefone para exibição
+   * Formato: +55 34 99919-8782
+   */
   const formatPhoneDisplay = () => {
     if (!phoneNumber) return "";
     const cleaned = phoneNumber.replace(/\D/g, "");
+    // Formatar conforme o tamanho do número
     if (cleaned.length <= 2) return countryCode + " " + cleaned;
     if (cleaned.length <= 7) return countryCode + " " + cleaned.slice(0, 2) + " " + cleaned.slice(2);
+    // Formato completo: +55 34 99919-8782
     return countryCode + " " + cleaned.slice(0, 2) + " " + cleaned.slice(2, 7) + "-" + cleaned.slice(7);
   };
 
