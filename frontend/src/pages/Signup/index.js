@@ -1,250 +1,306 @@
 import React, { useState, useEffect } from "react";
-import qs from 'query-string'
-
+import qs from 'query-string';
 import * as Yup from "yup";
 import { useHistory } from "react-router-dom";
 import { Link as RouterLink } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Formik, Form, Field } from "formik";
-
-import Avatar from "@material-ui/core/Avatar";
-import Button from "@material-ui/core/Button";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import TextField from "@material-ui/core/TextField";
-import Link from "@material-ui/core/Link";
-import Grid from "@material-ui/core/Grid";
-import Box from "@material-ui/core/Box";
-import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
-import Typography from "@material-ui/core/Typography";
-import { makeStyles } from "@material-ui/core/styles";
-import Container from "@material-ui/core/Container";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import usePlans from '../../hooks/usePlans';
 import { i18n } from "../../translate/i18n";
-import { FormControl } from "@material-ui/core";
-import { InputLabel, MenuItem, Select } from "@material-ui/core";
-
 import { openApi } from "../../services/api";
 import toastError from "../../errors/toastError";
-
-const useStyles = makeStyles(theme => ({
-    paper: {
-        marginTop: theme.spacing(8),
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        position: "relative", // Para garantir que a sobreposição se posicione corretamente
-    },
-    avatar: {
-        margin: theme.spacing(1),
-        backgroundColor: theme.palette.secondary.main,
-    },
-    form: {
-        width: "100%",
-        marginTop: theme.spacing(3),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-    overlay: {
-        position: "absolute", // Posiciona a sobreposição sobre o formulário
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)", // Fundo semitransparente
-        backdropFilter: "blur(5px)", // Efeito de desfoque
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        color: "white",
-        fontSize: "1.5rem",
-        fontWeight: "bold",
-        zIndex: 1, // Garante que fique acima do formulário
-    },
-}));
+import "../Login/style.css";
 
 const UserSchema = Yup.object().shape({
-    name: Yup.string()
-        .min(2, "Too Short!")
-        .max(50, "Too Long!")
-        .required("Required"),
-    companyName: Yup.string()
-        .min(2, "Too Short!")
-        .max(50, "Too Long!")
-        .required("Required"),
-    password: Yup.string().min(5, "Too Short!").max(50, "Too Long!"),
-    email: Yup.string().email("Invalid email").required("Required"),
-    phone: Yup.string().required("Required"),
+  name: Yup.string()
+    .min(2, "Muito curto!")
+    .max(50, "Muito longo!")
+    .required("Obrigatório"),
+  companyName: Yup.string()
+    .min(2, "Muito curto!")
+    .max(50, "Muito longo!")
+    .required("Obrigatório"),
+  password: Yup.string()
+    .min(5, "Mínimo 5 caracteres!")
+    .max(50, "Muito longo!")
+    .required("Obrigatório"),
+  email: Yup.string()
+    .email("Email inválido")
+    .required("Obrigatório"),
+  phone: Yup.string()
+    .required("Obrigatório"),
+  planId: Yup.string()
+    .required("Selecione um plano"),
 });
 
 const SignUp = () => {
-    const classes = useStyles();
-    const history = useHistory();
-    const { getPlanList } = usePlans();
-    const [plans, setPlans] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [isUnavailable, setIsUnavailable] = useState(true); // Controla a visibilidade da sobreposição
+  const history = useHistory();
+  const { getPlanList } = usePlans();
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isUnavailable, setIsUnavailable] = useState(false);
+  const [focusedFields, setFocusedFields] = useState({});
 
-    let companyId = null;
-    const params = qs.parse(window.location.search);
-    if (params.companyId !== undefined) {
-        companyId = params.companyId;
-    }
+  let companyId = null;
+  const params = qs.parse(window.location.search);
+  if (params.companyId !== undefined) {
+    companyId = params.companyId;
+  }
 
-    const initialState = { name: "", email: "", password: "", phone: "", companyId, companyName: "", planId: "" };
+  const initialState = { 
+    name: "", 
+    email: "", 
+    password: "", 
+    phone: "", 
+    companyId, 
+    companyName: "", 
+    planId: "" 
+  };
 
-    const [user] = useState(initialState);
-
-    useEffect(() => {
-        setLoading(true);
-        const fetchData = async () => {
-            const planList = await getPlanList({ listPublic: "false" });
-
-            setPlans(planList);
-            setLoading(false);
-        };
-        fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const handleSignUp = async values => {
-        try {
-            await openApi.post("/auth/signup", values);
-            toast.success(i18n.t("signup.toasts.success"));
-            history.push("/login");
-        } catch (err) {
-            toastError(err);
-        }
+  useEffect(() => {
+    setLoading(true);
+    const fetchData = async () => {
+      try {
+        const planList = await getPlanList({ listPublic: "false" });
+        setPlans(planList);
+      } catch (err) {
+        toastError(err);
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchData();
+  }, [getPlanList]);
 
-    return (
-        <Container component="main" maxWidth="xs">
-            <CssBaseline />
-            <div className={classes.paper}>
-                <Avatar className={classes.avatar}>
-                    <LockOutlinedIcon />
-                </Avatar>
-                <Typography component="h1" variant="h5">
-                    {i18n.t("signup.title")}
-                </Typography>
+  const handleSignUp = async (values) => {
+    try {
+      await openApi.post("/auth/signup", values);
+      toast.success(i18n.t("signup.toasts.success"));
+      history.push("/login");
+    } catch (err) {
+      toastError(err);
+    }
+  };
 
-                {/* Condição para mostrar a sobreposição */}
-                {isUnavailable && (
-                    <div className={classes.overlay}>
-                        Cadastro temporariamente indisponível
-                    </div>
-                )}
+  return (
+    <div className="multivus-login">
+      <div className="multivus-background">
+        <div className="gradient-orb orb-1"></div>
+        <div className="gradient-orb orb-2"></div>
+        <div className="gradient-orb orb-3"></div>
+        <div className="grid-pattern"></div>
+      </div>
 
-                <Formik
-                    initialValues={user}
-                    enableReinitialize={true}
-                    validationSchema={UserSchema}
-                    onSubmit={(values, actions) => {
-                        setTimeout(() => {
-                            handleSignUp(values);
-                            actions.setSubmitting(false);
-                        }, 400);
-                    }}
-                >
-                    {({ touched, errors, isSubmitting }) => (
-                        <Form className={classes.form}>
-                            <Grid container spacing={2}>
-                                <Grid item xs={12}>
-                                    <Field
-                                        as={TextField}
-                                        variant="outlined"
-                                        fullWidth
-                                        id="companyName"
-                                        label={i18n.t("signup.form.company")}
-                                        error={touched.companyName && Boolean(errors.companyName)}
-                                        helperText={touched.companyName && errors.companyName}
-                                        name="companyName"
-                                        autoComplete="companyName"
-                                        autoFocus
-                                    />
-                                </Grid>
-
-                                <Grid item xs={12}>
-                                    <Field
-                                        as={TextField}
-                                        autoComplete="name"
-                                        name="name"
-                                        error={touched.name && Boolean(errors.name)}
-                                        helperText={touched.name && errors.name}
-                                        variant="outlined"
-                                        fullWidth
-                                        id="name"
-                                        label={i18n.t("signup.form.name")}
-                                    />
-                                </Grid>
-
-                                <Grid item xs={12}>
-                                    <Field
-                                        as={TextField}
-                                        variant="outlined"
-                                        fullWidth
-                                        id="email"
-                                        label={i18n.t("signup.form.email")}
-                                        name="email"
-                                        error={touched.email && Boolean(errors.email)}
-                                        helperText={touched.email && errors.email}
-                                        autoComplete="email"
-                                        inputProps={{ style: { textTransform: 'lowercase' } }}
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <Field
-                                        as={TextField}
-                                        variant="outlined"
-                                        fullWidth
-                                        name="password"
-                                        error={touched.password && Boolean(errors.password)}
-                                        helperText={touched.password && errors.password}
-                                        label={i18n.t("signup.form.password")}
-                                        type="password"
-                                        id="password"
-                                        autoComplete="current-password"
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <Field
-                                        as={TextField}
-                                        variant="outlined"
-                                        fullWidth
-                                        id="phone"
-                                        label={i18n.t("signup.form.phone")}
-                                        name="phone"
-                                        autoComplete="phone"
-                                    />
-                                </Grid>
-
-                                <Grid item xs={12}>
-                                    <InputLabel htmlFor="plan-selection">Plano</InputLabel>
-                                    <Field
-                                        as={Select}
-                                        variant="outlined"
-                                        fullWidth
-                                        id="plan-selection"
-                                        label="Plano"
-                                        name="planId"
-                                        required
-                                    >
-                                        {plans.map((plan, key) => (
-                                            <MenuItem key={key} value={plan.id}>
-                                                {plan.name} - Atendentes: {plan.users} - WhatsApp: {plan.connections} - Filas: {plan.queues} - R$ {plan.amount}
-                                            </MenuItem>
-                                        ))}
-                                    </Field>
-                                </Grid>
-
-                            </Grid>
-                        </Form>
-                    )}
-                </Formik>
+      <div className="multivus-container">
+        <div className="multivus-brand">
+          <div className="brand-logo">
+            <div className="logo-shape">
+              <span>M</span>
             </div>
-            <Box mt={5}>{/* <Copyright /> */}</Box>
-        </Container>
-    );
+          </div>
+          <h1 className="brand-name">Multivus</h1>
+          <p className="brand-tagline">Crie sua conta</p>
+        </div>
+
+        <div className="multivus-card">
+          <div className="card-header">
+            <RouterLink to="/login" className="tab-button">
+              Entrar
+            </RouterLink>
+            <RouterLink to="/signup" className="tab-button active">
+              Criar Conta
+            </RouterLink>
+          </div>
+
+          {isUnavailable && (
+            <div className="unavailable-overlay">
+              <p>Cadastro temporariamente indisponível</p>
+            </div>
+          )}
+
+          <Formik
+            initialValues={initialState}
+            enableReinitialize={true}
+            validationSchema={UserSchema}
+            onSubmit={(values, actions) => {
+              handleSignUp(values);
+              actions.setSubmitting(false);
+            }}
+          >
+            {({ touched, errors, isSubmitting, values, setFieldValue }) => (
+              <Form className="multivus-form">
+                <div className={`input-wrapper ${focusedFields.companyName || (touched.companyName && !errors.companyName) ? 'focused' : ''} ${values.companyName ? 'has-value' : ''}`}>
+                  <div className="input-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                  </div>
+                  <Field
+                    type="text"
+                    id="companyName"
+                    name="companyName"
+                    placeholder=" "
+                    onFocus={() => setFocusedFields(prev => ({ ...prev, companyName: true }))}
+                    onBlur={() => setFocusedFields(prev => ({ ...prev, companyName: false }))}
+                  />
+                  <label htmlFor="companyName">{i18n.t("signup.form.company")}</label>
+                  {touched.companyName && errors.companyName && (
+                    <div className="input-error">{errors.companyName}</div>
+                  )}
+                </div>
+
+                <div className={`input-wrapper ${focusedFields.name || (touched.name && !errors.name) ? 'focused' : ''} ${values.name ? 'has-value' : ''}`}>
+                  <div className="input-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  </div>
+                  <Field
+                    type="text"
+                    id="name"
+                    name="name"
+                    autoComplete="name"
+                    placeholder=" "
+                    onFocus={() => setFocusedFields(prev => ({ ...prev, name: true }))}
+                    onBlur={() => setFocusedFields(prev => ({ ...prev, name: false }))}
+                  />
+                  <label htmlFor="name">{i18n.t("signup.form.name")}</label>
+                  {touched.name && errors.name && (
+                    <div className="input-error">{errors.name}</div>
+                  )}
+                </div>
+
+                <div className={`input-wrapper ${focusedFields.email || (touched.email && !errors.email) ? 'focused' : ''} ${values.email ? 'has-value' : ''}`}>
+                  <div className="input-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                      <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                  </div>
+                  <Field
+                    type="email"
+                    id="email"
+                    name="email"
+                    autoComplete="email"
+                    placeholder=" "
+                    style={{ textTransform: 'lowercase' }}
+                    onFocus={() => setFocusedFields(prev => ({ ...prev, email: true }))}
+                    onBlur={() => setFocusedFields(prev => ({ ...prev, email: false }))}
+                  />
+                  <label htmlFor="email">{i18n.t("signup.form.email")}</label>
+                  {touched.email && errors.email && (
+                    <div className="input-error">{errors.email}</div>
+                  )}
+                </div>
+
+                <div className={`input-wrapper ${focusedFields.password || (touched.password && !errors.password) ? 'focused' : ''} ${values.password ? 'has-value' : ''}`}>
+                  <div className="input-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </div>
+                  <Field
+                    type="password"
+                    id="password"
+                    name="password"
+                    autoComplete="new-password"
+                    placeholder=" "
+                    onFocus={() => setFocusedFields(prev => ({ ...prev, password: true }))}
+                    onBlur={() => setFocusedFields(prev => ({ ...prev, password: false }))}
+                  />
+                  <label htmlFor="password">{i18n.t("signup.form.password")}</label>
+                  {touched.password && errors.password && (
+                    <div className="input-error">{errors.password}</div>
+                  )}
+                </div>
+
+                <div className={`input-wrapper ${focusedFields.phone || (touched.phone && !errors.phone) ? 'focused' : ''} ${values.phone ? 'has-value' : ''}`}>
+                  <div className="input-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                  </div>
+                  <Field
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    autoComplete="tel"
+                    placeholder=" "
+                    onFocus={() => setFocusedFields(prev => ({ ...prev, phone: true }))}
+                    onBlur={() => setFocusedFields(prev => ({ ...prev, phone: false }))}
+                  />
+                  <label htmlFor="phone">{i18n.t("signup.form.phone")}</label>
+                  {touched.phone && errors.phone && (
+                    <div className="input-error">{errors.phone}</div>
+                  )}
+                </div>
+
+                <div className={`input-wrapper select-wrapper ${focusedFields.planId || (touched.planId && !errors.planId) ? 'focused' : ''} ${values.planId ? 'has-value' : ''}`}>
+                  <div className="input-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </div>
+                  <Field
+                    as="select"
+                    id="planId"
+                    name="planId"
+                    className="select-field"
+                    required
+                    onFocus={() => {
+                      setFocusedFields(prev => ({ ...prev, planId: true }));
+                    }}
+                    onBlur={() => setFocusedFields(prev => ({ ...prev, planId: false }))}
+                    onChange={(e) => {
+                      setFieldValue('planId', e.target.value);
+                    }}
+                  >
+                    <option value="" disabled hidden>Selecione um plano</option>
+                    {plans.map((plan) => (
+                      <option key={plan.id} value={plan.id}>
+                        {plan.name} - Atendentes: {plan.users} - WhatsApp: {plan.connections} - Filas: {plan.queues} - R$ {plan.amount}
+                      </option>
+                    ))}
+                  </Field>
+                  <label htmlFor="planId">Plano</label>
+                  {touched.planId && errors.planId && (
+                    <div className="input-error">{errors.planId}</div>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  className={`submit-button ${isSubmitting ? 'loading' : ''}`}
+                  disabled={isSubmitting || loading}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="button-spinner"></span>
+                      <span>Criando conta...</span>
+                    </>
+                  ) : (
+                    i18n.t("signup.title")
+                  )}
+                </button>
+              </Form>
+            )}
+          </Formik>
+        </div>
+
+        <div className="multivus-footer">
+          <p>
+            © {new Date().getFullYear()} Multivus. Todos os direitos reservados.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default SignUp;
