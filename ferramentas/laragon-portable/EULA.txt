@@ -1,0 +1,75 @@
+**End-User License Agreement ("EULA")**  
+This End-User License Agreement ("EULA") is a legal agreement between you and Laragon.  
+
+This EULA agreement governs your acquisition and use of our Laragon software ("Software"). Please read this EULA agreement carefully before completing the installation process and using the Laragon software. It provides a license to use the Laragon software and contains warranty information and liability disclaimers.  
+
+If you register for a free trial of the Laragon software, this EULA agreement will also govern that trial.  
+
+By installing and/or using the Laragon software, you are confirming your acceptance of the Software and agreeing to become bound by the terms of this EULA agreement.  
+
+---
+
+**In Short**  
+
+**Commercial License:**  
+- Allows you to use Laragon for personal or commercial purposes.  
+- You can create client projects, such as websites or applications, for monetary gain or other forms of compensation.  
+
+**Non-Commercial License:**  
+Allows you to use Laragon under the following conditions:  
+- The primary goal of use is not to gain commercial advantage, monetary compensation, or any other form of compensation or consideration.  
+- **Permitted scenarios include:**  
+  - Developing or testing open-source software or open-source projects.  
+  - Using the software for personal, experimental, learning, or testing purposes.  
+  - Using the software without being part of an organization, group, legal entity, or company that charges fees or generates revenue.  
+  - Ensuring that the work created or tested using the software is not sold, leased, or sublicensed.  
+
+Any use outside of these conditions requires the purchase of a Commercial License.  
+
+---
+
+**License Grant**  
+
+Laragon hereby grants you a personal, non-transferable, non-exclusive license to use the Laragon software on your devices in accordance with the terms of this EULA agreement.  
+
+- **You are permitted to:**  
+  - Load the Laragon software under your control.  
+  - Ensure your device meets the minimum requirements of the Laragon software.  
+
+- **You are NOT permitted to:**  
+  - Reproduce, copy, distribute, resell, or otherwise use the Software for any commercial purpose.  
+  - Share Laragon with your team unless you hold a Team or Enterprise License.  
+  - Edit, alter, modify, adapt, translate, or otherwise change the whole or any part of the Software, nor permit the whole or any part of the Software to be combined with or become incorporated in any other software, nor decompile, disassemble, or reverse engineer the Software or attempt to do any such things.  
+  - Allow any third party to use the Software on behalf of or for the benefit of any third party.  
+  - Use the Software in any way that breaches any applicable local, national, or international law.  
+  - Use the Software for any purpose that Laragon considers a breach of this EULA agreement.  
+
+---
+
+**Refund Policy**  
+
+We recommend reviewing Laragon's features and documentation before purchase to ensure it meets your needs. However, if Laragon isn't what you expected, you may request a refund within 14 days of purchase by contacting us at **hi@laragon.org**.  
+
+**Refund Process:**  
+1. Refunds will be issued within 30 days of your request.  
+2. Upon refund, you must delete all copies of Laragon from your devices and accounts.  
+3. You forfeit any rights to use Laragon, including for non-commercial purposes.  
+
+---
+
+**Disclaimer**  
+
+Laragon is provided "as is" without any warranties of any kind, express or implied, including but not limited to implied warranties of merchantability or fitness for a specific purpose.  
+
+We are not liable for any damages, including but not limited to business interruptions, loss of profits, or loss of data, resulting from the use or inability to use Laragon.  
+
+---
+
+**Termination**  
+
+This EULA agreement is effective from the date you first use the Software and shall continue until terminated. You may terminate it at any time upon written notice to Laragon.  
+
+It will also terminate immediately if you fail to comply with any term of this EULA agreement. Upon such termination:  
+- The licenses granted by this EULA agreement will immediately terminate.  
+- You agree to stop all access and use of the Software.  
+- The provisions that by their nature continue and survive will survive any termination of this EULA agreement.  
