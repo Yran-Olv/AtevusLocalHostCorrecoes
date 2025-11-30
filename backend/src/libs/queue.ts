@@ -38,7 +38,7 @@ export default {
     const queue = this.queues.find(queue => queue.name === name);
 
     if (!queue) {
-      throw new Error(`Queue ${name} not found`);
+      throw new Error(`Fila ${name} não encontrada`);
     }
 
     return queue.bull.add(data, { ...params, removeOnComplete: true });

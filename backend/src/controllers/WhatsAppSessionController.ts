@@ -19,7 +19,7 @@ const store = async (req: Request, res: Response): Promise<Response> => {
   const whatsapp = await ShowWhatsAppService(whatsappId, companyId);
   await StartWhatsAppSession(whatsapp, companyId);
 
-  return res.status(200).json({ message: "Starting session." });
+  return res.status(200).json({ message: "Iniciando sessão." });
 };
 
 /**

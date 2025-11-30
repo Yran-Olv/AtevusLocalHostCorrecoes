@@ -183,7 +183,7 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
     }
   })
   if (findContact) {
-    throw new AppError("Contact already exists");
+    throw new AppError("Contato já existe");
   }
 
   newContact.number = newContact.number.replace("-", "").replace(" ", "");
@@ -193,7 +193,7 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
     name: Yup.string().required(),
     number: Yup.string()
       .required()
-      .matches(/^\d+$/, "Invalid number format. Only numbers is allowed.")
+      .matches(/^\d+$/, "Formato de número inválido. Apenas números são permitidos.")
   });
 
   try {
@@ -248,7 +248,7 @@ export const update = async (
     name: Yup.string(),
     number: Yup.string().matches(
       /^\d+$/,
-      "Invalid number format. Only numbers is allowed."
+      "Formato de número inválido. Apenas números são permitidos."
     )
   });
 
@@ -301,7 +301,7 @@ export const remove = async (
       contactId
     });
 
-  return res.status(200).json({ message: "Contact deleted" });
+  return res.status(200).json({ message: "Contato excluído" });
 };
 
 export const list = async (req: Request, res: Response): Promise<Response> => {

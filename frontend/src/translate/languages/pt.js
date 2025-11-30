@@ -1727,6 +1727,8 @@ const messages = {
         ERR_NO_TICKET_FOUND: "Nenhum tíquete encontrado com este ID.",
         ERR_NO_USER_FOUND: "Nenhum usuário encontrado com este ID.",
         ERR_NO_WAPP_FOUND: "Nenhum WhatsApp encontrado com este ID.",
+        ERR_NO_CAMPAIGN_FOUND: "Nenhuma campanha encontrada com este ID.",
+        ERR_NO_TICKETNOTE_FOUND: "Nenhuma anotação de tíquete encontrada com este ID.",
         ERR_CREATING_MESSAGE: "Erro ao criar mensagem no banco de dados.",
         ERR_CREATING_TICKET: "Erro ao criar tíquete no banco de dados.",
         ERR_FETCH_WAPP_MSG:

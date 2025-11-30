@@ -26,7 +26,7 @@ export const isBullAuth = (req, res, next) => {
 
   if (!user || user.name !== process.env.BULL_USER || user.pass !== process.env.BULL_PASS) {
     res.set('WWW-Authenticate', 'Basic realm="example"');
-    return res.status(401).send('Authentication required.');
+    return res.status(401).send('Autenticação necessária.');
   }
   next();
 };
@@ -92,15 +92,29 @@ app.use(routes);
 // Manipulador de erros do Sentry
 app.use(Sentry.Handlers.errorHandler());
 
-// Middleware de tratamento de erros
+/**
+ * Middleware de tratamento de erros global
+ * Trata todos os erros da aplicação e retorna respostas apropriadas
+ */
 app.use(async (err: Error, req: Request, res: Response, _: NextFunction) => {
   if (err instanceof AppError) {
-    logger.warn(err);
+    // Erros 401 (sessão expirada) são comportamentos esperados quando o token expira
+    // Não precisam ser logados como WARN para evitar poluição de logs em produção
+    if (err.statusCode === 401 && err.message === "ERR_SESSION_EXPIRED") {
+      // Log apenas em modo de desenvolvimento (NODE_ENV !== 'production')
+      if (process.env.NODE_ENV !== 'production') {
+        logger.debug(`Sessão expirada para ${req.path}: ${err.message}`);
+      }
+    } else {
+      // Outros erros de aplicação são logados como WARN
+      logger.warn(err);
+    }
     return res.status(err.statusCode).json({ error: err.message });
   }
 
+  // Erros não tratados são logados como ERROR e retornam 500
   logger.error(err);
-  return res.status(500).json({ error: "Internal server error" });
+  return res.status(500).json({ error: "Erro interno do servidor" });
 });
 
 export default app;
