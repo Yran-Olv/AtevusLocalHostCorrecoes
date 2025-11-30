@@ -1,0 +1,596 @@
+/* Variáveis CSS para tema corporativo */
+:root {
+  --schedules-bg: #f5f7fa;
+  --schedules-card-bg: #ffffff;
+  --schedules-text: #1a1a1a;
+  --schedules-text-light: #6b7280;
+  --schedules-primary: #065183;
+  --schedules-primary-light: #0b6ba8;
+  --schedules-border: #e5e7eb;
+  --schedules-shadow: rgba(0, 0, 0, 0.08);
+  --schedules-gradient: linear-gradient(135deg, #065183 0%, #0b6ba8 100%);
+  --schedules-success: #10b981;
+  --schedules-warning: #f59e0b;
+  --schedules-error: #ef4444;
+  --schedules-info: #3b82f6;
+}
+
+.schedules-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--schedules-bg);
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.schedules-header {
+  background: var(--schedules-card-bg);
+  border-bottom: 1px solid var(--schedules-border);
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 4px var(--schedules-shadow);
+}
+
+.schedules-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.schedules-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--schedules-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.schedules-title-icon {
+  color: var(--schedules-primary);
+  font-size: 1.75rem;
+}
+
+.schedules-title-count {
+  color: var(--schedules-primary);
+  font-weight: 500;
+}
+
+.schedules-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.schedules-search-wrapper {
+  position: relative;
+  min-width: 250px;
+}
+
+.schedules-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 1px solid var(--schedules-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--schedules-text);
+  background: var(--schedules-card-bg);
+  transition: all 0.3s ease;
+}
+
+.schedules-search-input:focus {
+  outline: none;
+  border-color: var(--schedules-primary);
+  box-shadow: 0 0 0 3px rgba(6, 81, 131, 0.1);
+}
+
+.schedules-search-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--schedules-text-light);
+  font-size: 1.25rem;
+}
+
+.schedules-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  background: var(--schedules-gradient);
+  color: white;
+  box-shadow: 0 2px 4px rgba(6, 81, 131, 0.2);
+}
+
+.schedules-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(6, 81, 131, 0.3);
+}
+
+.schedules-button:active {
+  transform: translateY(0);
+}
+
+.schedules-list-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--schedules-bg);
+  padding: 0;
+}
+
+.schedules-calendar-wrapper {
+  display: block;
+  background: var(--schedules-card-bg);
+  border-radius: 8px;
+  margin: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px var(--schedules-shadow);
+  border: 1px solid var(--schedules-border);
+  min-height: 500px;
+}
+
+/* Estilos para react-big-calendar */
+.schedules-calendar-wrapper .rbc-calendar {
+  background: var(--schedules-card-bg);
+  color: var(--schedules-text);
+}
+
+.schedules-calendar-wrapper .rbc-toolbar {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--schedules-border);
+}
+
+.schedules-calendar-wrapper .rbc-toolbar-label {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--schedules-text);
+}
+
+.schedules-calendar-wrapper .rbc-btn-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.schedules-calendar-wrapper .rbc-btn-group button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--schedules-border);
+  border-radius: 6px;
+  background: var(--schedules-card-bg);
+  color: var(--schedules-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.schedules-calendar-wrapper .rbc-btn-group button:hover {
+  background: var(--schedules-bg);
+  border-color: var(--schedules-primary);
+  color: var(--schedules-primary);
+}
+
+.schedules-calendar-wrapper .rbc-btn-group button.rbc-active {
+  background: var(--schedules-gradient);
+  border-color: var(--schedules-primary);
+  color: white;
+}
+
+.schedules-calendar-wrapper .rbc-header {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--schedules-border);
+  font-weight: 600;
+  color: var(--schedules-text);
+  font-size: 0.875rem;
+}
+
+.schedules-calendar-wrapper .rbc-day-bg {
+  border-color: var(--schedules-border);
+}
+
+.schedules-calendar-wrapper .rbc-today {
+  background-color: rgba(6, 81, 131, 0.05);
+}
+
+.schedules-calendar-wrapper .rbc-off-range-bg {
+  background: var(--schedules-bg);
+}
+
+.schedules-calendar-wrapper .rbc-event {
+  background: var(--schedules-gradient);
+  border: none;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.schedules-calendar-wrapper .rbc-event:focus {
+  outline: 2px solid var(--schedules-primary);
+  outline-offset: 2px;
+}
+
+.schedules-calendar-wrapper .rbc-selected {
+  background: var(--schedules-primary-light);
+}
+
+.schedules-calendar-wrapper .rbc-agenda-view table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.schedules-calendar-wrapper .rbc-agenda-view thead {
+  background: var(--schedules-bg);
+}
+
+.schedules-calendar-wrapper .rbc-agenda-view th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--schedules-text);
+  border-bottom: 2px solid var(--schedules-border);
+}
+
+.schedules-calendar-wrapper .rbc-agenda-view td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--schedules-border);
+}
+
+.schedules-calendar-wrapper .rbc-agenda-view tbody tr:hover {
+  background: var(--schedules-bg);
+}
+
+/* Estilos para eventos customizados */
+.event-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.event-title {
+  flex: 1;
+  font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.event-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.event-action-button {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: white;
+  padding: 0;
+}
+
+.event-action-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.event-action-icon {
+  font-size: 0.875rem;
+}
+
+/* Lista de eventos mobile estilo Google Calendar */
+.schedules-events-list {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  background: var(--schedules-bg);
+}
+
+.schedules-event-item {
+  background: var(--schedules-card-bg);
+  border-bottom: 1px solid var(--schedules-border);
+  padding: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.schedules-event-item:active {
+  background: var(--schedules-bg);
+}
+
+.schedules-event-item-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.schedules-event-time {
+  min-width: 60px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--schedules-primary);
+  padding-top: 0.25rem;
+}
+
+.schedules-event-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.schedules-event-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--schedules-text);
+  margin: 0 0 0.25rem 0;
+}
+
+.schedules-event-contact {
+  font-size: 0.875rem;
+  color: var(--schedules-text-light);
+  margin: 0;
+}
+
+.schedules-event-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--schedules-border);
+}
+
+.schedules-event-action-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--schedules-bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--schedules-text-light);
+  font-size: 1rem;
+}
+
+.schedules-event-action-btn:active {
+  background: var(--schedules-border);
+  transform: scale(0.95);
+}
+
+.schedules-event-action-btn-danger {
+  color: var(--schedules-error);
+}
+
+.schedules-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--schedules-text-light);
+}
+
+.schedules-empty-icon {
+  font-size: 3rem;
+  color: var(--schedules-border);
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.schedules-empty-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--schedules-text);
+  margin: 0 0 0.5rem 0;
+}
+
+.schedules-empty-subtext {
+  font-size: 0.875rem;
+  color: var(--schedules-text-light);
+  margin: 0;
+}
+
+.schedules-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--schedules-border);
+  border-top-color: var(--schedules-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .schedules-header {
+    padding: 1rem;
+    background: var(--schedules-primary);
+    color: white;
+  }
+
+  .schedules-title {
+    font-size: 1.5rem;
+    color: white;
+  }
+
+  .schedules-title-icon {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .schedules-title-count {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .schedules-header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .schedules-header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .schedules-search-wrapper {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .schedules-search-input {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+  }
+
+  .schedules-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .schedules-search-icon {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .schedules-button {
+    width: 100%;
+    justify-content: center;
+    background: white;
+    color: var(--schedules-primary);
+  }
+
+  .schedules-calendar-wrapper {
+    display: none;
+  }
+
+  .schedules-events-list {
+    display: flex;
+  }
+
+  .schedules-list-wrapper {
+    padding: 0;
+    background: var(--schedules-bg);
+  }
+
+  .schedules-event-item {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+
+  .schedules-event-item:first-child {
+    border-top: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .schedules-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .schedules-title {
+    font-size: 1.25rem;
+  }
+
+  .schedules-event-item {
+    padding: 0.875rem 1rem;
+  }
+
+  .schedules-event-time {
+    min-width: 50px;
+    font-size: 0.8125rem;
+  }
+
+  .schedules-event-title {
+    font-size: 0.9375rem;
+  }
+
+  .schedules-event-contact {
+    font-size: 0.8125rem;
+  }
+
+  .schedules-event-action-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.125rem;
+  }
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Scrollbar customizado */
+.schedules-list-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.schedules-list-wrapper::-webkit-scrollbar-track {
+  background: var(--schedules-bg);
+}
+
+.schedules-list-wrapper::-webkit-scrollbar-thumb {
+  background: var(--schedules-border);
+  border-radius: 4px;
+}
+
+.schedules-list-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--schedules-text-light);
+}
+
+@media (max-width: 768px) {
+  .schedules-list-wrapper::-webkit-scrollbar {
+    width: 4px;
+  }
+}
+

@@ -1,0 +1,731 @@
+/* Variáveis CSS para tema corporativo e WhatsApp mobile */
+:root {
+  --contacts-bg: #f0f2f5;
+  --contacts-card-bg: #ffffff;
+  --contacts-text: #111b21;
+  --contacts-text-light: #667781;
+  --contacts-primary: #065183;
+  --contacts-primary-light: #0b6ba8;
+  --contacts-border: #e9edef;
+  --contacts-shadow: rgba(0, 0, 0, 0.08);
+  --contacts-gradient: linear-gradient(135deg, #065183 0%, #0b6ba8 100%);
+  --contacts-success: ;
+  --contacts-warning: #f59e0b;
+  --contacts-error: #ef4444;
+  --contacts-info: #3b82f6;
+  --wa-green: #144da3;
+  --wa-green-dark: #1952a8;
+  --wa-green-light: #dcf8c6;
+}
+
+.contacts-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--contacts-bg);
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.contacts-header {
+  background: var(--contacts-card-bg);
+  border-bottom: 1px solid var(--contacts-border);
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 4px var(--contacts-shadow);
+}
+
+.contacts-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.contacts-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--contacts-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contacts-title-count {
+  color: var(--contacts-primary);
+  font-weight: 500;
+}
+
+.contacts-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.contacts-search-wrapper {
+  position: relative;
+  min-width: 250px;
+}
+
+.contacts-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 1px solid var(--contacts-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--contacts-text);
+  background: var(--contacts-card-bg);
+  transition: all 0.3s ease;
+}
+
+.contacts-search-input:focus {
+  outline: none;
+  border-color: var(--contacts-primary);
+  box-shadow: 0 0 0 3px rgba(6, 81, 131, 0.1);
+}
+
+.contacts-search-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--contacts-text-light);
+  font-size: 1.25rem;
+}
+
+.contacts-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.contacts-button-primary {
+  background: var(--contacts-gradient);
+  color: white;
+  box-shadow: 0 2px 4px rgba(6, 81, 131, 0.2);
+}
+
+.contacts-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(6, 81, 131, 0.3);
+}
+
+.contacts-button-primary:active {
+  transform: translateY(0);
+}
+
+.contacts-dropdown {
+  position: relative;
+}
+
+.contacts-dropdown-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--contacts-gradient);
+  color: white;
+  box-shadow: 0 2px 4px rgba(6, 81, 131, 0.2);
+}
+
+.contacts-dropdown-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(6, 81, 131, 0.3);
+}
+
+.contacts-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--contacts-card-bg);
+  border: 1px solid var(--contacts-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.contacts-dropdown-item {
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--contacts-text);
+  transition: background 0.2s ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.contacts-dropdown-item:hover {
+  background: var(--contacts-bg);
+}
+
+.contacts-dropdown-item-icon {
+  color: var(--contacts-primary);
+  font-size: 1.25rem;
+}
+
+.contacts-list-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--contacts-bg);
+  padding: 0;
+}
+
+.contacts-table-container {
+  display: block;
+  background: var(--contacts-card-bg);
+  border-radius: 8px;
+  margin: 1.5rem;
+  box-shadow: 0 2px 8px var(--contacts-shadow);
+  border: 1px solid var(--contacts-border);
+  overflow-x: auto;
+}
+
+.contacts-cards-container {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  background: var(--contacts-bg);
+}
+
+.contacts-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.contacts-table thead {
+  background: var(--contacts-bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.contacts-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--contacts-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--contacts-border);
+}
+
+.contacts-table th.center {
+  text-align: center;
+}
+
+.contacts-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--contacts-border);
+  color: var(--contacts-text);
+  font-size: 0.95rem;
+}
+
+.contacts-table td.center {
+  text-align: center;
+}
+
+.contacts-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.contacts-table tbody tr:hover {
+  background: var(--contacts-bg);
+}
+
+.contacts-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--contacts-border);
+}
+
+.contacts-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--contacts-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.contacts-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contacts-status-icon {
+  font-size: 1.25rem;
+}
+
+.contacts-status-active {
+  color: var(--contacts-success);
+}
+
+.contacts-status-inactive {
+  color: var(--contacts-error);
+}
+
+.contacts-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.contacts-action-button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--contacts-text-light);
+}
+
+.contacts-action-button:hover:not(:disabled) {
+  background: var(--contacts-bg);
+  color: var(--contacts-primary);
+  transform: scale(1.1);
+}
+
+.contacts-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.contacts-action-icon {
+  font-size: 1.25rem;
+}
+
+.contacts-channel-icon {
+  font-size: 1.25rem;
+}
+
+.contacts-channel-whatsapp {
+  color: #25d366;
+}
+
+.contacts-channel-instagram {
+  color: #e4405f;
+}
+
+.contacts-channel-facebook {
+  color: #1877f2;
+}
+
+/* Cards estilo WhatsApp Mobile */
+.contacts-card {
+  background: var(--contacts-card-bg);
+  border-bottom: 1px solid var(--contacts-border);
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.contacts-card:active {
+  background: var(--contacts-border);
+}
+
+.contacts-card-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.contacts-card-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.contacts-card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.contacts-card-avatar-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--contacts-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.contacts-card-status-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--contacts-card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+}
+
+.contacts-card-status-badge.active {
+  background: var(--contacts-success);
+  color: white;
+}
+
+.contacts-card-status-badge.inactive {
+  background: var(--contacts-error);
+  color: white;
+}
+
+.contacts-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.contacts-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.contacts-card-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--contacts-text);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contacts-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.contacts-card-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--contacts-text-light);
+}
+
+.contacts-card-detail-icon {
+  font-size: 1rem;
+  color: var(--contacts-text-light);
+  flex-shrink: 0;
+}
+
+.contacts-card-detail-label {
+  font-weight: 500;
+  color: var(--contacts-text-light);
+}
+
+.contacts-card-detail-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contacts-card-actions-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--contacts-border);
+}
+
+.contacts-card-action-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--contacts-bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--contacts-text-light);
+  font-size: 1.125rem;
+}
+
+.contacts-card-action-btn:active:not(:disabled) {
+  background: var(--contacts-border);
+  transform: scale(0.95);
+}
+
+.contacts-card-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.contacts-card-action-btn-danger {
+  color: var(--contacts-error);
+}
+
+.contacts-loading-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.contacts-skeleton-card {
+  background: var(--contacts-card-bg);
+  border-bottom: 1px solid var(--contacts-border);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.contacts-skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--contacts-border);
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.contacts-skeleton-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contacts-skeleton-line {
+  height: 12px;
+  background: var(--contacts-border);
+  border-radius: 4px;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.contacts-skeleton-line.short {
+  width: 60%;
+}
+
+@keyframes skeleton-loading {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .contacts-header {
+    padding: 1rem;
+    background: var(--wa-green-dark);
+    color: white;
+  }
+
+  .contacts-header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .contacts-title {
+    font-size: 1.5rem;
+    color: white;
+  }
+
+  .contacts-title-count {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .contacts-header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .contacts-search-wrapper {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .contacts-search-input {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+  }
+
+  .contacts-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .contacts-search-icon {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .contacts-button,
+  .contacts-dropdown-button {
+    width: 100%;
+    justify-content: center;
+    background: white;
+    color: var(--wa-green-dark);
+  }
+
+  .contacts-table-container {
+    display: none;
+  }
+
+  .contacts-cards-container {
+    display: flex;
+  }
+
+  .contacts-list-wrapper {
+    padding: 0;
+  }
+
+  .contacts-card {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+
+  .contacts-card:first-child {
+    border-top: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .contacts-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .contacts-title {
+    font-size: 1.25rem;
+  }
+
+  .contacts-card {
+    padding: 0.875rem 1rem;
+  }
+
+  .contacts-card-avatar,
+  .contacts-card-avatar-placeholder {
+    width: 52px;
+    height: 52px;
+  }
+
+  .contacts-card-name {
+    font-size: 1.0625rem;
+  }
+
+  .contacts-card-detail-item {
+    font-size: 0.8125rem;
+  }
+
+  .contacts-card-action-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+  }
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Scrollbar customizado */
+.contacts-list-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.contacts-list-wrapper::-webkit-scrollbar-track {
+  background: var(--contacts-bg);
+}
+
+.contacts-list-wrapper::-webkit-scrollbar-thumb {
+  background: var(--contacts-border);
+  border-radius: 4px;
+}
+
+.contacts-list-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--contacts-text-light);
+}
+
+@media (max-width: 768px) {
+  .contacts-list-wrapper::-webkit-scrollbar {
+    width: 4px;
+  }
+}
+

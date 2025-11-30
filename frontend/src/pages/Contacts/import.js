@@ -1,34 +1,23 @@
-import { Paper } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
+import { FiUpload, FiFile } from "react-icons/fi";
 import ContactImport from "../../components/ContactImport";
 import MainContainer from "../../components/MainContainer";
-import MainHeader from "../../components/MainHeader";
-import Title from "../../components/Title";
-
-const useStyles = makeStyles(theme => ({
-    mainPaper: {
-        flex: 1,
-        padding: 1,
-        borderRadius: 0,
-        overflowY: "scroll",
-        padding: 1,
-        ...theme.scrollbarStylesSoftBig
-    },
-}));
+import "./import.css";
 
 const ContactImportPage = () => {
-    const classes = useStyles();
-    return <MainContainer className={classes.mainContainer}>
-        <MainHeader>
-            <Title>Importar contatos de arquivo</Title>
-        </MainHeader>
-        <Paper
-            className={classes.mainPaper}
-            variant="outlined">
-            <ContactImport />
-        </Paper>
-    </MainContainer>
+    return (
+        <MainContainer className="contact-import-container">
+            <div className="contact-import-header">
+                <h1 className="contact-import-title">
+                    <FiUpload className="contact-import-title-icon" />
+                    Importar contatos de arquivo
+                </h1>
+            </div>
+            <div className="contact-import-content">
+                <ContactImport />
+            </div>
+        </MainContainer>
+    );
 }
 
 export default ContactImportPage;

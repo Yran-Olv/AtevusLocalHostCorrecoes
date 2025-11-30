@@ -1,0 +1,128 @@
+/* Variáveis CSS para tema corporativo */
+:root {
+  --import-bg: #f5f7fa;
+  --import-card-bg: #ffffff;
+  --import-text: #1a1a1a;
+  --import-text-light: #6b7280;
+  --import-primary: #065183;
+  --import-border: #e5e7eb;
+  --import-shadow: rgba(0, 0, 0, 0.08);
+  --import-gradient: linear-gradient(135deg, #065183 0%, #0b6ba8 100%);
+}
+
+.contact-import-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--import-bg);
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.contact-import-header {
+  background: var(--import-card-bg);
+  border-bottom: 1px solid var(--import-border);
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 4px var(--import-shadow);
+}
+
+.contact-import-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--import-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.contact-import-title-icon {
+  color: var(--import-primary);
+  font-size: 2rem;
+}
+
+.contact-import-content {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--import-card-bg);
+  border-radius: 8px;
+  margin: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px var(--import-shadow);
+  border: 1px solid var(--import-border);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .contact-import-header {
+    padding: 1rem;
+  }
+
+  .contact-import-title {
+    font-size: 1.5rem;
+  }
+
+  .contact-import-title-icon {
+    font-size: 1.75rem;
+  }
+
+  .contact-import-content {
+    margin: 1rem;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-import-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .contact-import-title {
+    font-size: 1.25rem;
+  }
+
+  .contact-import-title-icon {
+    font-size: 1.5rem;
+  }
+
+  .contact-import-content {
+    margin: 0.5rem;
+    padding: 0.75rem;
+  }
+}
+
+/* Scrollbar customizado */
+.contact-import-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.contact-import-content::-webkit-scrollbar-track {
+  background: var(--import-bg);
+}
+
+.contact-import-content::-webkit-scrollbar-thumb {
+  background: var(--import-border);
+  border-radius: 4px;
+}
+
+.contact-import-content::-webkit-scrollbar-thumb:hover {
+  background: var(--import-text-light);
+}
+
+@media (max-width: 768px) {
+  .contact-import-content::-webkit-scrollbar {
+    width: 4px;
+  }
+}
+

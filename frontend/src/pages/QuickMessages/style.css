@@ -1,0 +1,505 @@
+/* Variáveis CSS para tema corporativo */
+:root {
+  --quick-messages-bg: #f5f7fa;
+  --quick-messages-card-bg: #ffffff;
+  --quick-messages-text: #1a1a1a;
+  --quick-messages-text-light: #6b7280;
+  --quick-messages-primary: #065183;
+  --quick-messages-primary-light: #0b6ba8;
+  --quick-messages-border: #e5e7eb;
+  --quick-messages-shadow: rgba(0, 0, 0, 0.08);
+  --quick-messages-gradient: linear-gradient(135deg, #065183 0%, #0b6ba8 100%);
+  --quick-messages-success: #10b981;
+  --quick-messages-warning: #f59e0b;
+  --quick-messages-error: #ef4444;
+  --quick-messages-info: #3b82f6;
+}
+
+.quick-messages-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--quick-messages-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quick-messages-header {
+  background: var(--quick-messages-card-bg);
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--quick-messages-border);
+  box-shadow: 0 2px 8px var(--quick-messages-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.quick-messages-title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quick-messages-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--quick-messages-text);
+  margin: 0;
+}
+
+.quick-messages-title-icon {
+  color: var(--quick-messages-primary);
+  font-size: 2rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.quick-messages-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.quick-messages-search-wrapper {
+  position: relative;
+}
+
+.quick-messages-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.quick-messages-search-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--quick-messages-text-light);
+  font-size: 1.25rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.quick-messages-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  border: 1px solid var(--quick-messages-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: var(--quick-messages-card-bg);
+  color: var(--quick-messages-text);
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.quick-messages-search-input:focus {
+  outline: none;
+  border-color: var(--quick-messages-primary);
+  box-shadow: 0 0 0 3px rgba(6, 81, 131, 0.1);
+}
+
+.quick-messages-search-input::placeholder {
+  color: var(--quick-messages-text-light);
+  opacity: 0.6;
+}
+
+.quick-messages-add-button {
+  background: var(--quick-messages-gradient);
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(6, 81, 131, 0.3);
+  white-space: nowrap;
+}
+
+.quick-messages-add-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(6, 81, 131, 0.4);
+}
+
+.quick-messages-add-button:active {
+  transform: translateY(0);
+}
+
+.quick-messages-add-icon {
+  font-size: 1.1rem;
+}
+
+.quick-messages-table-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  background: var(--quick-messages-card-bg);
+}
+
+.quick-messages-table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.quick-messages-table-container::-webkit-scrollbar-track {
+  background: var(--quick-messages-bg);
+  border-radius: 10px;
+}
+
+.quick-messages-table-container::-webkit-scrollbar-thumb {
+  background: var(--quick-messages-primary);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.quick-messages-table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--quick-messages-primary-light);
+}
+
+.quick-messages-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.quick-messages-table-head {
+  background: var(--quick-messages-bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.quick-messages-table-header {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--quick-messages-text);
+  border-bottom: 2px solid var(--quick-messages-border);
+  white-space: nowrap;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quick-messages-table-body {
+  background: var(--quick-messages-card-bg);
+}
+
+.quick-messages-table-row {
+  transition: background-color 0.2s ease;
+  animation: slideInRow 0.4s ease-out;
+}
+
+@keyframes slideInRow {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.quick-messages-table-row:hover {
+  background-color: rgba(6, 81, 131, 0.03);
+}
+
+.quick-messages-table-cell {
+  padding: 1rem;
+  border-bottom: 1px solid var(--quick-messages-border);
+  color: var(--quick-messages-text);
+  vertical-align: middle;
+}
+
+.quick-messages-table-row:last-child .quick-messages-table-cell {
+  border-bottom: none;
+}
+
+.quick-messages-shortcode {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  background: var(--quick-messages-primary);
+  color: #ffffff;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 2px 4px rgba(6, 81, 131, 0.2);
+}
+
+.quick-messages-media {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quick-messages-media-icon {
+  color: var(--quick-messages-text-light);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.quick-messages-media-name {
+  color: var(--quick-messages-text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.quick-messages-no-media {
+  color: var(--quick-messages-text-light);
+  font-style: italic;
+}
+
+.quick-messages-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quick-messages-status-badge.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--quick-messages-success);
+}
+
+.quick-messages-status-badge.inactive {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--quick-messages-text-light);
+}
+
+.quick-messages-status-icon {
+  font-size: 1rem;
+}
+
+.quick-messages-actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.quick-messages-action-button {
+  background: transparent;
+  border: none;
+  color: var(--quick-messages-text-light);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
+}
+
+.quick-messages-action-button:hover {
+  transform: scale(1.1);
+}
+
+.quick-messages-action-edit:hover {
+  background: rgba(6, 81, 131, 0.1);
+  color: var(--quick-messages-primary);
+}
+
+.quick-messages-action-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--quick-messages-error);
+}
+
+.quick-messages-empty {
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.quick-messages-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--quick-messages-text-light);
+}
+
+.quick-messages-empty-icon {
+  font-size: 4rem;
+  color: var(--quick-messages-border);
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.quick-messages-empty-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--quick-messages-text);
+  margin: 0 0 0.5rem 0;
+}
+
+.quick-messages-empty-subtext {
+  font-size: 0.95rem;
+  color: var(--quick-messages-text-light);
+  margin: 0;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+  .quick-messages-header {
+    padding: 1.25rem;
+  }
+
+  .quick-messages-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .quick-messages-container {
+    border-radius: 12px;
+  }
+
+  .quick-messages-header {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .quick-messages-title {
+    font-size: 1.25rem;
+  }
+
+  .quick-messages-title-icon {
+    font-size: 1.5rem;
+  }
+
+  .quick-messages-actions {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .quick-messages-add-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .quick-messages-table {
+    font-size: 0.8rem;
+  }
+
+  .quick-messages-table-header,
+  .quick-messages-table-cell {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .quick-messages-media-name {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-messages-header {
+    padding: 0.875rem;
+  }
+
+  .quick-messages-title {
+    font-size: 1.1rem;
+  }
+
+  .quick-messages-title-icon {
+    font-size: 1.25rem;
+  }
+
+  .quick-messages-table {
+    font-size: 0.75rem;
+  }
+
+  .quick-messages-table-header,
+  .quick-messages-table-cell {
+    padding: 0.625rem 0.375rem;
+  }
+
+  .quick-messages-shortcode {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .quick-messages-status-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .quick-messages-media-name {
+    max-width: 100px;
+  }
+
+  .quick-messages-action-button {
+    padding: 0.375rem;
+    font-size: 1rem;
+  }
+
+  .quick-messages-empty-icon {
+    font-size: 3rem;
+  }
+
+  .quick-messages-empty-text {
+    font-size: 1.1rem;
+  }
+
+  .quick-messages-empty-subtext {
+    font-size: 0.875rem;
+  }
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

@@ -1459,7 +1459,7 @@ const messages = {
       },
 
       tagsKanban: {
-        title: "Lanes",
+        title: "Kanban",
         laneDefault: "Em aberto",
         confirmationModal: {
           deleteTitle: "Você tem certeza que quer excluir esta Lane?",

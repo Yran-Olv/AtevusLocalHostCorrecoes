@@ -6,7 +6,6 @@ import { ptBR } from "@mui/material/locale";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { ThemeProvider as MuiStylesThemeProvider } from "@mui/styles";
 import { ThemeProvider as MaterialUIThemeProvider } from "@material-ui/styles";
-import { useMediaQuery } from "@mui/material";
 import ColorModeContext from "./layout/themeContext";
 import { ActiveMenuProvider } from "./context/ActiveMenuContext";
 import Favicon from "react-favicon";
@@ -23,9 +22,9 @@ const App = () => {
   const [locale, setLocale] = useState();
   const appColorLocalStorage = localStorage.getItem("primaryColorLight") || localStorage.getItem("primaryColorDark") || "#065183";
   const appNameLocalStorage = localStorage.getItem("appName") || "";
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+  // Respeita apenas a preferência salva do usuário, padrão é "light"
   const preferredTheme = window.localStorage.getItem("preferredTheme");
-  const [mode, setMode] = useState(preferredTheme ? preferredTheme : prefersDarkMode ? "dark" : "light");
+  const [mode, setMode] = useState(preferredTheme || "light");
   const [primaryColorLight, setPrimaryColorLight] = useState(appColorLocalStorage);
   const [primaryColorDark, setPrimaryColorDark] = useState(appColorLocalStorage);
   const [appLogoLight, setAppLogoLight] = useState(defaultLogoLight);
@@ -214,6 +213,7 @@ const App = () => {
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty("--primaryColor", mode === "light" ? primaryColorLight : primaryColorDark);
+    root.setAttribute("data-theme", mode);
   }, [primaryColorLight, primaryColorDark, mode]);
 
   useEffect(() => {

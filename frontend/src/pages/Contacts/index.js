@@ -5,31 +5,21 @@ import React, {
     useContext,
     useRef,
 } from "react";
-// import { SocketContext } from "../../context/Socket/SocketContext";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Avatar from "@material-ui/core/Avatar";
-import { Facebook, Instagram, WhatsApp } from "@material-ui/icons";
-import SearchIcon from "@material-ui/icons/Search";
-
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-
-import IconButton from "@material-ui/core/IconButton";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-import CancelIcon from "@material-ui/icons/Cancel";
-import BlockIcon from "@material-ui/icons/Block";
+import {
+    FiSearch,
+    FiPlus,
+    FiEdit2,
+    FiTrash2,
+    FiCheckCircle,
+    FiX,
+    FiLock,
+    FiChevronDown,
+    FiPhone,
+    FiUpload,
+} from "react-icons/fi";
+import { FaWhatsapp, FaInstagram, FaFacebook } from "react-icons/fa";
 
 import api from "../../services/api";
 import TableRowSkeleton from "../../components/TableRowSkeleton";
@@ -37,9 +27,6 @@ import ContactModal from "../../components/ContactModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 
 import { i18n } from "../../translate/i18n";
-import MainHeader from "../../components/MainHeader";
-import Title from "../../components/Title";
-import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper";
 import MainContainer from "../../components/MainContainer";
 import toastError from "../../errors/toastError";
 
@@ -48,20 +35,13 @@ import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHe
 import { Can } from "../../components/Can";
 import NewTicketModal from "../../components/NewTicketModal";
 import { TagsFilter } from "../../components/TagsFilter";
-import PopupState, { bindTrigger, bindMenu } from "material-ui-popup-state";
 import formatSerializedId from '../../utils/formatSerializedId';
 import { v4 as uuidv4 } from "uuid";
-
-import {
-    ArrowDropDown,
-    Backup,
-    ContactPhone,
-} from "@material-ui/icons";
-import { Menu, MenuItem } from "@material-ui/core";
 
 import ContactImportWpModal from "../../components/ContactImportWpModal";
 import useCompanySettings from "../../hooks/useSettings/companySettings";
 import { TicketsContext } from "../../context/Tickets/TicketsContext";
+import "./style.css";
 
 const reducer = (state, action) => {
     if (action.type === "LOAD_CONTACTS") {
@@ -107,17 +87,7 @@ const reducer = (state, action) => {
     }
 };
 
-const useStyles = makeStyles((theme) => ({
-    mainPaper: {
-        flex: 1,
-        padding: theme.spacing(1),
-        overflowY: "scroll",
-        ...theme.scrollbarStyles,
-    },
-}));
-
 const Contacts = () => {
-    const classes = useStyles();
     const history = useHistory();
 
     //   const socketManager = useContext(SocketContext);
@@ -145,11 +115,28 @@ const Contacts = () => {
     const fileUploadRef = useRef(null);
     const [selectedTags, setSelectedTags] = useState([]);
     const { setCurrentTicket } = useContext(TicketsContext);
-
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
     const { getAll: getAllSettings } = useCompanySettings();
     const [hideNum, setHideNum] = useState(false);
     const [enableLGPD, setEnableLGPD] = useState(false);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setDropdownOpen(false);
+            }
+        };
+
+        if (dropdownOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [dropdownOpen]);
     useEffect(() => {
 
         async function fetchData() {
@@ -361,9 +348,21 @@ const Contacts = () => {
     // }
 
 
-    return (
+    const getChannelIcon = (channel) => {
+        switch (channel) {
+            case "whatsapp":
+                return <FaWhatsapp className="contacts-channel-icon contacts-channel-whatsapp" />;
+            case "instagram":
+                return <FaInstagram className="contacts-channel-icon contacts-channel-instagram" />;
+            case "facebook":
+                return <FaFacebook className="contacts-channel-icon contacts-channel-facebook" />;
+            default:
+                return null;
+        }
+    };
 
-        <MainContainer className={classes.mainContainer}>
+    return (
+        <MainContainer className="contacts-container">
             <NewTicketModal
                 modalOpen={newTicketModalOpen}
                 initialContact={contactTicket}
@@ -428,109 +427,70 @@ const Contacts = () => {
             >
                 {i18n.t("contacts.confirmationModal.wantImport")}
             </ConfirmationModal>
-            <MainHeader>
-                <Title>{i18n.t("contacts.title")} ({contacts.length})</Title>
-                <MainHeaderButtonsWrapper>
-                    <TagsFilter
-                        onFiltered={handleSelectedTags}
-                    />
-                    <TextField
-                        placeholder={i18n.t("contacts.searchPlaceholder")}
-                        type="search"
-                        value={searchParam}
-                        onChange={handleSearch}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon color="secondary" />
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-                    <PopupState variant="popover" popupId="demo-popup-menu">
-                        {(popupState) => (
-                            <React.Fragment>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    {...bindTrigger(popupState)}
-                                >
-                                    Importar / Exportar
-                                    <ArrowDropDown />
-                                </Button>
-                                <Menu {...bindMenu(popupState)}>
-                                    <MenuItem
+            <div className="contacts-header">
+                <div className="contacts-header-content">
+                    <h1 className="contacts-title">
+                        {i18n.t("contacts.title")}
+                        <span className="contacts-title-count">({contacts.length})</span>
+                    </h1>
+                    <div className="contacts-header-actions">
+                        <TagsFilter
+                            onFiltered={handleSelectedTags}
+                        />
+                        <div className="contacts-search-wrapper">
+                            <FiSearch className="contacts-search-icon" />
+                            <input
+                                type="search"
+                                className="contacts-search-input"
+                                placeholder={i18n.t("contacts.searchPlaceholder")}
+                                value={searchParam}
+                                onChange={handleSearch}
+                            />
+                        </div>
+                        <div className="contacts-dropdown" ref={dropdownRef}>
+                            <button
+                                className="contacts-dropdown-button"
+                                onClick={() => setDropdownOpen(!dropdownOpen)}
+                            >
+                                Importar / Exportar
+                                <FiChevronDown />
+                            </button>
+                            {dropdownOpen && (
+                                <div className="contacts-dropdown-menu">
+                                    <button
+                                        className="contacts-dropdown-item"
                                         onClick={() => {
                                             setConfirmOpen(true);
                                             setImportContacts(true);
-                                            popupState.close();
+                                            setDropdownOpen(false);
                                         }}
                                     >
-                                        <ContactPhone
-                                            fontSize="small"
-                                            color="primary"
-                                            style={{
-                                                marginRight: 10,
-                                            }}
-                                        />
+                                        <FiPhone className="contacts-dropdown-item-icon" />
                                         {i18n.t("contacts.menu.importYourPhone")}
-                                    </MenuItem>
-                                    <MenuItem
-                                        onClick={() => { setImportContactModalOpen(true) }}
-
+                                    </button>
+                                    <button
+                                        className="contacts-dropdown-item"
+                                        onClick={() => {
+                                            setImportContactModalOpen(true);
+                                            setDropdownOpen(false);
+                                        }}
                                     >
-                                        <Backup
-                                            fontSize="small"
-                                            color="primary"
-                                            style={{
-                                                marginRight: 10,
-                                            }}
-                                        />
+                                        <FiUpload className="contacts-dropdown-item-icon" />
                                         {i18n.t("contacts.menu.importToExcel")}
-
-                                    </MenuItem>
-                                    {/* {<MenuItem>
-                        
-                                       <CSVLink
-                                            className={classes.csvbtn}
-                                            separator=";"
-                                            filename={'contacts.csv'}
-                                            data={
-                                                contacts.map((contact) => ({
-                                                    number: hideNum && user.profile === "user" ? contact.isGroup ? contact.number : formatSerializedId(contact.number).slice(0,-6)+"**-**"+ contact.number.slice(-2): contact.isGroup ? contact.number : formatSerializedId(contact.number),
-                                                    firstName: contact.name.split(' ')[0],
-                                                    lastname: String(contact.name).replace(contact.name.split(' ')[0],''),
-                                                    tags: contact?.tags?.name
-                                                }))
-
-                                            }
-                                            
-                                            >
-                                        
-                                        <CloudDownload fontSize="small"
-                                            color="primary"
-                                            style={{
-                                                marginRight: 10,
-                                            
-                                                }}                                                
-                                        />        
-                                        Exportar Excel                                
-                                   </CSVLink>
-                                        
-                                    </MenuItem> } */}
-                                </Menu>
-                            </React.Fragment>
-                        )}
-                    </PopupState>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleOpenContactModal}
-                    >
-                        {i18n.t("contacts.buttons.add")}
-                    </Button>
-                </MainHeaderButtonsWrapper>
-            </MainHeader>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        <button
+                            className="contacts-button contacts-button-primary"
+                            onClick={handleOpenContactModal}
+                        >
+                            <FiPlus />
+                            {i18n.t("contacts.buttons.add")}
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             {importContactModalOpen && (
                 <ContactImportWpModal
@@ -541,58 +501,50 @@ const Contacts = () => {
                     userProfile={user.profile}
                 />
             )}
-            <Paper
-                className={classes.mainPaper}
-                variant="outlined"
-                onScroll={handleScroll}
-            >
-                <>
-                    <input
-                        style={{ display: "none" }}
-                        id="upload"
-                        name="file"
-                        type="file"
-                        accept=".xls,.xlsx"
-                        onChange={() => {
-                            setConfirmOpen(true);
-                        }}
-                        ref={fileUploadRef}
-                    />
-                </>
-                <Table size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell padding="checkbox" />
-                            <TableCell>
-                                {i18n.t("contacts.table.name")}
-                            </TableCell>
-                            <TableCell align="center">
-                                {i18n.t("contacts.table.whatsapp")}
-                            </TableCell>
-                            <TableCell align="center">
-                                {i18n.t("contacts.table.email")}
-                            </TableCell>
-                            {/* <TableCell align="center">
-                                {i18n.t("contacts.table.lastMessage")}
-                            </TableCell> */}
-                            <TableCell align="center">
-                                {i18n.t("contacts.table.whatsapp")}
-                            </TableCell>
-                            <TableCell align="center">{"Status"}</TableCell>
-                            <TableCell align="center">
-                                {i18n.t("contacts.table.actions")}
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        <>
+            <div className="contacts-list-wrapper" onScroll={handleScroll}>
+                <input
+                    style={{ display: "none" }}
+                    id="upload"
+                    name="file"
+                    type="file"
+                    accept=".xls,.xlsx"
+                    onChange={() => {
+                        setConfirmOpen(true);
+                    }}
+                    ref={fileUploadRef}
+                />
+                {/* Desktop: Tabela */}
+                <div className="contacts-table-container">
+                    <table className="contacts-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>{i18n.t("contacts.table.name")}</th>
+                                <th className="center">{i18n.t("contacts.table.whatsapp")}</th>
+                                <th className="center">{i18n.t("contacts.table.email")}</th>
+                                <th className="center">{i18n.t("contacts.table.whatsapp")}</th>
+                                <th className="center">Status</th>
+                                <th className="center">{i18n.t("contacts.table.actions")}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {contacts.map((contact) => (
-                                <TableRow key={contact.id}>
-                                    <TableCell style={{ paddingRight: 0 }}>
-                                        {<Avatar src={`${contact?.urlPicture}`} />}
-                                    </TableCell>
-                                    <TableCell>{contact.name}</TableCell>
-                                    <TableCell align="center">
+                                <tr key={contact.id}>
+                                    <td>
+                                        {contact?.urlPicture ? (
+                                            <img
+                                                src={contact.urlPicture}
+                                                alt={contact.name}
+                                                className="contacts-avatar"
+                                            />
+                                        ) : (
+                                            <div className="contacts-avatar-placeholder">
+                                                {contact.name?.charAt(0)?.toUpperCase() || "?"}
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td>{contact.name}</td>
+                                    <td className="center">
                                         {((enableLGPD && hideNum && user.profile === "user")
                                             ? contact.isGroup
                                                 ? contact.number :
@@ -600,99 +552,212 @@ const Contacts = () => {
                                                     formatSerializedId(contact?.number)?.slice(0, -6) + "**-**" + contact?.number?.slice(-2) :
                                                     contact.isGroup ? contact.number : formatSerializedId(contact?.number)
                                         )}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {contact.email}
-                                    </TableCell>
-                                    {/* <TableCell align="center">
-                                        {getDateLastMessage(contact)}
-                                    </TableCell> */}
-                                    <TableCell>{contact?.whatsapp?.name}</TableCell>
-                                    <TableCell align="center">
-                                        {contact.active ? (
-                                            <CheckCircleIcon
-                                                style={{ color: "green" }}
-                                                fontSize="small"
-                                            />
-                                        ) : (
-                                            <CancelIcon
-                                                style={{ color: "red" }}
-                                                fontSize="small"
-                                            />
-                                        )}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <IconButton
-                                            size="small"
-                                            disabled={!contact.active}
-                                            onClick={() => {
-                                                setContactTicket(contact);
-                                                setNewTicketModalOpen(true);
-                                                // handleSaveTicket(contact.id);
-                                            }}
-                                        >
-                                            {contact.channel === "whatsapp" && (<WhatsApp style={{ color: "green" }} />)}
-                                            {contact.channel === "instagram" && (<Instagram style={{ color: "purple" }} />)}
-                                            {contact.channel === "facebook" && (<Facebook style={{ color: "blue" }} />)}
-                                        </IconButton>
-
-                                        <IconButton
-                                            size="small"
-                                            onClick={() =>
-                                                hadleEditContact(contact.id)
-                                            }
-                                        >
-                                            <EditIcon color="secondary" />
-                                        </IconButton>
-                                        <IconButton
-                                            size="small"
-                                            onClick={
-                                                contact.active
-                                                    ? () => {
-                                                        setConfirmOpen(true);
-                                                        setBlockingContact(
-                                                            contact
-                                                        );
-                                                    }
-                                                    : () => {
-                                                        setConfirmOpen(true);
-                                                        setUnBlockingContact(
-                                                            contact
-                                                        );
-                                                    }
-                                            }
-                                        >
+                                    </td>
+                                    <td className="center">{contact.email}</td>
+                                    <td className="center">{contact?.whatsapp?.name}</td>
+                                    <td className="center">
+                                        <div className="contacts-status">
                                             {contact.active ? (
-                                                <BlockIcon color="secondary" />
+                                                <FiCheckCircle className="contacts-status-icon contacts-status-active" />
                                             ) : (
-                                                <CheckCircleIcon color="secondary" />
+                                                <FiX className="contacts-status-icon contacts-status-inactive" />
                                             )}
-                                        </IconButton>
-                                        <Can
-                                            role={user.profile}
-                                            perform="contacts-page:deleteContact"
-                                            yes={() => (
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => {
-                                                        setConfirmOpen(true);
-                                                        setDeletingContact(
-                                                            contact
-                                                        );
-                                                    }}
-                                                >
-                                                    <DeleteOutlineIcon color="secondary" />
-                                                </IconButton>
-                                            )}
-                                        />
-                                    </TableCell>
-                                </TableRow>
+                                        </div>
+                                    </td>
+                                    <td className="center">
+                                        <div className="contacts-actions">
+                                            <button
+                                                className="contacts-action-button"
+                                                disabled={!contact.active}
+                                                onClick={() => {
+                                                    setContactTicket(contact);
+                                                    setNewTicketModalOpen(true);
+                                                }}
+                                                title="Abrir conversa"
+                                            >
+                                                {getChannelIcon(contact.channel)}
+                                            </button>
+                                            <button
+                                                className="contacts-action-button"
+                                                onClick={() => hadleEditContact(contact.id)}
+                                                title="Editar contato"
+                                            >
+                                                <FiEdit2 className="contacts-action-icon" />
+                                            </button>
+                                            <button
+                                                className="contacts-action-button"
+                                                onClick={
+                                                    contact.active
+                                                        ? () => {
+                                                            setConfirmOpen(true);
+                                                            setBlockingContact(contact);
+                                                        }
+                                                        : () => {
+                                                            setConfirmOpen(true);
+                                                            setUnBlockingContact(contact);
+                                                        }
+                                                }
+                                                title={contact.active ? "Bloquear contato" : "Desbloquear contato"}
+                                            >
+                                                {contact.active ? (
+                                                    <FiLock className="contacts-action-icon" />
+                                                ) : (
+                                                    <FiCheckCircle className="contacts-action-icon" />
+                                                )}
+                                            </button>
+                                            <Can
+                                                role={user.profile}
+                                                perform="contacts-page:deleteContact"
+                                                yes={() => (
+                                                    <button
+                                                        className="contacts-action-button"
+                                                        onClick={(e) => {
+                                                            setConfirmOpen(true);
+                                                            setDeletingContact(contact);
+                                                        }}
+                                                        title="Excluir contato"
+                                                    >
+                                                        <FiTrash2 className="contacts-action-icon" />
+                                                    </button>
+                                                )}
+                                            />
+                                        </div>
+                                    </td>
+                                </tr>
                             ))}
                             {loading && <TableRowSkeleton avatar columns={6} />}
-                        </>
-                    </TableBody>
-                </Table>
-            </Paper>
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Mobile: Cards estilo WhatsApp */}
+                <div className="contacts-cards-container">
+                    {contacts.map((contact) => (
+                        <div key={contact.id} className="contacts-card">
+                            <div className="contacts-card-content">
+                                <div className="contacts-card-avatar-wrapper">
+                                    {contact?.urlPicture ? (
+                                        <img
+                                            src={contact.urlPicture}
+                                            alt={contact.name}
+                                            className="contacts-card-avatar"
+                                        />
+                                    ) : (
+                                        <div className="contacts-card-avatar-placeholder">
+                                            {contact.name?.charAt(0)?.toUpperCase() || "?"}
+                                        </div>
+                                    )}
+                                    <div className={`contacts-card-status-badge ${contact.active ? 'active' : 'inactive'}`}>
+                                        {contact.active ? (
+                                            <FiCheckCircle />
+                                        ) : (
+                                            <FiX />
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="contacts-card-info">
+                                    <div className="contacts-card-header">
+                                        <h3 className="contacts-card-name">{contact.name}</h3>
+                                        {getChannelIcon(contact.channel)}
+                                    </div>
+                                    <div className="contacts-card-details">
+                                        <div className="contacts-card-detail-item">
+                                            <FiPhone className="contacts-card-detail-icon" />
+                                            <span className="contacts-card-detail-text">
+                                                {((enableLGPD && hideNum && user.profile === "user")
+                                                    ? contact.isGroup
+                                                        ? contact.number :
+                                                        formatSerializedId(contact?.number) === null ? contact.number.slice(0, -6) + "**-**" + contact?.number.slice(-2) :
+                                                            formatSerializedId(contact?.number)?.slice(0, -6) + "**-**" + contact?.number?.slice(-2) :
+                                                            contact.isGroup ? contact.number : formatSerializedId(contact?.number)
+                                                )}
+                                            </span>
+                                        </div>
+                                        {contact.email && (
+                                            <div className="contacts-card-detail-item">
+                                                <span className="contacts-card-detail-label">Email:</span>
+                                                <span className="contacts-card-detail-text">{contact.email}</span>
+                                            </div>
+                                        )}
+                                        {contact?.whatsapp?.name && (
+                                            <div className="contacts-card-detail-item">
+                                                <span className="contacts-card-detail-label">WhatsApp:</span>
+                                                <span className="contacts-card-detail-text">{contact.whatsapp.name}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="contacts-card-actions-mobile">
+                                <button
+                                    className="contacts-card-action-btn"
+                                    disabled={!contact.active}
+                                    onClick={() => {
+                                        setContactTicket(contact);
+                                        setNewTicketModalOpen(true);
+                                    }}
+                                    title="Abrir conversa"
+                                >
+                                    {getChannelIcon(contact.channel)}
+                                </button>
+                                <button
+                                    className="contacts-card-action-btn"
+                                    onClick={() => hadleEditContact(contact.id)}
+                                    title="Editar contato"
+                                >
+                                    <FiEdit2 />
+                                </button>
+                                <button
+                                    className="contacts-card-action-btn"
+                                    onClick={
+                                        contact.active
+                                            ? () => {
+                                                setConfirmOpen(true);
+                                                setBlockingContact(contact);
+                                            }
+                                            : () => {
+                                                setConfirmOpen(true);
+                                                setUnBlockingContact(contact);
+                                            }
+                                    }
+                                    title={contact.active ? "Bloquear contato" : "Desbloquear contato"}
+                                >
+                                    {contact.active ? <FiLock /> : <FiCheckCircle />}
+                                </button>
+                                <Can
+                                    role={user.profile}
+                                    perform="contacts-page:deleteContact"
+                                    yes={() => (
+                                        <button
+                                            className="contacts-card-action-btn contacts-card-action-btn-danger"
+                                            onClick={(e) => {
+                                                setConfirmOpen(true);
+                                                setDeletingContact(contact);
+                                            }}
+                                            title="Excluir contato"
+                                        >
+                                            <FiTrash2 />
+                                        </button>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    ))}
+                    {loading && (
+                        <div className="contacts-loading-skeleton">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="contacts-skeleton-card">
+                                    <div className="contacts-skeleton-avatar"></div>
+                                    <div className="contacts-skeleton-content">
+                                        <div className="contacts-skeleton-line"></div>
+                                        <div className="contacts-skeleton-line short"></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
         </MainContainer >
     );
 };

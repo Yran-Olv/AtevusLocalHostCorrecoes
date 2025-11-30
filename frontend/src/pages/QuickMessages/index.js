@@ -1,48 +1,32 @@
-import React, { useState, useEffect, useReducer, useContext, useCallback } from "react";
+import React, { useState, useEffect, useReducer, useContext } from "react";
 import { toast } from "react-toastify";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
+import { 
+  FiSearch, 
+  FiPlus, 
+  FiEdit2, 
+  FiTrash2, 
+  FiCheckCircle,
+  FiMessageSquare,
+  FiFile,
+  FiLoader
+} from "react-icons/fi";
 
 import MainContainer from "../../components/MainContainer";
-import MainHeader from "../../components/MainHeader";
-import Title from "../../components/Title";
-
-import api from "../../services/api";
-import { i18n } from "../../translate/i18n";
 import TableRowSkeleton from "../../components/TableRowSkeleton";
 import QuickMessageDialog from "../../components/QuickMessageDialog";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
-import { Grid } from "@material-ui/core";
+import api from "../../services/api";
+import { i18n } from "../../translate/i18n";
 import { isArray } from "lodash";
-// import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
-
+import "./style.css";
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_QUICKMESSAGES") {
-    //console.log("aqui");
-    //console.log(action);
-    //console.log(action.payload);
     const quickmessages = action.payload;
     const newQuickmessages = [];
-    //console.log(newQuickmessages);
 
     if (isArray(quickmessages)) {
       quickmessages.forEach((quickemessage) => {
@@ -87,18 +71,7 @@ const reducer = (state, action) => {
   }
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-}));
-
 const Quickemessages = () => {
-  const classes = useStyles();
-
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -108,7 +81,6 @@ const Quickemessages = () => {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [searchParam, setSearchParam] = useState("");
   const [quickemessages, dispatch] = useReducer(reducer, []);
-  //   const socketManager = useContext(SocketContext);
   const { user, socket } = useContext(AuthContext);
 
   const { profile } = user;
@@ -130,7 +102,6 @@ const Quickemessages = () => {
   useEffect(() => {
     if (isSocketValid(socket) && user.companyId) {
       const companyId = user.companyId;
-      // const socket = socketManager.GetSocket();
 
       const onQuickMessageEvent = (data) => {
         if (data.action === "update" || data.action === "create") {
@@ -151,7 +122,6 @@ const Quickemessages = () => {
   const fetchQuickemessages = async () => {
     try {
       const companyId = user.companyId;
-      //const searchParam = ({ companyId, userId: user.id });
       const { data } = await api.get("/quick-messages", {
         params: { searchParam, pageNumber },
       });
@@ -161,6 +131,7 @@ const Quickemessages = () => {
       setLoading(false);
     } catch (err) {
       toastError(err);
+      setLoading(false);
     }
   };
 
@@ -172,7 +143,6 @@ const Quickemessages = () => {
   const handleCloseQuickMessageDialog = () => {
     setSelectedQuickemessage(null);
     setQuickMessageDialogOpen(false);
-    //window.location.reload();
     fetchQuickemessages();
   };
 
@@ -181,7 +151,6 @@ const Quickemessages = () => {
   };
 
   const handleEditQuickemessage = (quickemessage) => {
-    //console.log(quickemessage);
     setSelectedQuickemessage(quickemessage);
     setQuickMessageDialogOpen(true);
   };
@@ -198,7 +167,6 @@ const Quickemessages = () => {
     setPageNumber(1);
     fetchQuickemessages();
     dispatch({ type: "RESET" });
-
   };
 
   const loadMore = () => {
@@ -223,6 +191,7 @@ const Quickemessages = () => {
       >
         {i18n.t("quickMessages.confirmationModal.deleteMessage")}
       </ConfirmationModal>
+      
       <QuickMessageDialog
         resetPagination={() => {
           setPageNumber(1);
@@ -233,108 +202,143 @@ const Quickemessages = () => {
         aria-labelledby="form-dialog-title"
         quickemessageId={selectedQuickemessage && selectedQuickemessage.id}
       />
-      <MainHeader>
-        <Grid style={{ width: "99.6%" }} container>
-          <Grid xs={12} sm={8} item>
-            <Title>{i18n.t("quickMessages.title")}</Title>
-          </Grid>
-          <Grid xs={12} sm={4} item>
-            <Grid spacing={2} container>
-              <Grid xs={6} sm={6} item>
-                <TextField
-                  fullWidth
-                  placeholder={i18n.t("quickMessages.searchPlaceholder")}
+
+      <div className="quick-messages-container">
+        <div className="quick-messages-header">
+          <div className="quick-messages-title-wrapper">
+            <h1 className="quick-messages-title">
+              <FiMessageSquare className="quick-messages-title-icon" />
+              {i18n.t("quickMessages.title")}
+            </h1>
+          </div>
+          
+          <div className="quick-messages-actions">
+            <div className="quick-messages-search-wrapper">
+              <div className="quick-messages-search">
+                <FiSearch className="quick-messages-search-icon" />
+                <input
                   type="search"
+                  className="quick-messages-search-input"
+                  placeholder={i18n.t("quickMessages.searchPlaceholder")}
                   value={searchParam}
                   onChange={handleSearch}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon style={{ color: "gray" }} />
-                      </InputAdornment>
-                    ),
-                  }}
                 />
-              </Grid>
-              <Grid xs={6} sm={6} item>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={handleOpenQuickMessageDialog}
-                  color="primary"
-                >
-                  {i18n.t("quickMessages.buttons.add")}
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </MainHeader>
-      <Paper
-        className={classes.mainPaper}
-        variant="outlined"
-        onScroll={handleScroll}
-      >
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell align="center">
-                {i18n.t("quickMessages.table.shortcode")}
-              </TableCell>
+              </div>
+            </div>
+            
+            <button
+              className="quick-messages-add-button"
+              onClick={handleOpenQuickMessageDialog}
+            >
+              <FiPlus className="quick-messages-add-icon" />
+              {i18n.t("quickMessages.buttons.add")}
+            </button>
+          </div>
+        </div>
 
-              <TableCell align="center">
-                {i18n.t("quickMessages.table.mediaName")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("quickMessages.table.status")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("quickMessages.table.actions")}
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <>
-              {quickemessages.map((quickemessage) => (
-                <TableRow key={quickemessage.id}>
-                  <TableCell align="center">{quickemessage.shortcode}</TableCell>
-
-                  <TableCell align="center">
-                    {quickemessage.mediaName ?? i18n.t("quickMessages.noAttachment")}
-                  </TableCell>
-                  <TableCell align="center">
-                    {quickemessage.geral === true ? (
-                      <CheckCircleIcon style={{ color: 'green' }} />
-                    ) : (
-                      ''
-                    )}
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleEditQuickemessage(quickemessage)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-
-
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        setConfirmModalOpen(true);
-                        setDeletingQuickemessage(quickemessage);
-                      }}
-                    >
-                      <DeleteOutlineIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {loading && <TableRowSkeleton columns={5} />}
-            </>
-          </TableBody>
-        </Table>
-      </Paper>
+        <div 
+          className="quick-messages-table-container"
+          onScroll={handleScroll}
+        >
+          <table className="quick-messages-table">
+            <thead className="quick-messages-table-head">
+              <tr>
+                <th className="quick-messages-table-header">
+                  {i18n.t("quickMessages.table.shortcode")}
+                </th>
+                <th className="quick-messages-table-header">
+                  {i18n.t("quickMessages.table.mediaName")}
+                </th>
+                <th className="quick-messages-table-header">
+                  {i18n.t("quickMessages.table.status")}
+                </th>
+                <th className="quick-messages-table-header">
+                  {i18n.t("quickMessages.table.actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="quick-messages-table-body">
+              {quickemessages.length === 0 && !loading ? (
+                <tr>
+                  <td colSpan="4" className="quick-messages-empty">
+                    <div className="quick-messages-empty-content">
+                      <FiMessageSquare className="quick-messages-empty-icon" />
+                      <p className="quick-messages-empty-text">
+                        Nenhuma mensagem rápida encontrada
+                      </p>
+                      <p className="quick-messages-empty-subtext">
+                        Clique em "Adicionar" para criar sua primeira mensagem rápida
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {quickemessages.map((quickemessage) => (
+                    <tr key={quickemessage.id} className="quick-messages-table-row">
+                      <td className="quick-messages-table-cell">
+                        <span className="quick-messages-shortcode">
+                          {quickemessage.shortcode}
+                        </span>
+                      </td>
+                      <td className="quick-messages-table-cell">
+                        <div className="quick-messages-media">
+                          {quickemessage.mediaName ? (
+                            <>
+                              <FiFile className="quick-messages-media-icon" />
+                              <span className="quick-messages-media-name">
+                                {quickemessage.mediaName}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="quick-messages-no-media">
+                              {i18n.t("quickMessages.noAttachment")}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="quick-messages-table-cell">
+                        {quickemessage.geral === true ? (
+                          <span className="quick-messages-status-badge active">
+                            <FiCheckCircle className="quick-messages-status-icon" />
+                            Geral
+                          </span>
+                        ) : (
+                          <span className="quick-messages-status-badge inactive">
+                            Específico
+                          </span>
+                        )}
+                      </td>
+                      <td className="quick-messages-table-cell">
+                        <div className="quick-messages-actions-cell">
+                          <button
+                            className="quick-messages-action-button quick-messages-action-edit"
+                            onClick={() => handleEditQuickemessage(quickemessage)}
+                            title="Editar"
+                          >
+                            <FiEdit2 />
+                          </button>
+                          <button
+                            className="quick-messages-action-button quick-messages-action-delete"
+                            onClick={() => {
+                              setConfirmModalOpen(true);
+                              setDeletingQuickemessage(quickemessage);
+                            }}
+                            title="Excluir"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {loading && <TableRowSkeleton columns={4} />}
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </MainContainer>
   );
 };

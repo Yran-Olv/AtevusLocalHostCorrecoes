@@ -1,22 +1,6 @@
-import React, { useState, useContext, useEffect, useMemo } from "react";
-import clsx from "clsx";
-import { Link as RouterLink } from 'react-router-dom';
-// import moment from "moment";
-// import { isNill } from "lodash";
-// import SoftPhone from "react-softphone";
-// import { WebSocketInterface } from "jssip";
-import { makeStyles, Drawer, AppBar, Toolbar, List, Typography, Divider, MenuItem, IconButton, Menu, useTheme, useMediaQuery, Avatar, Badge, withStyles, Chip, Tooltip, Switch } from "@material-ui/core";
-
-import MenuIcon from "@material-ui/icons/Menu";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import CachedIcon from "@material-ui/icons/Cached";
-import Brightness4Icon from "@material-ui/icons/Brightness4";
-import Brightness7Icon from "@material-ui/icons/Brightness7";
-import ArrowRightRoundedIcon from '@mui/icons-material/ArrowRightRounded';
-import AccountCircleIcon from '@material-ui/icons/AccountCircle';
-import TaskIcon from '@material-ui/icons/Assignment';
-import SettingsIcon from '@material-ui/icons/Settings';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import React, { useState, useContext, useEffect, useMemo, useRef } from "react";
+import { Link } from 'react-router-dom';
+import { FiSun, FiMoon, FiChevronLeft, FiRefreshCw, FiUser, FiFileText, FiSettings, FiLogOut } from "react-icons/fi";
 
 import MainListItems from "./MainListItems";
 import NotificationsPopOver from "../components/NotificationsPopOver";
@@ -40,323 +24,33 @@ import ColorModeContext from "./themeContext";
 import { getBackendUrl } from "../config";
 import useSettings from "../hooks/useSettings";
 import { safeSocketOn, safeSocketOff, safeSocketEmit, isSocketValid } from "../utils/socketHelper";
+import "./themeToggle.css";
+import "./layout.css";
 
 // import { SocketContext } from "../context/Socket/SocketContext";
 
 const backendUrl = getBackendUrl();
 
-const drawerWidth = 240;
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: "flex",
-    height: "100vh",
-    [theme.breakpoints.down("sm")]: {
-      height: "calc(100vh - 56px)",
-    },
-    backgroundColor: theme.palette.fancyBackground,
-    "& .MuiButton-outlinedPrimary": {
-      color: theme.palette.primary,
-      border:
-        theme.mode === "light"
-          ? "1px solid rgba(0 124 102)"
-          : "1px solid rgba(255, 255, 255, 0.5)",
-    },
-    "& .MuiTab-textColorPrimary.Mui-selected": {
-      color: theme.palette.primary,
-    },
-  },
-  chip: {
-    background: "red",
-    color: "white",
-  },
-  avatar: {
-    width: "100%",
-  },
-  toolbar: {
-    paddingRight: 24,
-    color: theme.palette.dark.main,
-    background: theme.palette.barraSuperior,
-  },
-  toolbarIcon: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundSize: "cover",
-    padding: "0 8px",
-    minHeight: "48px",
-    [theme.breakpoints.down("sm")]: {
-      height: "48px",
-    },
-  },
-  appBar: {
-    zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-  },
-  appBarShift: {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-    [theme.breakpoints.down("sm")]: {
-      display: "none",
-    },
-  },
-  menuButtonHidden: {
-    display: "none !important",
-  },
-  title: {
-    flexGrow: 1,
-    fontSize: 14,
-    color: "white",
-  },
-  drawerPaper: {
-    position: "relative",
-    whiteSpace: "nowrap",
-    width: drawerWidth,
-    transition: theme.transitions.create("width", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-    overflowX: "hidden",
-    overflowY: "hidden",
-  },
-
-  drawerPaperClose: {
-    overflowX: "hidden",
-    overflowY: "hidden",
-    transition: theme.transitions.create("width", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    width: theme.spacing(7),
-    [theme.breakpoints.up("sm")]: {
-      width: theme.spacing(9),
-    },
-  },
-
-  appBarSpacer: {
-    minHeight: "48px",
-  },
-  content: {
-    flex: 1,
-    overflow: "auto",
-  },
-  container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
-  },
-  containerWithScroll: {
-    flex: 1,
-    overflowY: "scroll",
-    overflowX: "hidden",
-    ...theme.scrollbarStyles,
-    borderRadius: "8px",
-    border: "2px solid transparent",
-    "&::-webkit-scrollbar": {
-      display: "none",
-    },
-    "-ms-overflow-style": "none",
-    "scrollbar-width": "none",
-  },
-  logo: {
-    width: "100%",
-    height: "45px",
-    maxWidth: 180,
-    [theme.breakpoints.down("sm")]: {
-      width: "auto",
-      height: "100%",
-      maxWidth: 180,
-    },
-    logo: theme.logo,
-    content: "url(" + (theme.mode === "light" ? theme.calculatedLogoLight() : theme.calculatedLogoDark()) + ")"
-  },
-  hideLogo: {
-    display: "none",
-  },
-  avatar2: {
-    width: theme.spacing(4),
-    height: theme.spacing(4),
-    cursor: "pointer",
-    borderRadius: "50%",
-    border: "2px solid #ccc",
-  },
-  updateDiv: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  warning: {
-    display: 'inline-block',
-    backgroundColor: '#f3f3f361',
-    padding: '1px 10px',
-    borderRadius: '10px',
-    color: '#fff',
-    marginLeft: '10px',
-    border: '1px solid #fff',
-    fontSize: '0.8rem',
-  },
-  danger: {
-    display: 'inline-block',
-    backgroundColor: 'rgb(229 53 53)',
-    padding: '1px 10px',
-    borderRadius: '7px',
-    color: '#fff',
-    marginLeft: '10px',
-  },
-  btnLogo: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(1),
-    backgroundColor: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    paddingLeft: '0',
-    transition: 'background-color 0.3s',
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    },
-  },
-  logoMenu: {
-    width: '30px',
-    height: 'auto',
-  },
-  iconMenu: {
-    transition: 'linear 0.18s !important',
-    fontSize: '2rem !important',
-    color: '#fff',
-    marginLeft: '-8px',
-  },
-  iconMenuHover: {
-    transform: 'translateX(3px)',
-  },
-  profileMenuOpt: {
-    marginLeft: "10px",
-  },
-  infoUsuario: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: 8,
-    cursor: 'default',
-    "&:hover": {
-      backgroundColor: "transparent",
-    },
-    "&:focus": {
-      backgroundColor: "transparent",
-    },
-  },
-  avatarUsuario: {
-    marginRight: 8,
-  },
-  itemMenuPerfil: {
-    color: '#9CA1AA',
-    margin: '5px 3px',
-    '& .MuiSvgIcon-root': {
-      color: '#757575',
-      marginRight: 5,
-    },
-  },
-  logoutItem: {
-    color: "#ff5858",
-    margin: "0px 8px 4px 8px",
-    backgroundColor: "rgb(245 198 198 / 20%)",
-    borderRadius: "8px",
-    "&:hover": {
-      backgroundColor: "rgb(245 162 162 / 20%)",
-    },
-  },
-  customSwitch: {
-    "& .MuiSwitch-input": {
-      left: "0",
-      width: "40px",
-      height: "40px",
-    },
-    "& .MuiSwitch-track": {
-      borderRadius: 20,
-    },
-  },
-  iconDarkMode: {
-    position: "relative",
-    top: "-2px",
-    color: theme.mode === "dark" ? "white" : "inherit",
-  },
-  displayUsuario: {
-    color: "#c7c7c7",
-    fontSize: "0.8rem",
-    fontStyle: "normal",
-    marginTop: "-6px",
-  },
-}));
-
-const StyledBadge = withStyles((theme) => ({
-  badge: {
-    backgroundColor: "#44b700",
-    color: "#44b700",
-    boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-    "&::after": {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      borderRadius: "50%",
-      animation: "$ripple 1.2s infinite ease-in-out",
-      border: "1px solid currentColor",
-      content: '""',
-    },
-  },
-  "@keyframes ripple": {
-    "0%": {
-      transform: "scale(.8)",
-      opacity: 1,
-    },
-    "100%": {
-      transform: "scale(2.4)",
-      opacity: 0,
-    },
-  },
-}))(Badge);
-
-const SmallAvatar = withStyles((theme) => ({
-  root: {
-    width: 22,
-    height: 22,
-    border: `2px solid ${theme.palette.background.paper}`,
-  },
-}))(Avatar);
-
-const MenuItemLink = React.forwardRef((props, ref) => (
-  <MenuItem
-    ref={ref}
-    component={RouterLink}
-    onClick={props.onMenuClose}
-    {...props}
-  />
-));
-
 const LoggedInLayout = ({ children, themeToggle }) => {
-  const classes = useStyles();
   const [userToken, setUserToken] = useState("disabled");
   const [loadingUserToken, setLoadingUserToken] = useState(false);
   const [userModalOpen, setUserModalOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const { handleLogout, loading } = useContext(AuthContext);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerVariant, setDrawerVariant] = useState("permanent");
-  // const [dueDate, setDueDate] = useState("");
-  //   const socketManager = useContext(SocketContext);
   const { user, socket } = useContext(AuthContext);
+  const menuRef = useRef(null);
+  const profileMenuRef = useRef(null);
 
-  const theme = useTheme();
   const { colorMode } = useContext(ColorModeContext);
-  const greaterThenSm = useMediaQuery(theme.breakpoints.up("sm"));
+  const [currentTheme, setCurrentTheme] = useState(localStorage.getItem("preferredTheme") || "light");
+  const isMobile = window.innerWidth <= 768;
+
+  useEffect(() => {
+    const theme = localStorage.getItem("preferredTheme") || "light";
+    setCurrentTheme(theme);
+  }, [colorMode]);
 
   const [volume, setVolume] = useState(localStorage.getItem("volume") || 1);
 
@@ -401,29 +95,48 @@ const LoggedInLayout = ({ children, themeToggle }) => {
   }, [user]);
 
   useEffect(() => {
-    // if (localStorage.getItem("public-token") === null) {
-    //   handleLogout()
-    // }
-
-    if (document.body.offsetWidth > 600) {
-      if (user.defaultMenu === "closed") {
-        setDrawerOpen(false);
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        if (user.defaultMenu === "closed") {
+          setDrawerOpen(false);
+        } else {
+          setDrawerOpen(true);
+        }
+        setDrawerVariant("permanent");
       } else {
-        setDrawerOpen(true);
+        setDrawerVariant("temporary");
+        setDrawerOpen(false);
       }
-    }
-    if (user.defaultTheme === "dark" && theme.mode === "light") {
-      colorMode.toggleColorMode();
-    }
-  }, [user.defaultMenu, document.body.offsetWidth]);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [user.defaultMenu]);
 
   useEffect(() => {
-    if (document.body.offsetWidth < 600) {
-      setDrawerVariant("temporary");
-    } else {
-      setDrawerVariant("permanent");
+    if (user.defaultTheme === "dark" && currentTheme === "light") {
+      colorMode.toggleColorMode();
+      setCurrentTheme("dark");
     }
-  }, [drawerOpen]);
+  }, [user.defaultTheme, currentTheme, colorMode]);
+
+  // Fechar menu ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
 
@@ -468,13 +181,11 @@ const LoggedInLayout = ({ children, themeToggle }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
 
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-    setMenuOpen(true);
+  const handleMenu = () => {
+    setMenuOpen(!menuOpen);
   };
 
   const handleCloseMenu = () => {
-    setAnchorEl(null);
     setMenuOpen(false);
   };
 
@@ -489,13 +200,12 @@ const LoggedInLayout = ({ children, themeToggle }) => {
   };
 
   const today = new Date();
-  const dueDate = new Date(user?.company?.dueDate);
-  const timeDiff = dueDate - today;
-  const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
-  const [iconHover, setIconHover] = React.useState(false);
+  const dueDate = user?.company?.dueDate ? new Date(user.company.dueDate) : null;
+  const timeDiff = dueDate ? dueDate - today : null;
+  const daysRemaining = timeDiff ? Math.ceil(timeDiff / (1000 * 3600 * 24)) : null;
 
   const drawerClose = () => {
-    if (document.body.offsetWidth < 600 || user.defaultMenu === "closed") {
+    if (window.innerWidth <= 768 || user.defaultMenu === "closed") {
       setDrawerOpen(false);
     }
   };
@@ -505,8 +215,7 @@ const LoggedInLayout = ({ children, themeToggle }) => {
   };
 
   const handleMenuItemClick = () => {
-    const { innerWidth: width } = window;
-    if (width <= 600) {
+    if (window.innerWidth <= 768) {
       setDrawerOpen(false);
     }
   };
@@ -515,237 +224,210 @@ const LoggedInLayout = ({ children, themeToggle }) => {
     return <BackdropLoading />;
   }
 
+  const getLogoUrl = () => {
+    // Usar logo baseado no tema atual
+    return currentTheme === "light" ? logo : logoDark;
+  };
+
   return (
-    <div className={classes.root}>
-      <Drawer
-        variant={drawerVariant}
-        className={drawerOpen ? classes.drawerPaper : classes.drawerPaperClose}
-        classes={{
-          paper: clsx(
-            classes.drawerPaper,
-            !drawerOpen && classes.drawerPaperClose
-          ),
-        }}
-        open={drawerOpen}
+    <div className="layout-root">
+      {/* Drawer Overlay para mobile */}
+      {drawerVariant === "temporary" && (
+        <div 
+          className={`layout-drawer-overlay ${drawerOpen ? 'visible' : ''}`}
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      {/* Drawer/Sidebar */}
+      <aside 
+        className={`layout-drawer ${drawerVariant} ${drawerOpen ? 'open' : ''} ${!drawerOpen ? 'collapsed' : ''}`}
       >
-        <div className={classes.toolbarIcon}>
-          <img className={drawerOpen ? classes.logo : classes.hideLogo}
-            style={{
-              margin: "0 auto",
-              height: "36px",
-              width: "auto",
-            }}
-            alt="logo" />
-          <IconButton onClick={() => setDrawerOpen(!drawerOpen)}>
-            <ChevronLeftIcon />
-          </IconButton>
-        </div>
-        <List className={classes.containerWithScroll}>
-          {/* {mainListItems} */}
-          <MainListItems collapsed={!drawerOpen} />
-        </List>
-        <Divider />
-      </Drawer>
-
-      <AppBar
-        position="absolute"
-        className={clsx(classes.appBar, drawerOpen && classes.appBarShift)}
-        color="primary"
-      >
-        <Toolbar variant="dense" className={classes.toolbar}>
-          <IconButton
-            className={clsx(classes.btnLogo, drawerOpen && classes.menuButtonHidden)}
-            onClick={() => setDrawerOpen(!drawerOpen)}
-            aria-label="open drawer"
-            onMouseEnter={() => setIconHover(true)}
-            onMouseLeave={() => setIconHover(false)}
-          >
-            <img src="/mobile-logo-mini.svg" alt="" className={classes.logoMenu} />
-            <ArrowRightRoundedIcon className={`${classes.iconMenu} ${iconHover ? classes.iconMenuHover : ''}`} />
-          </IconButton>
-
-          <Typography
-            component="h2"
-            variant="h6"
-            color="inherit"
-            noWrap
-            className={classes.title}
-          >
-            {i18n.t("mainDrawer.appBar.user.message")} <b style={{ fontSize: '1.1rem' }}>{user.name}</b>,{" "}
-            {i18n.t("mainDrawer.appBar.user.messageEnd")}{" "}
-            <b>{user?.company?.name}</b>!
-
-            {greaterThenSm && user?.profile === "admin" ? (
-              <>
-                {user?.company?.dueDate && (
-                  <>
-                    {daysRemaining <= 0 ? (
-                      <Tooltip title="Não foi identificado o pagamento">
-                        <div className={classes.danger}>
-                          <b>Atenção:</b> Sistema suspenderá amanhã!
-                        </div>
-                      </Tooltip>
-                    ) : daysRemaining <= 7 ? (
-                      <Tooltip title="Necessário realizar o pagamento">
-                        <div className={classes.warning}>
-                          Sistema vence em <b>{daysRemaining} dia{daysRemaining !== 1 ? 's' : ''}</b>.
-                        </div>
-                      </Tooltip>
-                    ) : null}
-                  </>
-                )}
-              </>
-            ) : null}
-          </Typography>
-
-          {userToken === "enabled" && user?.companyId === 1 && (
-            <Chip
-              className={classes.chip}
-              label={i18n.t("mainDrawer.appBar.user.token")}
+        <div className="layout-drawer-header">
+          {drawerOpen && (
+            <img 
+              className="layout-drawer-logo"
+              src={getLogoUrl()}
+              alt="Logo"
+              style={{ height: "36px", width: "auto" }}
             />
           )}
-
-
-          {/* DESABILITADO POIS TEM BUGS */}
-          {/* <UserLanguageSelector /> */}
-          {/* <SoftPhone
-            callVolume={33} //Set Default callVolume
-            ringVolume={44} //Set Default ringVolume
-            connectOnStart={false} //Auto connect to sip
-            notifications={false} //Show Browser Notification of an incoming call
-            config={config} //Voip config
-            setConnectOnStartToLocalStorage={setConnectOnStartToLocalStorage} // Callback function
-            setNotifications={setNotifications} // Callback function
-            setCallVolume={setCallVolume} // Callback function
-            setRingVolume={setRingVolume} // Callback function
-            timelocale={'UTC-3'} //Set time local for call history
-          /> */}
-
-          {/* <IconButton edge="start" onClick={colorMode.toggleColorMode}>
-            {theme.mode === "dark" ? (
-              <Brightness7Icon style={{ color: "white" }} />
-            ) : (
-              <Brightness4Icon style={{ color: "white" }} />
-            )}
-          </IconButton> */}
-
-          <Tooltip title={theme.mode === "dark" ? "Modo Claro" : "Modo Escuro"} arrow>
-            <Switch
-              className={classes.customSwitch}
-              checked={theme.mode === "dark"}
-              onChange={colorMode.toggleColorMode}
-              color="default"
-              icon={<Brightness4Icon className={classes.iconDarkMode} />}
-              checkedIcon={<Brightness7Icon className={classes.iconDarkMode} />}
-            />
-          </Tooltip>
-
-          <Tooltip title="Volume" placement="bottom" arrow>
-            <NotificationsVolume setVolume={setVolume} volume={volume} />
-          </Tooltip>
-
-          <IconButton
-            onClick={handleRefreshPage}
-            aria-label={i18n.t("mainDrawer.appBar.refresh")}
-            color="inherit"
+          <button 
+            className="layout-drawer-toggle"
+            onClick={() => setDrawerOpen(!drawerOpen)}
+            aria-label="Toggle drawer"
           >
-            <CachedIcon style={{ color: "white" }} />
-          </IconButton>
+            <FiChevronLeft className={`layout-drawer-toggle-icon ${drawerOpen ? '' : 'rotated'}`} />
+          </button>
+        </div>
+        <div className="layout-drawer-content">
+          <MainListItems collapsed={!drawerOpen} drawerClose={drawerClose} />
+        </div>
+      </aside>
 
-          {/* <DarkMode themeToggle={themeToggle} /> */}
-
-          {user.id && <NotificationsPopOver volume={volume} />}
-
-          <AnnouncementsPopover />
-
-          <ChatPopover />
-
-          <div className={classes.profileMenuOpt}>
-            <StyledBadge
-              overlap="circular"
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              variant="dot"
-              onClick={handleMenu}
+      {/* AppBar */}
+      <header className={`layout-appbar ${drawerOpen && drawerVariant === "permanent" ? 'shifted' : ''}`}>
+        <div className="layout-appbar-toolbar">
+          <div className="layout-appbar-left">
+            <button
+              className={`layout-appbar-menu-button ${drawerOpen && drawerVariant === "permanent" ? 'hidden' : ''}`}
+              onClick={() => setDrawerOpen(!drawerOpen)}
+              aria-label="Abrir menu"
             >
-              <Avatar
-                alt="Avatar"
-                className={classes.avatar2}
-                src={profileUrl || undefined}
-              >
-                {profileUrl ? null : userInitials}
-              </Avatar>
-            </StyledBadge>
+              <img src="/mobile-logo-mini.svg" alt="" className="layout-appbar-menu-icon" />
+            </button>
 
-            <UserModal
-              open={userModalOpen}
-              onClose={() => setUserModalOpen(false)}
-              onImageUpdate={(newProfileUrl) => setProfileUrl(newProfileUrl)}
-              userId={user?.id}
-            />
+            <h2 className="layout-appbar-title">
+              {i18n.t("mainDrawer.appBar.user.message")} <b>{user.name}</b>,{" "}
+              {i18n.t("mainDrawer.appBar.user.messageEnd")}{" "}
+              <b>{user?.company?.name}</b>!
 
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              getContentAnchorEl={null}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={menuOpen}
-              onClose={handleCloseMenu}
-            >
-              <MenuItem className={classes.infoUsuario} disableRipple>
-                <Avatar className={classes.avatarUsuario} src={profileUrl || undefined}>
-                {profileUrl ? null : userInitials}
-                </Avatar>
-                <div>
-                  <strong>{user.name}</strong>
-                  <div className={classes.displayUsuario}>
-                    {user?.profile === "admin" ? "Administrador" : "Usuário"}
-                  </div>
-                </div>
-              </MenuItem>
-
-              <Divider style={{ marginBottom: '10px' }} />
-
-              <MenuItem onClick={handleOpenUserModal} className={classes.itemMenuPerfil}>
-                <AccountCircleIcon />
-                Perfil
-              </MenuItem>
-
-              <MenuItemLink className={classes.itemMenuPerfil} to="/todolist" style={{ textDecoration: 'none' }} onMenuClose={handleCloseMenu}>
-                <TaskIcon />
-                Anotações
-              </MenuItemLink>
-              {user?.profile === "admin" && (
-                <MenuItemLink className={classes.itemMenuPerfil} to="/settings" style={{ textDecoration: 'none' }} onMenuClose={handleCloseMenu}>
-                  <SettingsIcon />
-                  Configurações
-                </MenuItemLink>
+              {!isMobile && user?.profile === "admin" && daysRemaining !== null && (
+                <>
+                  {daysRemaining <= 0 ? (
+                    <span className="layout-appbar-danger" title="Não foi identificado o pagamento">
+                      <b>Atenção:</b> Sistema suspenderá amanhã!
+                    </span>
+                  ) : daysRemaining <= 7 ? (
+                    <span className="layout-appbar-warning" title="Necessário realizar o pagamento">
+                      Sistema vence em <b>{daysRemaining} dia{daysRemaining !== 1 ? 's' : ''}</b>.
+                    </span>
+                  ) : null}
+                </>
               )}
+            </h2>
 
-              <Divider style={{ margin: '10px' }} />
-
-              <MenuItem onClick={handleClickLogout} className={classes.logoutItem}>
-                <ExitToAppIcon />
-                {i18n.t("mainDrawer.appBar.user.logout")}
-              </MenuItem>
-            </Menu>
-
+            {userToken === "enabled" && user?.companyId === 1 && (
+              <span className="layout-chip">
+                {i18n.t("mainDrawer.appBar.user.token")}
+              </span>
+            )}
           </div>
-        </Toolbar>
-      </AppBar>
-      <main className={classes.content}>
-        <div className={classes.appBarSpacer} />
 
-        {children ? children : null}
+          <div className="layout-appbar-right">
+            <button
+              className={`theme-toggle ${currentTheme === "dark" ? "theme-toggle-dark" : "theme-toggle-light"}`}
+              onClick={() => {
+                colorMode.toggleColorMode();
+                setCurrentTheme(currentTheme === "dark" ? "light" : "dark");
+              }}
+              aria-label={currentTheme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+              title={currentTheme === "dark" ? "Modo Claro" : "Modo Escuro"}
+            >
+              <div className="theme-toggle-track">
+                <div className="theme-toggle-thumb">
+                  {currentTheme === "dark" ? (
+                    <FiMoon className="theme-toggle-icon" />
+                  ) : (
+                    <FiSun className="theme-toggle-icon" />
+                  )}
+                </div>
+              </div>
+            </button>
+
+            <NotificationsVolume setVolume={setVolume} volume={volume} />
+
+            <button
+              className="layout-appbar-button"
+              onClick={handleRefreshPage}
+              aria-label={i18n.t("mainDrawer.appBar.refresh")}
+              title={i18n.t("mainDrawer.appBar.refresh")}
+            >
+              <FiRefreshCw className="layout-appbar-button-icon" />
+            </button>
+
+            {user.id && <NotificationsPopOver volume={volume} />}
+
+            <AnnouncementsPopover />
+
+            <ChatPopover />
+
+            <div className="layout-profile-menu" ref={profileMenuRef}>
+              <div className="layout-profile-avatar-wrapper" onClick={handleMenu}>
+                <div className="layout-profile-avatar">
+                  {profileUrl ? (
+                    <img src={profileUrl} alt={user.name} />
+                  ) : (
+                    userInitials
+                  )}
+                </div>
+                <div className="layout-profile-badge"></div>
+              </div>
+
+              <UserModal
+                open={userModalOpen}
+                onClose={() => setUserModalOpen(false)}
+                onImageUpdate={(newProfileUrl) => setProfileUrl(newProfileUrl)}
+                userId={user?.id}
+              />
+
+              {menuOpen && (
+                <div className="layout-profile-dropdown">
+                  <div className="layout-profile-dropdown-header">
+                    <div className="layout-profile-dropdown-avatar">
+                      {profileUrl ? (
+                        <img src={profileUrl} alt={user.name} />
+                      ) : (
+                        userInitials
+                      )}
+                    </div>
+                    <div className="layout-profile-dropdown-info">
+                      <p className="layout-profile-dropdown-name">{user.name}</p>
+                      <p className="layout-profile-dropdown-role">
+                        {user?.profile === "admin" ? "Administrador" : "Usuário"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="layout-profile-dropdown-divider"></div>
+
+                  <button
+                    className="layout-profile-dropdown-item"
+                    onClick={handleOpenUserModal}
+                  >
+                    <FiUser className="layout-profile-dropdown-item-icon" />
+                    Perfil
+                  </button>
+
+                  <Link
+                    to="/todolist"
+                    className="layout-profile-dropdown-item"
+                    onClick={handleCloseMenu}
+                  >
+                    <FiFileText className="layout-profile-dropdown-item-icon" />
+                    Anotações
+                  </Link>
+
+                  {user?.profile === "admin" && (
+                    <Link
+                      to="/settings"
+                      className="layout-profile-dropdown-item"
+                      onClick={handleCloseMenu}
+                    >
+                      <FiSettings className="layout-profile-dropdown-item-icon" />
+                      Configurações
+                    </Link>
+                  )}
+
+                  <div className="layout-profile-dropdown-divider"></div>
+
+                  <button
+                    className="layout-profile-dropdown-item logout"
+                    onClick={handleClickLogout}
+                  >
+                    <FiLogOut className="layout-profile-dropdown-item-icon" />
+                    {i18n.t("mainDrawer.appBar.user.logout")}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className={`layout-main ${drawerVariant === "permanent" ? 'shifted' : ''}`}>
+        {children}
       </main>
     </div>
   );

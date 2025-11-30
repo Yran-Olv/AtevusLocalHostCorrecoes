@@ -16,11 +16,13 @@ import { ClassNames } from "@emotion/react";
 const useStyles = makeStyles(theme => ({
 	chatContainer: {
 		flex: 1,
-		// backgroundColor: "#eee",
-		// padding: theme.spacing(4),
-		padding: theme.padding,
-		height: `calc(100% - 48px)`,
+		padding: 0,
+		height: `calc(100vh - 56px)`,
 		overflowY: "hidden",
+		width: "100%",
+		boxSizing: "border-box",
+		marginLeft: 0,
+		transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
 	},
 
 	chatPapper: {

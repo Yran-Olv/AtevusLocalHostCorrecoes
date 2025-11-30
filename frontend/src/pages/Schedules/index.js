@@ -1,34 +1,21 @@
 import React, { useState, useEffect, useReducer, useCallback, useContext } from "react";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiCalendar } from "react-icons/fi";
 import MainContainer from "../../components/MainContainer";
-import MainHeader from "../../components/MainHeader";
-import Title from "../../components/Title";
 import api from "../../services/api";
 import { i18n } from "../../translate/i18n";
-import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper";
-// import MessageModal from "../../components/MessageModal"
 import ScheduleModal from "../../components/ScheduleModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
 import moment from "moment";
-// import { SocketContext } from "../../context/Socket/SocketContext";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
 import usePlans from "../../hooks/usePlans";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "moment/locale/pt-br";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import SearchIcon from "@material-ui/icons/Search";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
-
-import "./Schedules.css"; // Importe o arquivo CSS
+import "./style.css";
 
 // Defina a função getUrlParam antes de usá-la
 function getUrlParam(paramName) {
@@ -109,37 +96,7 @@ const reducer = (state, action) => {
   }
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-  calendarToolbar: {
-    '& .rbc-toolbar-label': {
-      color: theme.mode === "light" ? theme.palette.light : "white",
-    },
-    '& .rbc-btn-group button': {
-      color: theme.mode === "light" ? theme.palette.light : "white",
-      '&:hover': {
-        color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-      },
-      '&:active': {
-        color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-      },
-      '&:focus': {
-        color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-      },
-      '&.rbc-active': {
-        color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-      },
-    },
-  },
-}));
-
 const Schedules = () => {
-  const classes = useStyles();
   const history = useHistory();
 
   //   const socketManager = useContext(SocketContext);
@@ -298,7 +255,7 @@ const Schedules = () => {
   };
 
   return (
-    <MainContainer>
+    <MainContainer className="schedules-container">
       <ConfirmationModal
         title={
           deletingSchedule &&
@@ -315,7 +272,6 @@ const Schedules = () => {
           open={scheduleModalOpen}
           onClose={handleCloseScheduleModal}
           reload={fetchSchedules}
-          // aria-labelledby="form-dialog-title"
           scheduleId={
             selectedSchedule ? selectedSchedule.id : null
           }
@@ -323,65 +279,155 @@ const Schedules = () => {
           cleanContact={cleanContact}
         />
       )}
-      <MainHeader>
-        <Title>{i18n.t("schedules.title")} ({schedules.length})</Title>
-        <MainHeaderButtonsWrapper>
-          <TextField
-            placeholder={i18n.t("contacts.searchPlaceholder")}
-            type="search"
-            value={searchParam}
-            onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon style={{ color: "gray" }} />
-                </InputAdornment>
-              ),
+      <div className="schedules-header">
+        <div className="schedules-header-content">
+          <h1 className="schedules-title">
+            <FiCalendar className="schedules-title-icon" />
+            {i18n.t("schedules.title")}
+            <span className="schedules-title-count">({schedules.length})</span>
+          </h1>
+          <div className="schedules-header-actions">
+            <div className="schedules-search-wrapper">
+              <FiSearch className="schedules-search-icon" />
+              <input
+                type="search"
+                className="schedules-search-input"
+                placeholder={i18n.t("contacts.searchPlaceholder")}
+                value={searchParam}
+                onChange={handleSearch}
+              />
+            </div>
+            <button
+              className="schedules-button"
+              onClick={handleOpenScheduleModal}
+            >
+              <FiPlus />
+              {i18n.t("schedules.buttons.add")}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="schedules-list-wrapper" onScroll={handleScroll}>
+        {/* Desktop: Calendário */}
+        <div className="schedules-calendar-wrapper">
+          <Calendar
+            messages={defaultMessages}
+            formats={{
+              agendaDateFormat: "DD/MM ddd",
+              weekdayFormat: "dddd"
             }}
+            localizer={localizer}
+            events={schedules.map((schedule) => ({
+              title: (
+                <div key={schedule.id} className="event-container">
+                  <div className="event-title">{schedule?.contact?.name || "Sem nome"}</div>
+                  <div className="event-actions">
+                    <button
+                      className="event-action-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditSchedule(schedule);
+                        setScheduleModalOpen(true);
+                      }}
+                      title="Editar agendamento"
+                    >
+                      <FiEdit2 className="event-action-icon" />
+                    </button>
+                    <button
+                      className="event-action-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmModalOpen(true);
+                        setDeletingSchedule(schedule);
+                      }}
+                      title="Excluir agendamento"
+                    >
+                      <FiTrash2 className="event-action-icon" />
+                    </button>
+                  </div>
+                </div>
+              ),
+              start: new Date(schedule.sendAt),
+              end: new Date(schedule.sendAt),
+            }))}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: 500 }}
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleOpenScheduleModal}
-          >
-            {i18n.t("schedules.buttons.add")}
-          </Button>
-        </MainHeaderButtonsWrapper>
-      </MainHeader>
-      <Paper className={classes.mainPaper} variant="outlined" onScroll={handleScroll}>
-        <Calendar
-          messages={defaultMessages}
-          formats={{
-            agendaDateFormat: "DD/MM ddd",
-            weekdayFormat: "dddd"
-          }}
-          localizer={localizer}
-          events={schedules.map((schedule) => ({
-            title: (
-              <div key={schedule.id} className="event-container">
-                <div style={eventTitleStyle}>{schedule?.contact?.name}</div>
-                <DeleteOutlineIcon
-                  onClick={() => handleDeleteSchedule(schedule.id)}
-                  className="delete-icon"
-                />
-                <EditIcon
-                  onClick={() => {
-                    handleEditSchedule(schedule);
-                    setScheduleModalOpen(true);
-                  }}
-                  className="edit-icon"
-                />
-              </div>
-            ),
-            start: new Date(schedule.sendAt),
-            end: new Date(schedule.sendAt),
-          }))}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 500 }}
-          className={classes.calendarToolbar}
-        />
-      </Paper>
+        </div>
+
+        {/* Mobile: Lista de eventos estilo Google Calendar */}
+        <div className="schedules-events-list">
+          {schedules.length === 0 && !loading ? (
+            <div className="schedules-empty-state">
+              <FiCalendar className="schedules-empty-icon" />
+              <p className="schedules-empty-text">Nenhum agendamento encontrado</p>
+              <p className="schedules-empty-subtext">Toque no botão + para criar um novo agendamento</p>
+            </div>
+          ) : (
+            schedules
+              .sort((a, b) => new Date(a.sendAt) - new Date(b.sendAt))
+              .map((schedule) => {
+                const scheduleDate = new Date(schedule.sendAt);
+                const timeString = scheduleDate.toLocaleTimeString('pt-BR', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
+                const dateString = scheduleDate.toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric'
+                });
+
+                return (
+                  <div key={schedule.id} className="schedules-event-item">
+                    <div className="schedules-event-item-header">
+                      <div className="schedules-event-time">
+                        {timeString}
+                      </div>
+                      <div className="schedules-event-content">
+                        <h3 className="schedules-event-title">
+                          {schedule?.contact?.name || "Sem nome"}
+                        </h3>
+                        <p className="schedules-event-contact">
+                          {dateString}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="schedules-event-actions">
+                      <button
+                        className="schedules-event-action-btn"
+                        onClick={() => {
+                          handleEditSchedule(schedule);
+                          setScheduleModalOpen(true);
+                        }}
+                        title="Editar agendamento"
+                      >
+                        <FiEdit2 />
+                      </button>
+                      <button
+                        className="schedules-event-action-btn schedules-event-action-btn-danger"
+                        onClick={() => {
+                          setConfirmModalOpen(true);
+                          setDeletingSchedule(schedule);
+                        }}
+                        title="Excluir agendamento"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+          )}
+          {loading && (
+            <div className="schedules-empty-state">
+              <div className="schedules-loading-spinner"></div>
+              <p className="schedules-empty-text">Carregando agendamentos...</p>
+            </div>
+          )}
+        </div>
+      </div>
     </MainContainer>
   );
 };

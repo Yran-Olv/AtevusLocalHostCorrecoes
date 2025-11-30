@@ -1,0 +1,652 @@
+/* Menu Lateral Moderno - Sistema de Atendimento WhatsApp */
+:root {
+  --menu-bg: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); /*cor do menu lateral*/
+  --menu-bg-solid: #dedede; /*cor do menu lateral*/
+  --menu-item-hover: rgba(37, 211, 102, 0.1); /*cor do menu lateral ao passar o mouse*/
+  --menu-item-active: rgba(37, 211, 102, 0.2); /*cor do menu lateral ao clicar*/
+  --menu-item-active-border: #25d366;
+  --menu-text: #cbd5e1; /*cor do texto do menu lateral*/
+  --menu-text-active: #ffffff; /*cor do texto do menu lateral ao clicar*/
+  --menu-text-muted: #94a3b8; /*cor do texto do menu lateral ao passar o mouse*/
+  --menu-divider: rgba(255, 255, 255, 0.1); /*cor do divisor do menu lateral*/
+  --menu-icon-size: 16px; /*tamanho do icone do menu lateral*/  
+  --menu-item-height: 48px; /*altura do item do menu lateral*/
+  --menu-padding: 0.75rem; /*padding do menu lateral*/
+  --menu-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /*transição do menu lateral*/
+  --whatsapp-green: #25d366; /*cor do whatsapp*/
+  --whatsapp-green-dark: #128c7e; /*cor do whatsapp dark*/
+  --whatsapp-green-light: #dcf8c6; /*cor do whatsapp light*/
+}
+
+/* Container do Menu */
+.menu-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem 0;
+}
+
+.menu-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.menu-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.menu-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Seção do Menu */
+.menu-section {
+  margin-bottom: 0.5rem;
+}
+
+.menu-section-title {
+  padding: 0.75rem 1.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--menu-text-muted);
+  margin: 0;
+  user-select: none;
+}
+
+/* Item do Menu */
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  margin: 0.125rem 0.5rem;
+  border-radius: 12px;
+  color: var(--menu-text);
+  text-decoration: none;
+  transition: var(--menu-transition);
+  cursor: pointer;
+  position: relative;
+  min-height: var(--menu-item-height);
+  gap: 0.875rem;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-container:has(.menu-item.collapsed) .menu-item,
+.menu-item.collapsed {
+  justify-content: center;
+  padding: 0.75rem;
+  margin: 0.25rem 0.5rem;
+}
+
+.menu-item:hover {
+  background: var(--menu-item-hover);
+  color: var(--menu-text-active);
+  transform: translateX(4px);
+}
+
+.menu-item.active {
+  background: var(--menu-item-active);
+  color: var(--menu-text-active);
+  border-left: 3px solid var(--menu-item-active-border);
+  font-weight: 600;
+}
+
+.menu-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--whatsapp-green);
+  border-radius: 0 2px 2px 0;
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 3px;
+    opacity: 1;
+  }
+}
+
+/* Ícone do Menu */
+.menu-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--menu-text);
+  transition: var(--menu-transition);
+  flex-shrink: 0;
+  font-size: var(--menu-icon-size);
+}
+
+.menu-item:hover .menu-item-icon {
+  background: rgba(37, 211, 102, 0.15);
+  color: var(--whatsapp-green);
+  transform: scale(1.1);
+}
+
+.menu-item.active .menu-item-icon {
+  background: rgba(37, 211, 102, 0.2);
+  color: var(--whatsapp-green);
+  box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.1);
+}
+
+/* Texto do Menu */
+.menu-item-text {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: normal;
+  overflow: visible;
+  word-wrap: break-word;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  min-width: 0;
+}
+
+.menu-container:has(.menu-item.collapsed) .menu-item-text,
+.menu-item.collapsed .menu-item-text {
+  display: none !important;
+  opacity: 0;
+  width: 0;
+  max-width: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  visibility: hidden;
+}
+
+.menu-item.active .menu-item-text {
+  font-weight: 600;
+}
+
+/* Badge de Notificação */
+.menu-item-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.375rem;
+  background: #ef4444;
+  color: white;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: auto;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+/* Menu Colapsável */
+.menu-collapsible {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  margin: 0.125rem 0.5rem;
+  border-radius: 12px;
+  color: var(--menu-text);
+  cursor: pointer;
+  transition: var(--menu-transition);
+  min-height: var(--menu-item-height);
+  gap: 0.875rem;
+  user-select: none;
+  position: relative;
+}
+
+.menu-collapsible:hover {
+  background: var(--menu-item-hover);
+  color: var(--menu-text-active);
+}
+
+.menu-collapsible.active {
+  background: var(--menu-item-active);
+  color: var(--menu-text-active);
+}
+
+.menu-collapsible-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--menu-text);
+  transition: var(--menu-transition);
+  flex-shrink: 0;
+  font-size: var(--menu-icon-size);
+}
+
+.menu-collapsible:hover .menu-collapsible-icon {
+  background: rgba(37, 211, 102, 0.15);
+  color: var(--whatsapp-green);
+  transform: scale(1.1);
+}
+
+.menu-collapsible.active .menu-collapsible-icon {
+  background: rgba(37, 211, 102, 0.2);
+  color: var(--whatsapp-green);
+}
+
+.menu-collapsible-text {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: normal;
+  overflow: visible;
+  word-wrap: break-word;
+  min-width: 0;
+}
+
+.menu-container:has(.menu-item.collapsed) .menu-collapsible-text,
+.menu-container.collapsed .menu-collapsible-text {
+  display: none !important;
+  opacity: 0;
+  width: 0;
+  max-width: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  visibility: hidden;
+}
+
+.menu-collapsible-arrow {
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+  color: var(--menu-text-muted);
+}
+
+.menu-collapsible.open .menu-collapsible-arrow {
+  transform: rotate(180deg);
+}
+
+/* Submenu */
+.menu-submenu {
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+  max-height: 0;
+  opacity: 0;
+}
+
+.menu-submenu.open {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.menu-container.collapsed .menu-submenu,
+.menu-container:has(.menu-item.collapsed) .menu-submenu {
+  display: none !important;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.menu-submenu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.625rem 1.25rem 0.625rem 3.5rem;
+  margin: 0.125rem 0.5rem;
+  border-radius: 10px;
+  color: var(--menu-text);
+  text-decoration: none;
+  transition: var(--menu-transition);
+  cursor: pointer;
+  min-height: 44px;
+  gap: 0.75rem;
+  position: relative;
+  user-select: none;
+}
+
+.menu-submenu-item::before {
+  content: '';
+  position: absolute;
+  left: 2.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--menu-text-muted);
+  transition: var(--menu-transition);
+}
+
+.menu-submenu-item:hover {
+  background: var(--menu-item-hover);
+  color: var(--menu-text-active);
+  padding-left: 3.75rem;
+}
+
+.menu-submenu-item:hover::before {
+  background: var(--whatsapp-green);
+  transform: translateY(-50%) scale(1.5);
+}
+
+.menu-submenu-item.active {
+  background: var(--menu-item-active);
+  color: var(--menu-text-active);
+  font-weight: 600;
+}
+
+.menu-submenu-item.active::before {
+  background: var(--whatsapp-green);
+  transform: translateY(-50%) scale(1.5);
+}
+
+.menu-submenu-item-text {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: normal;
+  overflow: visible;
+  word-wrap: break-word;
+  min-width: 0;
+}
+
+.menu-container.collapsed .menu-submenu-item-text,
+.menu-container:has(.menu-item.collapsed) .menu-submenu-item-text {
+  display: none !important;
+  opacity: 0;
+  width: 0;
+  max-width: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  visibility: hidden;
+}
+
+/* Divider */
+.menu-divider {
+  height: 1px;
+  background: var(--menu-divider);
+  margin: 0.75rem 1.25rem;
+  border: none;
+}
+
+/* Versão */
+.menu-version {
+  padding: 1rem 1.25rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--menu-text-muted);
+  font-weight: 500;
+  border-top: 1px solid var(--menu-divider);
+  margin-top: auto;
+}
+
+/* Menu Colapsado */
+.menu-container.collapsed .menu-item-text,
+.menu-container.collapsed .menu-collapsible-text,
+.menu-container.collapsed .menu-section-title,
+.menu-container.collapsed .menu-submenu-item-text,
+.menu-container.collapsed .menu-version,
+.menu-container.collapsed .menu-collapsible-arrow {
+  display: none !important;
+  opacity: 0;
+  width: 0;
+  max-width: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  visibility: hidden;
+}
+
+.menu-container.collapsed .menu-item,
+.menu-container.collapsed .menu-collapsible {
+  justify-content: center;
+  padding: 0.75rem;
+  margin: 0.125rem 0.25rem;
+  gap: 0;
+}
+
+.menu-container:has(.menu-item.collapsed) .menu-item,
+.menu-item.collapsed {
+  gap: 0;
+}
+
+.menu-container.collapsed .menu-item-icon,
+.menu-container.collapsed .menu-collapsible-icon {
+  margin: 0;
+}
+
+.menu-container.collapsed .menu-item-badge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  margin: 0;
+}
+
+/* Tooltip para Menu Colapsado */
+.menu-tooltip {
+  position: relative;
+}
+
+.menu-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 0.75rem);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.menu-tooltip::before {
+  content: '';
+  position: absolute;
+  left: calc(100% + 0.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1001;
+}
+
+.menu-container.collapsed .menu-tooltip:hover::after,
+.menu-container.collapsed .menu-tooltip:hover::before {
+  opacity: 1;
+}
+
+/* Responsividade Mobile */
+@media (max-width: 768px) {
+  .menu-container {
+    padding: 0.5rem 0;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    max-height: calc(100vh - 60px);
+  }
+
+  .menu-item,
+  .menu-collapsible {
+    padding: 0.875rem 1rem;
+    margin: 0.125rem 0.5rem;
+    border-radius: 14px;
+    min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .menu-item:active,
+  .menu-collapsible:active {
+    transform: scale(0.98);
+    background: var(--menu-item-hover);
+  }
+
+  .menu-item-icon,
+  .menu-collapsible-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 22px;
+  }
+
+  .menu-item-text,
+  .menu-collapsible-text {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .menu-submenu-item {
+    padding: 0.75rem 1rem 0.75rem 3.25rem;
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .menu-submenu-item:hover {
+    padding-left: 3.5rem;
+  }
+
+  .menu-submenu-item:active {
+    transform: scale(0.98);
+  }
+
+  .menu-section-title {
+    padding: 0.875rem 1rem 0.625rem;
+    font-size: 0.8125rem;
+  }
+
+  .menu-divider {
+    margin: 1rem 1rem;
+  }
+
+  .menu-item-badge {
+    min-width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-container {
+    padding: 0.5rem 0;
+    max-height: calc(100vh - 56px);
+  }
+
+  .menu-item,
+  .menu-collapsible {
+    padding: 1rem;
+    margin: 0.125rem 0.5rem;
+    min-height: 56px;
+  }
+
+  .menu-item-icon,
+  .menu-collapsible-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 22px;
+  }
+
+  .menu-item-text,
+  .menu-collapsible-text {
+    font-size: 1.0625rem;
+    font-weight: 500;
+    white-space: normal;
+    overflow: visible;
+    word-wrap: break-word;
+  }
+
+  .menu-submenu-item {
+    padding: 0.875rem 1rem 0.875rem 3.5rem;
+    min-height: 52px;
+  }
+
+  .menu-item-badge {
+    min-width: 24px;
+    height: 24px;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-item,
+.menu-collapsible {
+  animation: fadeIn 0.3s ease-out backwards;
+}
+
+.menu-item:nth-child(1) { animation-delay: 0.05s; }
+.menu-item:nth-child(2) { animation-delay: 0.1s; }
+.menu-item:nth-child(3) { animation-delay: 0.15s; }
+.menu-item:nth-child(4) { animation-delay: 0.2s; }
+.menu-item:nth-child(5) { animation-delay: 0.25s; }
+.menu-item:nth-child(6) { animation-delay: 0.3s; }
+
+/* Dark Mode Support */
+[data-theme="dark"] {
+  --menu-bg: linear-gradient(180deg, #0a0e1a 0%, #141923 100%);
+  --menu-bg-solid: #0a0e1a;
+  --menu-item-hover: rgba(37, 211, 102, 0.15);
+  --menu-item-active: rgba(37, 211, 102, 0.25);
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

@@ -6,42 +6,20 @@ import React, {
   useRef,
 } from "react";
 import { toast } from "react-toastify";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
-import LibraryAddOutlinedIcon from '@mui/icons-material/LibraryAddOutlined';
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiTag, FiUsers, FiMoreHorizontal } from "react-icons/fi";
 
 import MainContainer from "../../components/MainContainer";
-import MainHeader from "../../components/MainHeader";
-import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper";
-import Title from "../../components/Title";
-
 import api from "../../services/api";
 import { i18n } from "../../translate/i18n";
 import TableRowSkeleton from "../../components/TableRowSkeleton";
 import TagModal from "../../components/TagModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
-import { Chip, Tooltip } from "@material-ui/core";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
-import { MoreHoriz } from "@material-ui/icons";
 import ContactTagListModal from "../../components/ContactTagListModal";
 
-import './tags.css';
+import './style.css';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -67,17 +45,7 @@ const reducer = (state, action) => {
   }
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-}));
-
 const Tags = () => {
-  const classes = useStyles();
   const { user, socket } = useContext(AuthContext);
 
   const [selectedTagContacts, setSelectedTagContacts] = useState([]);
@@ -192,7 +160,7 @@ const Tags = () => {
   };
 
   return (
-    <MainContainer className={classes.mainContainer}>
+    <MainContainer>
       {contactModalOpen && (
         <ContactTagListModal
           open={contactModalOpen}
@@ -215,103 +183,184 @@ const Tags = () => {
         tagId={selectedTag && selectedTag.id}
         kanban={0}
       />
-      <MainHeader>
-        <Title><div className="tagsIndex">{i18n.t("tags.title")} <div className="tags-length">{tags.length}</div></div></Title>
-        <MainHeaderButtonsWrapper>
-          <TextField
-            placeholder={i18n.t("contacts.searchPlaceholder")}
-            type="search"
-            value={searchParam}
-            onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon style={{ color: "gray" }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleOpenTagModal}
-            startIcon={<LibraryAddOutlinedIcon />}
-          >
-            <span className="btnTagsIndex">
-              {i18n.t("tags.buttons.add")}
-            </span>
-          </Button>
-        </MainHeaderButtonsWrapper>
-      </MainHeader>
-      <Paper
-        className={classes.mainPaper}
-        variant="outlined"
-        onScroll={handleScroll}
-      >
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell align="center">{i18n.t("tags.table.id")}</TableCell>
-              <TableCell align="center">{i18n.t("tags.table.name")}</TableCell>
-              <TableCell align="center">
-                {i18n.t("tags.table.contacts")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("tags.table.actions")}
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <>
-              {tags.map((tag) => (
-                <TableRow key={tag.id}>
-                  <TableCell align="center">{tag.id}</TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      variant="outlined"
+      
+      <div className="tags-container">
+        <div className="tags-header">
+          <div className="tags-header-content">
+            <h1 className="tags-title">
+              <FiTag className="tags-title-icon" />
+              {i18n.t("tags.title")}
+              <span className="tags-title-count">{tags.length}</span>
+            </h1>
+            <div className="tags-header-actions">
+              <div className="tags-search-wrapper">
+                <FiSearch className="tags-search-icon" />
+                <input
+                  type="search"
+                  className="tags-search-input"
+                  placeholder={i18n.t("contacts.searchPlaceholder")}
+                  value={searchParam}
+                  onChange={handleSearch}
+                />
+              </div>
+              <button
+                className="tags-button tags-button-primary"
+                onClick={handleOpenTagModal}
+              >
+                <FiPlus />
+                {i18n.t("tags.buttons.add")}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="tags-list-wrapper" onScroll={handleScroll}>
+          {/* Desktop: Tabela */}
+          <div className="tags-table-container">
+            <table className="tags-table">
+              <thead>
+                <tr>
+                  <th className="center">{i18n.t("tags.table.id")}</th>
+                  <th className="center">{i18n.t("tags.table.name")}</th>
+                  <th className="center">{i18n.t("tags.table.contacts")}</th>
+                  <th className="center">{i18n.t("tags.table.actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tags.map((tag) => (
+                  <tr key={tag.id}>
+                    <td className="center">{tag.id}</td>
+                    <td className="center">
+                      <span
+                        className="tags-chip"
+                        style={{
+                          backgroundColor: tag.color,
+                          color: "white",
+                        }}
+                      >
+                        {tag.name}
+                      </span>
+                    </td>
+                    <td className="center">
+                      <div className="tags-contacts-cell">
+                        <span className="tags-contacts-count">{tag?.contacts?.length || 0}</span>
+                        <button
+                          className="tags-contacts-button"
+                          onClick={() => handleShowContacts(tag?.contacts, tag)}
+                          disabled={!tag?.contacts || tag?.contacts?.length === 0}
+                          title="Ver contatos"
+                        >
+                          <FiMoreHorizontal />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="center">
+                      <div className="tags-actions">
+                        <button
+                          className="tags-action-button"
+                          onClick={() => handleEditTag(tag)}
+                          title="Editar tag"
+                        >
+                          <FiEdit2 className="tags-action-icon" />
+                        </button>
+                        <button
+                          className="tags-action-button"
+                          onClick={() => {
+                            setConfirmModalOpen(true);
+                            setDeletingTag(tag);
+                          }}
+                          title="Excluir tag"
+                        >
+                          <FiTrash2 className="tags-action-icon" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {loading && <TableRowSkeleton key="skeleton" columns={4} />}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile: Cards */}
+          <div className="tags-cards-container">
+            {tags.map((tag) => (
+              <div key={tag.id} className="tags-card">
+                <div className="tags-card-content">
+                  <div className="tags-card-header">
+                    <span
+                      className="tags-card-chip"
                       style={{
                         backgroundColor: tag.color,
-                        textShadow: "1px 1px #000",
                         color: "white",
                       }}
-                      label={tag.name}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    {tag?.contacts?.length}
-                    <IconButton
-                      size="small"
-                      onClick={() => handleShowContacts(tag?.contacts, tag)}
-                      disabled={tag?.contacts?.length === 0}
                     >
-                      <MoreHoriz />
-                    </IconButton>
-                  </TableCell>
-
-                  <TableCell align="center">
-                    <IconButton size="small" onClick={() => handleEditTag(tag)}>
-                      <EditIcon />
-                    </IconButton>
-
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        setConfirmModalOpen(true);
-                        setDeletingTag(tag);
-                      }}
-                    >
-                      <DeleteOutlineIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-
-              {loading && <TableRowSkeleton key="skeleton" columns={4} />}
-            </>
-          </TableBody>
-        </Table>
-      </Paper>
+                      <FiTag className="tags-card-chip-icon" />
+                      {tag.name}
+                    </span>
+                    <span className="tags-card-id">#{tag.id}</span>
+                  </div>
+                  <div className="tags-card-info">
+                    <div className="tags-card-contacts">
+                      <FiUsers className="tags-card-contacts-icon" />
+                      <span className="tags-card-contacts-text">
+                        {tag?.contacts?.length || 0} {tag?.contacts?.length === 1 ? 'contato' : 'contatos'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="tags-card-actions-mobile">
+                  <button
+                    className="tags-card-action-btn"
+                    onClick={() => handleShowContacts(tag?.contacts, tag)}
+                    disabled={!tag?.contacts || tag?.contacts?.length === 0}
+                    title="Ver contatos"
+                  >
+                    <FiUsers />
+                  </button>
+                  <button
+                    className="tags-card-action-btn"
+                    onClick={() => handleEditTag(tag)}
+                    title="Editar tag"
+                  >
+                    <FiEdit2 />
+                  </button>
+                  <button
+                    className="tags-card-action-btn tags-card-action-btn-danger"
+                    onClick={() => {
+                      setConfirmModalOpen(true);
+                      setDeletingTag(tag);
+                    }}
+                    title="Excluir tag"
+                  >
+                    <FiTrash2 />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="tags-loading-skeleton">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="tags-skeleton-card">
+                    <div className="tags-skeleton-chip"></div>
+                    <div className="tags-skeleton-content">
+                      <div className="tags-skeleton-line"></div>
+                      <div className="tags-skeleton-line short"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {tags.length === 0 && !loading && (
+              <div className="tags-empty-state">
+                <FiTag className="tags-empty-icon" />
+                <p className="tags-empty-text">Nenhuma tag encontrada</p>
+                <p className="tags-empty-subtext">Toque no botão + para criar uma nova tag</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </MainContainer>
   );
 };
