@@ -1,0 +1,474 @@
+/* Modal QR Code - Estilo WhatsApp Web Exato */
+
+.qrcode-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.qrcode-modal-container {
+  background: #ffffff;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.qrcode-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.15s;
+  color: #54656f;
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+}
+
+.qrcode-modal-close:hover {
+  background: #f0f2f5;
+  color: #000000;
+}
+
+.qrcode-modal-close:active {
+  transform: scale(0.95);
+}
+
+.qrcode-modal-content {
+  padding: 40px 56px 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.qrcode-modal-title {
+  font-size: 18px;
+  font-weight: 400;
+  color: #111b21;
+  margin: 0 0 32px 0;
+  text-align: left;
+  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+.qrcode-modal-body {
+  display: flex;
+  gap: 64px;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.qrcode-modal-instructions {
+  flex: 1;
+  min-width: 0;
+}
+
+.qrcode-instruction-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.qrcode-instruction-item:last-child {
+  margin-bottom: 0;
+}
+
+.qrcode-instruction-number {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: #00a884;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+.qrcode-instruction-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #54656f;
+  margin: 0;
+  padding-top: 2px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+.qrcode-instruction-text strong {
+  color: #111b21;
+  font-weight: 500;
+}
+
+.qrcode-icon {
+  display: inline-block;
+  font-size: 16px;
+  vertical-align: middle;
+  margin: 0 2px;
+  color: #54656f;
+}
+
+.qrcode-modal-qr-container {
+  flex-shrink: 0;
+  width: 264px;
+  height: 264px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.qrcode-wrapper {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.qrcode-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 240px;
+  max-height: 240px;
+}
+
+.qrcode-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #54656f;
+  width: 100%;
+  height: 100%;
+}
+
+.qrcode-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e4e6eb;
+  border-top-color: #00a884;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qrcode-loading p {
+  font-size: 14px;
+  color: #54656f;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+.qrcode-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #54656f;
+  width: 100%;
+  height: 100%;
+}
+
+.qrcode-error p {
+  font-size: 14px;
+  margin: 0;
+  color: #54656f;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+.qrcode-error-subtitle {
+  font-size: 13px !important;
+  color: #8696a0 !important;
+}
+
+.qrcode-modal-phone-link {
+  background: transparent;
+  border: none;
+  color: #008069;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s;
+  text-decoration: none;
+  display: inline-block;
+  align-self: flex-start;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+.qrcode-modal-phone-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.qrcode-modal-phone-link:active {
+  opacity: 0.6;
+}
+
+/* Responsividade - Tablet */
+@media (max-width: 900px) {
+  .qrcode-modal-container {
+    max-width: 90%;
+  }
+
+  .qrcode-modal-content {
+    padding: 32px 40px 28px;
+  }
+
+  .qrcode-modal-body {
+    gap: 40px;
+  }
+
+  .qrcode-modal-qr-container {
+    width: 220px;
+    height: 220px;
+  }
+
+  .qrcode-image {
+    max-width: 200px;
+    max-height: 200px;
+  }
+}
+
+/* Responsividade - Mobile */
+@media (max-width: 768px) {
+  .qrcode-modal-overlay {
+    padding: 0;
+  }
+
+  .qrcode-modal-container {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    height: 100vh;
+  }
+
+  .qrcode-modal-content {
+    padding: 32px 24px 24px;
+    height: 100%;
+    justify-content: flex-start;
+    overflow-y: auto;
+  }
+
+  .qrcode-modal-title {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+
+  .qrcode-modal-body {
+    flex-direction: column;
+    gap: 32px;
+    margin-bottom: 24px;
+  }
+
+  .qrcode-modal-instructions {
+    width: 100%;
+  }
+
+  .qrcode-instruction-item {
+    margin-bottom: 20px;
+  }
+
+  .qrcode-instruction-text {
+    font-size: 13px;
+  }
+
+  .qrcode-modal-qr-container {
+    width: 100%;
+    height: auto;
+    min-height: 240px;
+    align-self: center;
+    max-width: 264px;
+  }
+
+  .qrcode-wrapper {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+  }
+
+  .qrcode-image {
+    max-width: 240px;
+    max-height: 240px;
+  }
+}
+
+/* Responsividade - Mobile Pequeno */
+@media (max-width: 480px) {
+  .qrcode-modal-content {
+    padding: 24px 20px 20px;
+  }
+
+  .qrcode-modal-title {
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+
+  .qrcode-modal-body {
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+
+  .qrcode-instruction-number {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+
+  .qrcode-instruction-text {
+    font-size: 12px;
+  }
+
+  .qrcode-modal-qr-container {
+    max-width: 220px;
+    min-height: 220px;
+  }
+
+  .qrcode-image {
+    max-width: 200px;
+    max-height: 200px;
+  }
+
+  .qrcode-modal-phone-link {
+    font-size: 13px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .qrcode-modal-container {
+    background: #202c33;
+  }
+
+  .qrcode-modal-title {
+    color: #e9edef;
+  }
+
+  .qrcode-instruction-text {
+    color: #8696a0;
+  }
+
+  .qrcode-instruction-text strong {
+    color: #e9edef;
+  }
+
+  .qrcode-modal-close {
+    color: #8696a0;
+  }
+
+  .qrcode-modal-close:hover {
+    background: #2a3942;
+    color: #e9edef;
+  }
+
+  .qrcode-wrapper {
+    background: #111b21;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .qrcode-loading {
+    color: #8696a0;
+  }
+
+  .qrcode-loading p {
+    color: #8696a0;
+  }
+
+  .qrcode-loading-spinner {
+    border-color: #2a3942;
+    border-top-color: #00a884;
+  }
+
+  .qrcode-error p {
+    color: #8696a0;
+  }
+
+  .qrcode-modal-phone-link {
+    color: #00a884;
+  }
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .qrcode-modal-overlay,
+  .qrcode-modal-container,
+  .qrcode-loading-spinner {
+    animation: none;
+  }
+}
+
+/* Scrollbar personalizada */
+.qrcode-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.qrcode-modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.qrcode-modal-content::-webkit-scrollbar-thumb {
+  background: #c1c7cd;
+  border-radius: 3px;
+}
+
+.qrcode-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #a8b0b8;
+}
