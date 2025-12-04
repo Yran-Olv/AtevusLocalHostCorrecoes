@@ -23,15 +23,31 @@ const ModalImageCors = ({ imageUrl }) => {
 
 	useEffect(() => {
 		if (!imageUrl) return;
-		const fetchImage = async () => {
-			const { data, headers } = await api.get(imageUrl, {
-				responseType: "blob",
-			});
-			const url = window.URL.createObjectURL(
-				new Blob([data], { type: headers["content-type"] })
-			);
-			setBlobUrl(url);
+		
+		// Se a URL já é completa (começa com http), usar diretamente
+		if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+			setBlobUrl(imageUrl);
 			setFetching(false);
+			return;
+		}
+		
+		// Caso contrário, fazer requisição via API
+		const fetchImage = async () => {
+			try {
+				const { data, headers } = await api.get(imageUrl, {
+					responseType: "blob",
+				});
+				const url = window.URL.createObjectURL(
+					new Blob([data], { type: headers["content-type"] })
+				);
+				setBlobUrl(url);
+				setFetching(false);
+			} catch (error) {
+				console.error("Erro ao carregar imagem:", error);
+				// Em caso de erro, tentar usar a URL diretamente
+				setBlobUrl(imageUrl);
+				setFetching(false);
+			}
 		};
 		fetchImage();
 	}, [imageUrl]);
