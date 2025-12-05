@@ -2,7 +2,6 @@ import Queue from "../models/Queue";
 import Company from "../models/Company";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
-import authConfig from "../config/auth";
 
 interface SerializedUser {
   id: number;
@@ -34,12 +33,8 @@ interface SerializedUser {
 export const SerializeUser = async (user: User): Promise<SerializedUser> => {
   // Gera um token de 32 bytes
   const generateToken = (userId: number | string): string => {
-    // Verificar se o secret está definido
-    if (!authConfig.secret || authConfig.secret.trim() === "") {
-      throw new Error("JWT_SECRET não está configurado. Configure a variável de ambiente JWT_SECRET no arquivo .env");
-    }
     // Gerar o token com base no userId e sua chave secreta
-    const token = jwt.sign({ userId }, authConfig.secret, { expiresIn: "1h" }); // Você pode definir o tempo de expiração conforme necessário
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1h" }); // Você pode definir o tempo de expiração conforme necessário
     return token;
   };
 

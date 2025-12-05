@@ -72,7 +72,7 @@ export const initIO = (httpServer: Server): SocketIO => {
 
 export const getIO = (): SocketIO => {
   if (!io) {
-    throw new AppError("Socket IO não inicializado");
+    throw new AppError("Socket IO not initialized");
   }
   return io;
 };

@@ -182,32 +182,31 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
         let wsocket: Session = null;
         
         // Verificar se já existe uma sessão ativa para este WhatsApp
-        // Se existir, remover antes de criar uma nova para evitar conflitos
         const existingSession = sessions.find(s => s.id === whatsapp.id);
         if (existingSession) {
           logger.warn(`[${name}] Já existe uma sessão ativa para este WhatsApp. Removendo antes de criar nova...`);
           removeWbot(whatsapp.id, false);
-          // Aguardar 1 segundo para garantir que a sessão anterior foi completamente removida
+          // Aguardar um pouco para garantir que foi removido
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
         
-        // Carregar estado de autenticação do WhatsApp
-        // useMultiFileAuthState gerencia as credenciais em arquivos separados
+        // makeInMemoryStore foi removido no Baileys 6.7.21+
+        // const store = makeInMemoryStore({
+        //   logger: loggerBaileys
+        // });
         let { state, saveCreds } = await useMultiFileAuthState(whatsapp);
 
-        // Verificar se existem credenciais antigas (pode indicar sessão corrompida)
+        // Verificar se as credenciais são realmente novas após erro 515
         const hasExistingCreds = state.creds.me?.id !== undefined;
         logger.info(`[${name}] Credenciais existentes: ${hasExistingCreds ? 'SIM (pode estar corrompido)' : 'NÃO (novas)'}`);
 
-        // Se houve erro 515 anteriormente e ainda existem credenciais antigas,
-        // forçar limpeza completa e criar credenciais novas
         if (hasError515(whatsapp.id) && hasExistingCreds) {
           logger.warn(`[${name}] ⚠️ ATENÇÃO: Credenciais antigas detectadas após erro 515! Forçando credenciais novas...`);
-          // Limpar todas as sessões do cache Redis relacionadas a este WhatsApp
+          // Forçar credenciais completamente novas
           await cacheLayer.delFromPattern(`sessions:${whatsapp.id}:*`);
-          // Aguardar 500ms para garantir que o cache foi limpo
+          // Aguardar um pouco para garantir que foi deletado
           await new Promise(resolve => setTimeout(resolve, 500));
-          // Recarregar estado de autenticação (agora com credenciais completamente novas)
+          // Recarregar com credenciais novas
           const authStateResult = await useMultiFileAuthState(whatsapp);
           state = authStateResult.state;
           saveCreds = authStateResult.saveCreds;
@@ -226,10 +225,9 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
           linkPreviewImageThumbnailWidth: 192,
           // shouldIgnoreJid: jid => isJidBroadcast(jid),
 
-          // Filtrar JIDs que devem ser ignorados
-          // Ignora broadcasts e grupos (se allowGroup for false)
           shouldIgnoreJid: (jid) => {
-            return isJidBroadcast(jid) || (!allowGroup && isJidGroup(jid));
+            //   // const isGroupJid = !allowGroup && isJidGroup(jid)
+            return isJidBroadcast(jid) || (!allowGroup && isJidGroup(jid)) //|| jid.includes('newsletter')
           },
           browser: (Browsers && typeof Browsers.appropriate === 'function') 
             ? Browsers.appropriate("Desktop")
@@ -385,23 +383,21 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
 
 
 
-        // Listener para eventos de conexão do WhatsApp
-        // Monitora mudanças no estado da conexão (conectando, conectado, desconectado, QR code)
         wsocket.ev.on(
           "connection.update",
           async ({ connection, lastDisconnect, qr }) => {
             logger.info(
-              `Socket ${name} - Atualização de conexão: ${connection || ""} ${lastDisconnect ? lastDisconnect.error.message : ""}`
+              `Socket  ${name} Connection Update ${connection || ""} ${lastDisconnect ? lastDisconnect.error.message : ""
+              }`
             );
 
-            // Tratar desconexão
             if (connection === "close") {
+              console.log("DESCONECTOU", JSON.stringify(lastDisconnect, null, 2))
               logger.info(
-                `Socket ${name} - Desconectado. Erro: ${lastDisconnect ? lastDisconnect.error.message : "Desconhecido"}`
+                `Socket  ${name} Connection Update ${connection || ""} ${lastDisconnect ? lastDisconnect.error.message : ""
+                }`
               );
               
-              // Erro 403: Sessão banida ou bloqueada pelo WhatsApp
-              // Limpar completamente a sessão e forçar nova autenticação
               if ((lastDisconnect?.error as Boom)?.output?.statusCode === 403) {
                 await whatsapp.update({ status: "PENDING", session: "" });
                 await DeleteBaileysService(whatsapp.id);
@@ -413,21 +409,16 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
                   });
                 removeWbot(id, false);
               }
-              
-              // Se não foi logout manual, tentar reconectar automaticamente
-              // Se foi logout manual (loggedOut), também limpar e tentar reconectar
               if (
                 (lastDisconnect?.error as Boom)?.output?.statusCode !==
                 DisconnectReason.loggedOut
               ) {
-                // Desconexão não intencional - tentar reconectar após 2 segundos
                 removeWbot(id, false);
                 setTimeout(
                   () => StartWhatsAppSession(whatsapp, whatsapp.companyId),
                   2000
                 );
               } else {
-                // Logout manual - limpar tudo e tentar reconectar
                 await whatsapp.update({ status: "PENDING", session: "" });
                 await DeleteBaileysService(whatsapp.id);
                 await cacheLayer.delFromPattern(`sessions:${whatsapp.id}:*`);
@@ -444,15 +435,11 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
               }
             }
 
-            // Conexão estabelecida com sucesso
             if (connection === "open") {
-              // Limpar contadores de retry e erros após conexão bem-sucedida
               retriesQrCodeMap.delete(whatsapp.id);
               error515RetriesMap.delete(whatsapp.id);
-              logger.info(`[${name}] Conexão estabelecida com sucesso. Marcas de erro removidas.`);
+              logger.info(`[${name}] Marca de erro 515 removida após conexão bem-sucedida`);
               
-              // Atualizar status do WhatsApp para CONNECTED
-              // Extrair número do WhatsApp se disponível (apenas para sessões MD - Multi-Device)
               await whatsapp.update({
                 status: "CONNECTED",
                 qrcode: "",
@@ -463,14 +450,12 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
                     : "-"
               });
 
-              // Notificar frontend sobre a conexão bem-sucedida
               io.of(String(companyId))
                 .emit(`company-${whatsapp.companyId}-whatsappSession`, {
                   action: "update",
                   session: whatsapp
                 });
 
-              // Adicionar socket à lista de sessões ativas se ainda não estiver
               const sessionIndex = sessions.findIndex(
                 s => s.id === whatsapp.id
               );
@@ -482,11 +467,8 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
               resolve(wsocket);
             }
 
-            // QR Code gerado - exibir para o usuário escanear
             if (qr !== undefined) {
-              // Se já tentou gerar QR Code 3 vezes sem sucesso, desistir e desconectar
               if (retriesQrCodeMap.get(id) && retriesQrCodeMap.get(id) >= 3) {
-                logger.warn(`[${name}] Limite de 3 tentativas de QR Code atingido. Desconectando...`);
                 await whatsappUpdate.update({
                   status: "DISCONNECTED",
                   qrcode: ""
@@ -503,9 +485,8 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
                 wsocket = null;
                 retriesQrCodeMap.delete(id);
               } else {
-                // Gerar novo QR Code e atualizar no banco de dados
-                logger.info(`[${name}] QR Code gerado. Tentativa ${(retriesQrCode += 1)}`);
-                retriesQrCodeMap.set(id, retriesQrCode);
+                logger.info(`Session QRCode Generate ${name}`);
+                retriesQrCodeMap.set(id, (retriesQrCode += 1));
 
                 await whatsapp.update({
                   qrcode: qr,
@@ -513,8 +494,6 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
                   retries: 0,
                   number: ""
                 });
-                
-                // Adicionar socket à lista de sessões se ainda não estiver
                 const sessionIndex = sessions.findIndex(
                   s => s.id === whatsapp.id
                 );
@@ -524,7 +503,6 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
                   sessions.push(wsocket);
                 }
 
-                // Notificar frontend sobre o novo QR Code
                 io.of(String(companyId))
                   .emit(`company-${whatsapp.companyId}-whatsappSession`, {
                     action: "update",

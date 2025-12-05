@@ -94,7 +94,7 @@ const createContact = async (
       whatsapp = await Whatsapp.findByPk(whatsappId);
 
       if (whatsapp === null) {
-        throw new AppError(`WhatsApp #${whatsappId} não encontrado`);
+        throw new AppError(`whatsapp #${whatsappId} not found`);
       }
     }
 
@@ -255,7 +255,7 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   const schema = Yup.object().shape({
     number: Yup.string()
       .required()
-      .matches(/^\d+$/, "Formato de número inválido. Apenas números são permitidos.")
+      .matches(/^\d+$/, "Invalid number format. Only numbers is allowed.")
   });
 
   try {
@@ -308,7 +308,7 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
         )
       } catch (error) {
         console.log(medias)
-        throw new AppError("Erro ao enviar mídia pela API: " + error.message);
+        throw new AppError("Error sending API media: " + error.message);
       }
     } else {
       await wbot.sendMessage(
@@ -339,7 +339,7 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
         );
         await verifyMediaMessage(sentMessage, contactAndTicket, contactAndTicket.contact, null, false, false, wbot);
       } catch (error) {
-        throw new AppError("Erro ao enviar mídia pela API: " + error.message);
+        throw new AppError("Error sending API media: " + error.message);
       }
     } else {
       sentMessage = await SendWhatsAppMessageAPI({ body: `\u200e ${bodyMessage}`, whatsappId: whatsapp.id, contact: contactAndTicket.contact, quotedMsg, msdelay });
@@ -490,7 +490,7 @@ export const indexImage = async (req: Request, res: Response): Promise<Response>
   const schema = Yup.object().shape({
     number: Yup.string()
       .required()
-      .matches(/^\d+$/, "Formato de número inválido. Apenas números são permitidos.")
+      .matches(/^\d+$/, "Invalid number format. Only numbers is allowed.")
   });
 
   try {
@@ -610,7 +610,7 @@ export const checkNumber = async (req: Request, res: Response): Promise<Response
     }
 
   } catch (error) {
-    return res.status(400).json({ existsInWhatsapp: false, number: jid, error: "Não existe no WhatsApp" });
+    return res.status(400).json({ existsInWhatsapp: false, number: jid, error: "Not exists on Whatsapp" });
   }
 
 };

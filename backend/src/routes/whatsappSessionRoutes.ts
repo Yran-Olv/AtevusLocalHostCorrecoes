@@ -11,18 +11,6 @@ whatsappSessionRoutes.post(
   WhatsAppSessionController.store
 );
 
-whatsappSessionRoutes.post(
-  "/whatsappsession/:whatsappId/phone",
-  isAuth,
-  WhatsAppSessionController.storeWithPhone
-);
-
-whatsappSessionRoutes.post(
-  "/whatsappsession/:whatsappId/verify",
-  isAuth,
-  WhatsAppSessionController.verifyCode
-);
-
 whatsappSessionRoutes.put(
   "/whatsappsession/:whatsappId",
   isAuth,

@@ -36,14 +36,7 @@ export default {
 
       if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder, { recursive: true })
-        // Configurar permissões para Ubuntu Server (0o777 = rwxrwxrwx)
-        // No Windows localhost, chmod pode falhar mas não afeta o funcionamento
-        try {
-          fs.chmodSync(folder, 0o777)
-        } catch (error) {
-          // Ignorar erro no Windows durante desenvolvimento local
-          // No Ubuntu Server, as permissões serão configuradas corretamente
-        }
+        fs.chmodSync(folder, 0o777)
       }
       return cb(null, folder);
     },
