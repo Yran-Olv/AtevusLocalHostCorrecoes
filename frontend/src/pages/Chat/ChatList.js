@@ -42,25 +42,7 @@ export default function ChatList({
 
   const unreadMessages = (chat) => {
     const currentUser = chat.users.find((u) => u.userId === user.id);
-    return currentUser.unreads;
-  };
-
-  const getPrimaryText = (chat) => {
-    const mainText = chat.title;
-    const unreads = unreadMessages(chat);
-    return (
-      <>
-        {mainText}
-        {unreads > 0 && (
-          <Chip
-            size="small"
-            style={{ marginLeft: 5 }}
-            label={unreads}
-            color="secondary"
-          />
-        )}
-      </>
-    );
+    return currentUser ? currentUser.unreads : 0;
   };
 
   const getSecondaryText = (chat) => {
