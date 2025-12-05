@@ -45,7 +45,13 @@ app.set("queues", {
   sendScheduledMessages
 });
 
-const allowedOrigins = [process.env.FRONTEND_URL];
+// Configurar origens permitidas para CORS
+// Incluir tanto a URL do frontend quanto localhost para desenvolvimento
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+].filter(Boolean); // Remove valores undefined/null
 
 // Configuração do BullBoard
 if (String(process.env.BULL_BOARD).toLocaleLowerCase() === 'true' && process.env.REDIS_URI_ACK !== '') {
@@ -75,10 +81,24 @@ if (String(process.env.BULL_BOARD).toLocaleLowerCase() === 'true' && process.env
 app.use(compression()); // Compressão HTTP
 app.use(bodyParser.json({ limit: '5mb' })); // Aumentar o limite de carga para 5 MB
 app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
+
+// Configurar CORS com opções mais permissivas para desenvolvimento
 app.use(
   cors({
     credentials: true,
-    origin: allowedOrigins
+    origin: function (origin, callback) {
+      // Permitir requisições sem origem (mobile apps, Postman, etc)
+      if (!origin) return callback(null, true);
+      
+      // Permitir se estiver na lista de origens permitidas
+      if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
   })
 );
 app.use(cookieParser());
