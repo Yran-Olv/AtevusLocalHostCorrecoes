@@ -1,154 +1,17 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  makeStyles,
-  Paper,
-  Tab,
-  Tabs,
-  TextField,
-  Typography,
-} from "@material-ui/core";
-import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-import GroupAddIcon from '@material-ui/icons/GroupAdd';
-import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
-import ChatBubbleOutlineIcon from '@material-ui/icons/ChatBubbleOutline';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Tooltip from '@material-ui/core/Tooltip';
 import ChatList from "./ChatList";
 import ChatMessages from "./ChatMessages";
 import { UsersFilter } from "../../components/UsersFilter";
 import api from "../../services/api";
 import { has, isObject } from "lodash";
 import { AuthContext } from "../../context/Auth/AuthContext";
-import withWidth, { isWidthUp } from "@material-ui/core/withWidth";
 import { i18n } from "../../translate/i18n";
 import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
+import './whatsapp-chat.css';
 
-const useStyles = makeStyles((theme) => ({
-  mainContainer: {
-    display: "flex",
-    flexDirection: "column",
-    position: "relative",
-    flex: 1,
-    height: `calc(100% - 48px)`,
-    overflowY: "hidden",
-    border: "1px solid rgba(0, 0, 0, 0.12)",
-  },
-  gridContainer: {
-    flex: 1,
-    height: "100%",
-    border: "1px solid rgba(0, 0, 0, 0.12)",
-    background: theme.palette.background.color,
-  },
-  gridItem: {
-    height: "100%",
-    overflow: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '5px 6px',
-  },
-  exibeMensagem: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: "100%",
-    overflow: 'auto',
-    borderLeft: '1px solid #cecece',
-  },
-  gridItemTab: {
-    height: "92%",
-    width: "100%",
-  },
-  btnContainer: {
-    textAlign: "right",
-    padding: 10,
-  },
-  titleContainer: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: theme.spacing(1),
-  },
-  addButton: {
-    borderRadius: '50%',
-    backgroundColor: 'transparent',
-    color: theme.palette.primary.main,
-    minWidth: "auto",
-    padding: '0px',
-    marginBottom: '2px',
-  },
-  buscaChat: {
-    padding: '5px 12px',
-  },
-  btnfora: {
-    border: '1.6px solid #eeeeee',
-    borderRadius: '6px',
-    padding: '5px 13px',
-    display: 'inline-block',
-    margin: '0 5px',
-    cursor: 'pointer',
-  },
-  iconeHeader: {
-    fontSize: '1.05rem !important',
-  },
-  tituloChat: {
-    color: theme.palette.primary.main,
-    fontWeight: '600',
-    fontSize: '1.3rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-  },
-  txtInformativo: {
-    fontSize: '0.87rem',
-  },
-  fixedHeader: {
-    padding: '8px 2px',
-    background: theme.palette.background.paper,
-    zIndex: 1,
-  },
-  scrollableList: {
-    flex: 1,
-    overflowY: 'auto',
-    padding: theme.spacing(1),
-    height: '100%',
-  },
-  chatList: {
-    height: '100%',
-  },
-  h6SemMensagem: {
-    fontWeight: 'bold',
-    fontSize: '1rem',
-  },
-  bodySemMensagem: {
-    color: 'rgb(104, 121, 146)',
-    fontSize: '0.775rem',
-    padding: '0 10px',
-  },
-  avisoSemMensagem: {
-    textAlign: 'center',
-    padding: '20px',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-}));
-
-export function ChatModal({
-  open,
-  chat,
-  type,
-  handleClose,
-  handleLoadNewChat,
-  setChats,
-}) {
+// Modal Component (simplificado sem Material-UI)
+const ChatModal = ({ open, chat, type, handleClose, handleLoadNewChat, setChats }) => {
   const [users, setUsers] = useState([]);
   const [title, setTitle] = useState("");
 
@@ -195,56 +58,92 @@ export function ChatModal({
     }
   };
 
-  return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-    >
-      <DialogTitle id="alert-dialog-title">Nova Conversa</DialogTitle>
-      <DialogContent>
-        <Grid spacing={2} container>
-          <Grid xs={12} style={{ padding: 18 }} item>
-            <TextField
-              label="Título"
-              placeholder="Título"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              variant="outlined"
-              size="small"
-              fullWidth
-            />
-          </Grid>
-          <Grid xs={12} item>
-            <UsersFilter
-              onFiltered={(users) => setUsers(users)}
-              initialUsers={users}
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          {i18n.t("chatInternal.modal.cancel")}
-        </Button>
-        <Button
-          onClick={handleSave}
-          color="primary"
-          variant="contained"
-          disabled={users === undefined || users.length === 0 || title === null || title === "" || title === undefined}
-        >
-          {i18n.t("chatInternal.modal.save")}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
+  if (!open) return null;
 
-function Chat(props) {
-  const classes = useStyles();
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }} onClick={handleClose}>
+      <div style={{
+        backgroundColor: 'var(--wa-panel-light)',
+        borderRadius: '8px',
+        padding: '24px',
+        maxWidth: '500px',
+        width: '90%',
+        maxHeight: '90vh',
+        overflow: 'auto'
+      }} onClick={(e) => e.stopPropagation()}>
+        <h2 style={{ margin: '0 0 16px 0', color: 'var(--wa-text-primary)' }}>Nova Conversa</h2>
+        <div style={{ marginBottom: '16px' }}>
+          <input
+            type="text"
+            placeholder="Título"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px',
+              border: '1px solid var(--wa-border)',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontFamily: 'inherit'
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: '16px' }}>
+          <UsersFilter
+            onFiltered={(users) => setUsers(users)}
+            initialUsers={users}
+          />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <button
+            onClick={handleClose}
+            style={{
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              background: 'transparent',
+              color: 'var(--wa-text-primary)'
+            }}
+          >
+            {i18n.t("chatInternal.modal.cancel")}
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={users === undefined || users.length === 0 || title === null || title === "" || title === undefined}
+            style={{
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              background: 'var(--wa-green)',
+              color: 'white',
+              opacity: (users === undefined || users.length === 0 || title === null || title === "" || title === undefined) ? 0.5 : 1
+            }}
+          >
+            {i18n.t("chatInternal.modal.save")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+function Chat() {
   const { user, socket } = useContext(AuthContext);
   const history = useHistory();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const [showDialog, setShowDialog] = useState(false);
   const [dialogType, setDialogType] = useState("new");
@@ -268,6 +167,15 @@ function Chat(props) {
     return () => {
       isMounted.current = false;
     };
+  }, []);
+
+  // Detectar mudanças de tamanho da tela
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -480,65 +388,51 @@ function Chat(props) {
     }
   };
 
-  const renderGrid = () => {
+  const renderDesktop = () => {
     return (
-      <Grid className={classes.gridContainer} container>
-        <Grid className={classes.gridItem} md={4} item>
-          <div className={classes.fixedHeader}>
-            <div className={classes.titleContainer}>
-              <Typography variant="h5" className={classes.tituloChat}><ChatBubbleOutlineIcon color="primary" style={{marginTop: '3px'}} /> Chats</Typography>
-              <div>
-                <Tooltip title="Novo Grupo">
-                  <div className={classes.btnfora} onClick={() => {
-                    setDialogType("new");
-                    setShowDialog(true);
-                  }}>
-                    <Button className={classes.addButton}>
-                      <GroupAddIcon className={classes.iconeHeader} />
-                    </Button>
-                  </div>
-                </Tooltip>
-                <Tooltip title="Nova Conversa">
-                  <div className={classes.btnfora} onClick={() => {
-                    setDialogType("new");
-                    setShowDialog(true);
-                  }}>
-                    <Button className={classes.addButton}>
-                      <AddCircleOutlineIcon className={classes.iconeHeader} />
-                    </Button>
-                  </div>
-                </Tooltip>
-              </div>
-            </div>
-            <Grid xs={12} className={classes.buscaChat} item>
-              <TextField
-                label="Pesquisar"
-                placeholder="Digite para buscar..."
-                variant="outlined"
-                size="small"
-                fullWidth
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <Tooltip title="Para mensagens, selecione uma conversa.">
-                        <HelpOutlineIcon style={{ cursor: 'pointer', fill: '#cdcdcd', fontSize: '1.1rem', }} />
-                      </Tooltip>
-                    </InputAdornment>
-                  ),
+      <div className="wa-chat-container">
+        <div 
+          className={`wa-chat-sidebar ${isMobile && isObject(currentChat) && has(currentChat, "id") ? 'hidden' : ''}`}
+        >
+          <div className="wa-chat-sidebar-header">
+            <h2 className="wa-chat-sidebar-title">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+              </svg>
+              Chats
+            </h2>
+            <div className="wa-chat-sidebar-actions">
+              <button 
+                className="wa-icon-btn"
+                onClick={() => {
+                  setDialogType("new");
+                  setShowDialog(true);
                 }}
-              />
-            </Grid>
+                title="Nova Conversa"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+              </button>
+            </div>
           </div>
-          <div className={classes.scrollableList}>
+          <div className="wa-chat-search">
+            <input
+              type="text"
+              className="wa-chat-search-input"
+              placeholder="Pesquisar"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="wa-chat-list-container">
             {chats.length === 0 ? (
-              <div className={classes.avisoSemMensagem}>
-                <Typography variant="h6" className={classes.h6SemMensagem}>Nada aqui!</Typography>
-                <Typography variant="body2" className={classes.bodySemMensagem}>Nenhuma mensagem encontrada, abra uma nova caso deseje.</Typography>
+              <div className="wa-empty-state">
+                <h3 className="wa-empty-state-title">Nada aqui!</h3>
+                <p className="wa-empty-state-text">Nenhuma mensagem encontrada, abra uma nova caso deseje.</p>
               </div>
             ) : (
-              <ChatList className={classes.chatList}
+              <ChatList
                 chats={chats}
                 pageInfo={chatsPageInfo}
                 loading={loading}
@@ -552,8 +446,8 @@ function Chat(props) {
               />
             )}
           </div>
-        </Grid>
-        <Grid className={classes.exibeMensagem} md={8} item>
+        </div>
+        <div className="wa-chat-messages-area">
           {isObject(currentChat) && has(currentChat, "id") ? (
             <>
               <ChatMessages
@@ -567,75 +461,18 @@ function Chat(props) {
                 records={records}
               />
               {messages.length === 0 && (
-                <Typography variant="h6" align="center" className={classes.txtInformativo} style={{
-                  position: 'absolute', color: 'rgba(0, 0, 0, 0.5)'
-                }}>
-                  Esta conversa está vazia. Você pode começar a digitar!
-                </Typography>
+                <div className="wa-empty-state" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                  <p className="wa-empty-state-text">Esta conversa está vazia. Você pode começar a digitar!</p>
+                </div>
               )}
             </>
           ) : (
-            <Typography variant="h6" align="center" className={classes.txtInformativo}>
-              Selecione uma conversa para iniciar.
-            </Typography>
-          )}
-        </Grid>
-
-
-      </Grid>
-    );
-  };
-
-  const renderTab = () => {
-    return (
-      <Grid className={classes.gridContainer} container>
-        <Grid md={12} item>
-          <Tabs
-            value={tab}
-            indicatorColor="primary"
-            textColor="primary"
-            onChange={(e, v) => setTab(v)}
-            aria-label="disabled tabs example"
-          >
-            <Tab label="Chats" />
-            <Tab label="Mensagens" />
-          </Tabs>
-        </Grid>
-        {tab === 0 && (
-          <Grid className={classes.gridItemTab} md={12} item>
-            <div className={classes.btnContainer}>
-              <Button
-                onClick={() => setShowDialog(true)}
-                color="primary"
-                variant="contained"
-              >
-                Novo
-              </Button>
+            <div className="wa-empty-state">
+              <p className="wa-empty-state-text">Selecione uma conversa para iniciar.</p>
             </div>
-            <ChatList
-              chats={chats}
-              pageInfo={chatsPageInfo}
-              loading={loading}
-              handleSelectChat={(chat) => selectChat(chat)}
-              handleDeleteChat={(chat) => deleteChat(chat)}
-            />
-          </Grid>
-        )}
-        {tab === 1 && (
-          <Grid className={classes.gridItemTab} md={12} item>
-            {isObject(currentChat) && has(currentChat, "id") && (
-              <ChatMessages
-                scrollToBottomRef={scrollToBottomRef}
-                pageInfo={messagesPageInfo}
-                messages={messages}
-                loading={loading}
-                handleSendMessage={sendMessage}
-                handleLoadMore={loadMoreMessages}
-              />
-            )}
-          </Grid>
-        )}
-      </Grid>
+          )}
+        </div>
+      </div>
     );
   };
 
@@ -650,16 +487,13 @@ function Chat(props) {
           setMessages([]);
           setMessagesPage(1);
           setCurrentChat(data);
-          setTab(1);
           history.push(`/chats/${data.uuid}`);
         }}
         handleClose={() => setShowDialog(false)}
       />
-      <Paper className={classes.mainContainer}>
-        {isWidthUp("md", props.width) ? renderGrid() : renderTab()}
-      </Paper>
+      {renderDesktop()}
     </>
   );
 }
 
-export default withWidth()(Chat);
+export default Chat;

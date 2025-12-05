@@ -5,40 +5,16 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import toastError from "../../errors/toastError";
-import Popover from "@material-ui/core/Popover";
-import ForumIcon from "@material-ui/icons/Forum";
-import {
-  Badge,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Typography,
-} from "@material-ui/core";
 import api from "../../services/api";
 import { isArray } from "lodash";
-// import { SocketContext } from "../../context/Socket/SocketContext";
 import { useDate } from "../../hooks/useDate";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { safeSocketOn, safeSocketOff, isSocketValid } from "../../utils/socketHelper";
-
 import notifySound from "../../assets/sound.mp3";
 import useSound from "use-sound";
 import { i18n } from "../../translate/i18n";
-
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    maxHeight: 300,
-    maxWidth: 500,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-}));
+import '../Chat/whatsapp-chat.css';
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_CHATS") {
@@ -97,9 +73,6 @@ const reducer = (state, action) => {
 };
 
 export default function ChatPopover() {
-  const classes = useStyles();
-
-//   const socketManager = useContext(SocketContext);
   const { user, socket } = useContext(AuthContext);
 
 
@@ -228,72 +201,106 @@ export default function ChatPopover() {
 
   return (
     <div>
-      <IconButton
-        aria-describedby={id}
-        variant="contained"
-        color={invisible ? "default" : "inherit"}
+      <button
+        className="wa-icon-btn"
         onClick={handleClick}
-        style={{ color: "white" }}
-      >
-        <Badge color="secondary" variant="dot" invisible={invisible}>
-          <ForumIcon />
-        </Badge>
-      </IconButton>
-      <Popover
-        id={id}
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "center",
+        style={{ 
+          color: "white",
+          position: 'relative'
         }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "center",
-        }}
+        aria-describedby={id}
       >
-        <Paper
-          variant="outlined"
-          onScroll={handleScroll}
-          className={classes.mainPaper}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+        </svg>
+        {!invisible && (
+          <span style={{
+            position: 'absolute',
+            top: '4px',
+            right: '4px',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--wa-green)',
+            border: '2px solid white'
+          }} />
+        )}
+      </button>
+      {open && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+            pointerEvents: 'none'
+          }}
+          onClick={handleClose}
         >
-          <List
-            component="nav"
-            aria-label="main mailbox folders"
-            style={{ minWidth: 300 }}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '60px',
+              right: '20px',
+              minWidth: '300px',
+              maxWidth: '500px',
+              maxHeight: '300px',
+              backgroundColor: 'var(--wa-panel-light)',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              pointerEvents: 'auto'
+            }}
+            onScroll={handleScroll}
+            onClick={(e) => e.stopPropagation()}
           >
-            {isArray(chats) &&
-              chats.map((item, key) => (
-                <ListItem
-                  key={key}
-                  style={{
-                    background: key % 2 === 0 ? "#ededed" : "white",
-                    border: "1px solid #eee",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => goToMessages(item)}
-                  button
-                >
-                  <ListItemText
-                    primary={item.lastMessage}
-                    secondary={
-                      <>
-                        <Typography component="span" style={{ fontSize: 12 }}>
-                          {datetimeToClient(item.updatedAt)}
-                        </Typography>
-                        <span style={{ marginTop: 5, display: "block" }}></span>
-                      </>
-                    }
-                  />
-                </ListItem>
-              ))}
-            {isArray(chats) && chats.length === 0 && (
-              <ListItemText primary={i18n.t("mainDrawer.appBar.notRegister")} />
-            )}
-          </List>
-        </Paper>
-      </Popover>
+            <div style={{
+              padding: '12px',
+              borderBottom: '1px solid var(--wa-border)',
+              fontWeight: '500',
+              color: 'var(--wa-text-primary)'
+            }}>
+              Chats
+            </div>
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              maxHeight: '250px'
+            }}>
+              {isArray(chats) && chats.length > 0 ? (
+                chats.map((item, key) => (
+                  <div
+                    key={key}
+                    className="wa-chat-list-item"
+                    onClick={() => {
+                      goToMessages(item);
+                      handleClose();
+                    }}
+                    style={{
+                      background: key % 2 === 0 ? 'var(--wa-hover)' : 'transparent'
+                    }}
+                  >
+                    <div className="wa-chat-list-content">
+                      <div className="wa-chat-list-message">{item.lastMessage}</div>
+                      <div className="wa-chat-list-time" style={{ fontSize: '12px' }}>
+                        {datetimeToClient(item.updatedAt)}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: '16px', textAlign: 'center', color: 'var(--wa-text-secondary)' }}>
+                  {i18n.t("mainDrawer.appBar.notRegister")}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

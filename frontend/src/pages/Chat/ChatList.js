@@ -1,59 +1,10 @@
 import React, { useContext, useState } from "react";
-import {
-  Chip,
-  IconButton,
-  List,
-  ListItem,
-  ListItemSecondaryAction,
-  ListItemText,
-  makeStyles,
-} from "@material-ui/core";
-
 import { useHistory, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { useDate } from "../../hooks/useDate";
-
-import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
-
 import ConfirmationModal from "../../components/ConfirmationModal";
 import api from "../../services/api";
-
-const useStyles = makeStyles((theme) => ({
-  mainContainer: {
-    display: "flex",
-    flexDirection: "column",
-    position: "relative",
-    flex: 1,
-    height: "calc(100% - 10px)",
-    overflow: "hidden",
-    borderRadius: 0,
-    backgroundColor: theme.mode === 'light' ? "#fff" : "#7f7f7f",
-  },
-  chatList: {
-    display: "flex",
-    flexDirection: "column",
-    position: "relative",
-    flex: 1,
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-  listItemActive: {
-    cursor: "pointer",
-    backgroundColor: '#ebf4ff',
-    borderRadius: '10px',
-  },
-  listItem: {
-    cursor: "pointer",
-    backgroundColor: theme.palette.background.color,
-    margin: '6px 0',
-    borderRadius: '10px',
-  },
-  list: {
-    margin: '0 10px 0 5px',
-    paddingTop: '0',
-  },
-}));
+import '../Chat/whatsapp-chat.css';
 
 export default function ChatList({
   chats,
@@ -63,7 +14,6 @@ export default function ChatList({
   pageInfo,
   loading,
 }) {
-  const classes = useStyles();
   const history = useHistory();
   const { user, socket } = useContext(AuthContext);
   const { datetimeToClient } = useDate();
@@ -129,55 +79,59 @@ export default function ChatList({
       >
         Esta ação não pode ser revertida, confirmar?
       </ConfirmationModal>
-      <div className={classes.mainContainer}>
-        <div className={classes.chatList}>
-          <List className={classes.list}>
-            {Array.isArray(chats) &&
-              chats.length > 0 &&
-              chats.map((chat, key) => (
-                <ListItem
-                  onClick={() => goToMessages(chat)}
-                  key={key}
-                  className={chat.uuid === id ? classes.listItemActive : classes.listItem}
-                  // style={getItemStyle(chat)}
-                  button
-                >
-                  <ListItemText
-                    primary={getPrimaryText(chat)}
-                    secondary={getSecondaryText(chat)}
-                  />
-                  {chat.ownerId === user.id && (
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        onClick={() => {
-                          goToMessages(chat).then(() => {
-                            handleEditChat(chat);
-                          });
-                        }}
-                        edge="end"
-                        aria-label="delete"
-                        size="small"
-                        style={{ marginRight: 5 }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => {
-                          setSelectedChat(chat);
-                          setConfirmModalOpen(true);
-                        }}
-                        edge="end"
-                        aria-label="delete"
-                        size="small"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
+      <div>
+        {Array.isArray(chats) &&
+          chats.length > 0 &&
+          chats.map((chat, key) => (
+            <div
+              key={key}
+              className={`wa-chat-list-item ${chat.uuid === id ? 'active' : ''}`}
+              onClick={() => goToMessages(chat)}
+            >
+              <div className="wa-chat-list-content">
+                <div className="wa-chat-list-name">
+                  {chat.title}
+                  {unreadMessages(chat) > 0 && (
+                    <span className="wa-chat-badge">{unreadMessages(chat)}</span>
                   )}
-                </ListItem>
-              ))}
-          </List>
-        </div>
+                </div>
+                <div className="wa-chat-list-message">
+                  {getSecondaryText(chat)}
+                </div>
+              </div>
+              {chat.ownerId === user.id && (
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button
+                    className="wa-icon-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToMessages(chat).then(() => {
+                        handleEditChat(chat);
+                      });
+                    }}
+                    title="Editar"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                  </button>
+                  <button
+                    className="wa-icon-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedChat(chat);
+                      setConfirmModalOpen(true);
+                    }}
+                    title="Excluir"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
       </div>
     </>
   );
