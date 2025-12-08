@@ -276,7 +276,7 @@ const NotificationsPopOver = (volume) => {
 	};
 
 	const browserNotification = () => {
-		const appName = theme.appName || "Atevus";
+		const appName = theme.appName || "Multivus";
 	  
 		if (notifications.length > 0) {
 		  document.title = `(${notifications.length}) ${appName}`;

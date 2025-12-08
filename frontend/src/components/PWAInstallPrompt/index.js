@@ -97,7 +97,7 @@ const PWAInstallPrompt = () => {
     return (
       <>
         <p className={`ntTitulo ${classes.ntTituloTKC}`}>
-          Baixe o Atevus para {osName}
+          Baixe o Multivus para {osName}
         </p>
         <span className={`ntSubTitulo ${classes.ntSubTituloTKC}`}>
           Baixe o novo app para {osName} para ter uma experiência de uso <br /> mais rápida, instalação simples.
@@ -118,7 +118,7 @@ const PWAInstallPrompt = () => {
         Agilidade no Atendimento
       </p>
       <span className={`ntSubTitulo ${classes.ntSubTituloTKC}`}>
-        Organize, acompanhe e resolva atendimentos com agilidade. O Atevus facilita seu <br />trabalho e aumenta sua produtividade!
+        Organize, acompanhe e resolva atendimentos com agilidade. O Multivus facilita seu <br />trabalho e aumenta sua produtividade!
       </span>
     </>
   );

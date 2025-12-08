@@ -18,7 +18,7 @@ const BackdropLoading = () => {
   return (
     <Backdrop className={clsx('BLbackdrop', classes.backdrop)} open={true}>
       <div className="BLsplashScreen">
-        <img src="/loading-progress.png" alt="Logo Atevus" className={clsx('BLlogo', classes.logo)} />
+        <img src="/loading-progress.png" alt="Logo Multivus" className={clsx('BLlogo', classes.logo)} />
         <div className="BLwrapper">
           <div className="BLslide"></div>
           

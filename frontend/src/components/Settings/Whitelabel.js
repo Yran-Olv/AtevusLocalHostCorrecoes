@@ -338,7 +338,7 @@ export default function Whitelabel(props) {
                     }}
                     onBlur={async (_) => {
                       await handleSaveSetting("appName", appName);
-                      colorMode.setAppName(appName || "Atevus");
+                      colorMode.setAppName(appName || "Multivus");
                     }}
                   />
                 </FormControl>

@@ -201,11 +201,11 @@ const App = () => {
       });
     getPublicSetting("appName")
       .then((name) => {
-        setAppName(name || "Atevus");
+        setAppName(name || "Multivus");
       })
       .catch((error) => {
         console.log("!==== Erro ao carregar temas: ====!", error);
-        setAppName("Atevus");
+        setAppName("Multivus");
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
