@@ -1,6 +1,6 @@
 {
-	"short_name": "Atevus",
-	"name": "Atevus",
+	"short_name": "Multivus",
+	"name": "Multivus",
 	"description": "Organize, acompanhe e resolva atendimentos com agilidade",
 	"icons": [
 	  {
@@ -21,7 +21,7 @@
 		"purpose": "any maskable"
 	  }
 	],
-	"id": "com.atevus.app",
+	"id": "com.multivus.app",
 	"start_url": "/",
 	"scope": "/",
 	"display": "standalone",
@@ -32,8 +32,8 @@
 	"related_applications": [
 	  {
 		"platform": "webapp",
-		"id": "com.atevus.app",
-		"url": "https://app.atevus.com.br/manifest.json"
+		"id": "com.multivus.app",
+		"url": "https://app.multivus.com.br/manifest.json"
 	  }
 	]
   }
