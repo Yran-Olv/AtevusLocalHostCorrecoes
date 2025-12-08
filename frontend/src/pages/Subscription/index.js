@@ -32,9 +32,12 @@ const Contacts = () => {
 
   const daysRemaining = returnDays(user?.company?.dueDate);
   const dueDateMessage = useMemo(() => {
+    if (daysRemaining === null || daysRemaining === undefined) {
+      return "Data de vencimento inválida.";
+    }
     if (daysRemaining === 0) return "Sua licença vence hoje!";
     if (daysRemaining > 0) return `Sua licença vence em ${daysRemaining} dias!`;
-    return "Data de vencimento inválida.";
+    return `Sua licença venceu há ${Math.abs(daysRemaining)} ${Math.abs(daysRemaining) === 1 ? 'dia' : 'dias'}!`;
   }, [daysRemaining]);
 
   return (
@@ -62,12 +65,13 @@ const Contacts = () => {
           <TextField
             id="billing-email"
             label="Email de cobrança"
-            defaultValue={user?.email}
+            defaultValue={user?.company?.email || user?.email || ""}
             fullWidth
             margin="normal"
             InputLabelProps={{ shrink: true }}
             InputProps={{ readOnly: true }}
             variant="outlined"
+            helperText="Email da empresa utilizado para cobrança"
           />
           <Button
             variant="contained"

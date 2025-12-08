@@ -192,18 +192,36 @@ export const webhook = async (
 
         const invoiceID = solicitacaoPagador.replace("#Fatura:", "");
         const invoices = await Invoices.findByPk(invoiceID);
+        
+        if (!invoices) {
+          console.error(`Invoice ${invoiceID} not found`);
+          return;
+        }
+        
         const companyId = invoices.companyId;
         const company = await Company.findByPk(companyId);
 
-        const expiresAt = new Date(company.dueDate);
+        if (!company) {
+          console.error(`Company ${companyId} not found`);
+          return;
+        }
+
+        // Valida se a data de vencimento atual é válida
+        let expiresAt: Date;
+        if (company.dueDate && !isNaN(new Date(company.dueDate).getTime())) {
+          expiresAt = new Date(company.dueDate);
+        } else {
+          // Se não houver data válida, usa a data atual
+          expiresAt = new Date();
+        }
+        
+        // Adiciona 30 dias ao vencimento atual
         expiresAt.setDate(expiresAt.getDate() + 30);
         const date = expiresAt.toISOString().split("T")[0];
 
-        if (company) {
-
-          await company.update({
-            dueDate: date
-          });
+        await company.update({
+          dueDate: date
+        });
 
           const invoi = await invoices.update({
             id: invoiceID,
