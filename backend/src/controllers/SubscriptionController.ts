@@ -24,38 +24,82 @@ export const createSubscription = async (
   const gerencianet = new Gerencianet(options);
   const { companyId } = req.user;
 
+  // Validação mais flexível - aceita string ou number
   const schema = Yup.object().shape({
-    price: Yup.string().required(),
-    users: Yup.string().required(),
-    plan: Yup.string().required()
+    price: Yup.mixed().required("Preço é obrigatório"),
+    users: Yup.mixed().required("Número de usuários é obrigatório"),
+    plan: Yup.string().required("Plano é obrigatório"),
+    invoiceId: Yup.number().required("ID da fatura é obrigatório")
   });
 
   if (!(await schema.isValid(req.body))) {
-    throw new AppError("Validation fails", 400);
+    const errors = await schema.validate(req.body, { abortEarly: false }).catch(err => err);
+    throw new AppError(`Validação falhou: ${errors.message || "Dados inválidos"}`, 400);
   }
 
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  });
-
+  // Validações de dados obrigatórios
   const updateCompany = await Company.findOne({ where: { id: companyId } });
+  
+  if (!updateCompany) {
+    throw new AppError("Empresa não encontrada", 404);
+  }
+
+  if (!updateCompany.planId) {
+    throw new AppError("Empresa não possui plano associado", 400);
+  }
+
   const plan = await Plan.findOne({ where: { id: updateCompany.planId } });
+  
+  if (!plan) {
+    throw new AppError("Plano não encontrado", 404);
+  }
 
-  const { invoiceId } = req.body;
+  if (!plan.amount || plan.amount <= 0) {
+    throw new AppError("Valor do plano inválido", 400);
+  }
 
-  const _price: any = plan.amount
-  // const price: any = _price.toLocaleString("us-US", { minimumFractionDigits: 2 }).replace(",", ".")
-  const price: any = formatter.format(_price).replace('$', '')
+  const { invoiceId, price: priceFromBody } = req.body;
 
-  const devedor: any = { nome: updateCompany.name }
+  if (!invoiceId) {
+    throw new AppError("ID da fatura é obrigatório", 400);
+  }
+
+  // Usa o preço do body se fornecido, senão usa o do plano
+  let finalPrice: number;
+  if (priceFromBody) {
+    finalPrice = typeof priceFromBody === 'string' ? parseFloat(priceFromBody) : priceFromBody;
+  } else {
+    finalPrice = parseFloat(plan.amount.toString());
+  }
+
+  if (isNaN(finalPrice) || finalPrice <= 0) {
+    throw new AppError("Valor do pagamento inválido", 400);
+  }
+
+  // Formata o preço para BRL (Real brasileiro) - formato esperado pelo Gerencianet PIX
+  // O Gerencianet espera o valor como string com 2 casas decimais
+  const price = finalPrice.toFixed(2);
+
+  const devedor: any = { nome: updateCompany.name || "Cliente" };
+
+  // Valida e formata documento
+  if (!updateCompany.document || updateCompany.document.trim() === "") {
+    throw new AppError("Documento da empresa é obrigatório para gerar cobrança PIX", 400);
+  }
 
   const doc = updateCompany.document.replace(/\D/g, "");
 
   if (doc.length === 11) {
-    devedor.cpf = doc
+    devedor.cpf = doc;
+  } else if (doc.length === 14) {
+    devedor.cnpj = doc;
   } else {
-    devedor.cnpj = doc
+    throw new AppError("Documento inválido. Deve ser CPF (11 dígitos) ou CNPJ (14 dígitos)", 400);
+  }
+
+  // Valida chave PIX
+  if (!process.env.GERENCIANET_CHAVEPIX) {
+    throw new AppError("Chave PIX não configurada no servidor", 500);
   }
 
   const body = {
@@ -73,27 +117,47 @@ export const createSubscription = async (
   };
 
   try {
+    console.log('Criando cobrança PIX:', JSON.stringify(body, null, 2));
+    
     const pix = await gerencianet.pixCreateImmediateCharge(null, body);
+
+    if (!pix || !pix.loc || !pix.loc.id) {
+      throw new AppError("Erro ao criar cobrança PIX: resposta inválida da API", 500);
+    }
 
     const qrcode = await gerencianet.pixGenerateQRCode({ id: pix.loc.id });
 
-    if (!updateCompany) {
-      throw new AppError("Company not found", 404);
+    if (!qrcode || !qrcode.qrcode) {
+      throw new AppError("Erro ao gerar QR Code PIX", 500);
     }
-
-    // await updateCompany.update({
-    //   name: firstName,
-    //   document: zipcode,
-    //   planId: plan.planId,
-    // });
 
     return res.json({
       ...pix,
       qrcode
     });
-  } catch (error) {
-    console.log('error_subscription', error);
-    throw new AppError("Validation fails", 400);
+  } catch (error: any) {
+    console.error('Erro ao criar assinatura Gerencianet:', error);
+    
+    // Extrai mensagem de erro mais detalhada
+    let errorMessage = "Erro ao processar pagamento";
+    
+    if (error?.response?.data) {
+      errorMessage = error.response.data.mensagem || error.response.data.message || JSON.stringify(error.response.data);
+    } else if (error?.message) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+
+    // Log detalhado para debugging
+    console.error('Detalhes do erro:', {
+      message: errorMessage,
+      status: error?.response?.status,
+      data: error?.response?.data,
+      body: body
+    });
+
+    throw new AppError(`Erro ao criar cobrança PIX: ${errorMessage}`, error?.response?.status || 400);
   }
 };
 

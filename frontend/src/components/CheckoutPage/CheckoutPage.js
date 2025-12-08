@@ -28,7 +28,7 @@ export default function CheckoutPage(props) {
   const classes = useStyles();
   const [activeStep, setActiveStep] = useState(1);
   const [datePayment, setDatePayment] = useState(null);
-  const [invoiceId, setInvoiceId] = useState(props.Invoice.id);
+  const [invoiceId, setInvoiceId] = useState(props.Invoice?.id || null);
   const currentValidationSchema = validationSchema[activeStep];
   const isLastStep = activeStep === steps.length - 1;
   const { user } = useContext(AuthContext);
@@ -66,6 +66,13 @@ export default function CheckoutPage(props) {
 
   async function _submitForm(values, actions) {
     try {
+      // Valida se há invoiceId
+      if (!invoiceId) {
+        toast.error("Erro: Fatura não encontrada. Por favor, tente novamente.");
+        actions.setSubmitting(false);
+        return;
+      }
+
       const plan = JSON.parse(values.plan);
       const newValues = {
         firstName: values.firstName,
@@ -81,19 +88,29 @@ export default function CheckoutPage(props) {
         cardNumber: values.cardNumber,
         cvv: values.cvv,
         plan: values.plan,
-        price: plan.price,
-        users: plan.users,
-        connections: plan.connections,
+        price: plan.price || plan.amount || 0,
+        users: plan.users || 0,
+        connections: plan.connections || 0,
         invoiceId: invoiceId
       };
 
+      console.log('Enviando dados para criar assinatura:', newValues);
+
       const { data } = await api.post("/subscription", newValues);
+      
+      // Valida resposta
+      if (!data || !data.qrcode || !data.qrcode.qrcode) {
+        throw new Error("Resposta inválida da API. QR Code não foi gerado.");
+      }
+
       setDatePayment(data);
       actions.setSubmitting(false);
       setActiveStep(activeStep + 1);
       toast.success("Assinatura realizada com sucesso!, aguardando a realização do pagamento");
     } catch (err) {
+      console.error('Erro ao criar assinatura:', err);
       toastError(err);
+      actions.setSubmitting(false);
     }
   }
 

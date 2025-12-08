@@ -12,6 +12,17 @@ import { safeSocketOn, safeSocketOff, isSocketValid } from "../../../utils/socke
 function CheckoutSuccess(props) {
 
   const { pix } = props;
+  
+  // Valida se pix e qrcode existem
+  if (!pix || !pix.qrcode || !pix.qrcode.qrcode) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <p>Erro: Dados do PIX não foram recebidos corretamente.</p>
+        <p>Por favor, tente novamente.</p>
+      </div>
+    );
+  }
+
   const [pixString,] = useState(pix.qrcode.qrcode);
   const [copied, setCopied] = useState(false);
   const history = useHistory();
