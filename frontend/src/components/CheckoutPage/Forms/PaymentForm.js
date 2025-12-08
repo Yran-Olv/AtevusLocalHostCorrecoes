@@ -1,4 +1,6 @@
 import React, { useEffect, useContext } from 'react';
+import api from "../../../services/api";
+import { toast } from "react-toastify";
 import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
@@ -70,6 +72,7 @@ export default function Pricing(props) {
     setFieldValue,
     setActiveStep,
     activeStep,
+    onCreateInvoice,
   } = props;
 
   const classes = useStyles();
@@ -245,20 +248,39 @@ export default function Pricing(props) {
                   fullWidth
                   variant={tier.buttonVariant}
                   color="primary"
-                  onClick={() => {
-                    if (tier.custom) {
-                      setFieldValue("plan", JSON.stringify({
+                  onClick={async () => {
+                    try {
+                      const planData = tier.custom ? {
+                        title: "Plano Personalizado",
                         users: usersPlans,
                         connections: connectionsPlans,
-                        price: customValuePlans
-                      }));
-                    } else {
-                      setFieldValue("plan", JSON.stringify(tier));
-                    }
+                        price: customValuePlans,
+                        amount: customValuePlans,
+                        queues: 0
+                      } : tier;
 
-                    setActiveStep(activeStep + 1);
-                  }
-                  }
+                      // Cria fatura automaticamente quando plano é selecionado
+                      if (onCreateInvoice) {
+                        await onCreateInvoice(planData);
+                      }
+
+                      // Define o plano no formulário
+                      if (tier.custom) {
+                        setFieldValue("plan", JSON.stringify({
+                          users: usersPlans,
+                          connections: connectionsPlans,
+                          price: customValuePlans
+                        }));
+                      } else {
+                        setFieldValue("plan", JSON.stringify(tier));
+                      }
+
+                      setActiveStep(activeStep + 1);
+                    } catch (error) {
+                      console.error('Erro ao selecionar plano:', error);
+                      // Não avança se houver erro ao criar fatura
+                    }
+                  }}
                 >
                   {tier.buttonText}
                 </Button>

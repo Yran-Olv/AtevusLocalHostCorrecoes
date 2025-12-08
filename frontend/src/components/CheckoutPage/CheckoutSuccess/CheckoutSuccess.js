@@ -10,27 +10,21 @@ import { AuthContext } from "../../../context/Auth/AuthContext";
 import { safeSocketOn, safeSocketOff, isSocketValid } from "../../../utils/socketHelper";
 
 function CheckoutSuccess(props) {
-
-  const { pix } = props;
-  
-  // Valida se pix e qrcode existem
-  if (!pix || !pix.qrcode || !pix.qrcode.qrcode) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <p>Erro: Dados do PIX não foram recebidos corretamente.</p>
-        <p>Por favor, tente novamente.</p>
-      </div>
-    );
-  }
-
-  const [pixString,] = useState(pix.qrcode.qrcode);
+  // IMPORTANTE: Hooks devem ser chamados ANTES de qualquer return condicional
+  const [pixString, setPixString] = useState(null);
   const [copied, setCopied] = useState(false);
   const history = useHistory();
-  //   const socketManager = useContext(SocketContext);
   const { user, socket } = useContext(AuthContext);
-
-
   const { dateToClient } = useDate();
+
+  const { pix } = props;
+
+  // Inicializa pixString quando pix estiver disponível
+  useEffect(() => {
+    if (pix && pix.qrcode && pix.qrcode.qrcode) {
+      setPixString(pix.qrcode.qrcode);
+    }
+  }, [pix]);
 
   useEffect(() => {
     const companyId = user.companyId;
@@ -53,7 +47,7 @@ function CheckoutSuccess(props) {
         safeSocketOff(socket, `company-${companyId}-payment`, onCompanyPayment);
       }
     }
-  }, [socket, user.companyId, history, dateToClient]);
+  }, [socket, user?.companyId, history, dateToClient]);
 
   const handleCopyQR = () => {
     setTimeout(() => {
@@ -61,6 +55,16 @@ function CheckoutSuccess(props) {
     }, 1 * 1000);
     setCopied(true);
   };
+
+  // Valida se pix e qrcode existem - DEPOIS de todos os hooks
+  if (!pix || !pix.qrcode || !pix.qrcode.qrcode || !pixString) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <p>Erro: Dados do PIX não foram recebidos corretamente.</p>
+        <p>Por favor, tente novamente.</p>
+      </div>
+    );
+  }
 
   return (
     <React.Fragment>

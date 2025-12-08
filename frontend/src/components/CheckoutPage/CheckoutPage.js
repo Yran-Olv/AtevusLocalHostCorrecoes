@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useCallback } from "react";
 import {
   Stepper,
   Step,
@@ -36,6 +36,60 @@ export default function CheckoutPage(props) {
   // Adicionando console.log para verificar o user
   console.log("Dados do usuário:", user);
 
+  // Função para criar fatura automaticamente
+  const createInvoice = useCallback(async (planData) => {
+    try {
+      // Se já existe invoiceId, não cria novamente
+      if (invoiceId) {
+        return invoiceId;
+      }
+
+      if (!user?.companyId) {
+        throw new Error("Empresa não encontrada");
+      }
+
+      // Calcula data de vencimento (30 dias a partir de hoje)
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
+      const dueDateString = dueDate.toISOString().split("T")[0];
+
+      const invoiceData = {
+        companyId: user.companyId,
+        dueDate: dueDateString,
+        detail: `Assinatura - ${planData.title || "Plano"}`,
+        status: "pending",
+        value: planData.price || planData.amount || 0,
+        users: planData.users || 0,
+        connections: planData.connections || 0,
+        queues: planData.queues || 0,
+        useWhatsapp: true,
+        useFacebook: false,
+        useInstagram: false,
+        useCampaigns: false,
+        useSchedules: false,
+        useInternalChat: false,
+        useExternalApi: false,
+        linkInvoice: ""
+      };
+
+      console.log('Criando fatura:', invoiceData);
+
+      const { data } = await api.post("/api/invoices", invoiceData);
+      
+      if (data && data.id) {
+        setInvoiceId(data.id);
+        console.log('Fatura criada com sucesso. ID:', data.id);
+        return data.id;
+      } else {
+        throw new Error("Fatura criada mas ID não retornado");
+      }
+    } catch (error) {
+      console.error('Erro ao criar fatura:', error);
+      toast.error("Erro ao criar fatura. Por favor, tente novamente.");
+      throw error;
+    }
+  }, [invoiceId, user?.companyId]);
+
   function _renderStepContent(step, setFieldValue, setActiveStep, values) {
     switch (step) {
       case 0:
@@ -49,6 +103,7 @@ export default function CheckoutPage(props) {
             activeStep={step}
             invoiceId={invoiceId}
             values={values}
+            onCreateInvoice={createInvoice}
           />
         );
       case 2:

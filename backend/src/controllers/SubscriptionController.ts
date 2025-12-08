@@ -3,7 +3,7 @@ import * as Yup from "yup";
 import Gerencianet from "gn-api-sdk-typescript";
 import AppError from "../errors/AppError";
 
-import options from "../config/Gn";
+import { getGerencianetOptions } from "../config/Gn";
 import Company from "../models/Company";
 import Invoices from "../models/Invoices";
 import { getIO } from "../libs/socket";
@@ -11,6 +11,7 @@ import UpdateUserService from "../services/UserServices/UpdateUserService";
 import Plan from "../models/Plan";
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
+  const options = await getGerencianetOptions();
   const gerencianet = new Gerencianet(options);
 
   return res.json(gerencianet.getSubscriptions());
@@ -20,7 +21,7 @@ export const createSubscription = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-
+  const options = await getGerencianetOptions();
   const gerencianet = new Gerencianet(options);
   const { companyId } = req.user;
 
@@ -54,7 +55,7 @@ export const createSubscription = async (
     throw new AppError("Plano não encontrado", 404);
   }
 
-  if (!plan.amount || plan.amount <= 0) {
+  if (!plan.amount || Number(plan.amount) <= 0) {
     throw new AppError("Valor do plano inválido", 400);
   }
 
@@ -185,6 +186,7 @@ export const createWebhook = async (
   };
 
   try {
+    const options = await getGerencianetOptions();
     const gerencianet = new Gerencianet(options);
 
     const create = await gerencianet.pixConfigWebhook(params, body);
@@ -224,6 +226,7 @@ export const deleteWebhook = async (
     chave
   };
 
+  const options = await getGerencianetOptions();
   const gerencianet = new Gerencianet(options);
 
   const deleteWebhook = await gerencianet.pixDeleteWebhook(params);
@@ -245,6 +248,7 @@ export const webhook = async (
   }
 
   if (req.body.pix) {
+    const options = await getGerencianetOptions();
     const gerencianet = new Gerencianet(options);
 
     req.body.pix.forEach(async (pix: any) => {
@@ -302,14 +306,11 @@ export const webhook = async (
             }
           });
 
-          io.of(String(companyId))
-  .emit(`company-${companyId}-payment`, {
+          io.of(String(companyId)).emit(`company-${companyId}-payment`, {
             action: detalhe.status,
             company: companyUpdate
           });
         }
-
-      }
     });
   }
 
