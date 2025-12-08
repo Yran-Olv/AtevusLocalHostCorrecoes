@@ -135,15 +135,15 @@ npx sequelize db:migrate
 
 #### 4. Reiniciar PM2
 ```bash
-pm2 restart atevus-backend
+pm2 restart multivus-backend
 # Ou se necessário:
-sudo pm2 restart atevus-backend
+sudo pm2 restart multivus-backend
 ```
 
 #### 5. Verificar Status
 ```bash
 pm2 status
-pm2 logs atevus-backend
+pm2 logs multivus-backend
 ```
 
 #### ⚠️ Importante para Produção

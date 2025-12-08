@@ -11,7 +11,7 @@ import api from "../../services/api";
 
 import './ticketCustom.css';
 import './whatsapp-theme.css';
-import atevusNoticket from '../../assets/atevusMacbook.png';
+import multivusNoticket from '../../assets/multivusMacbook.png';
 
 const defaultTicketsManagerWidth = 550;
 const minTicketsManagerWidth = 404;
@@ -100,7 +100,7 @@ const TicketsCustom = () => {
 						!isMobile && (
 							<div className="wa-welcome-screen">
 								<img 
-									src={atevusNoticket} 
+									src={multivusNoticket} 
 									alt="WhatsApp" 
 									className="wa-welcome-image"
 								/>

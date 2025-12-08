@@ -1,6 +1,6 @@
 module.exports = [{
   script: 'dist/server.js',
-  name: 'atevus-backend',
+  name: 'multivus-backend',
   exec_mode: 'fork',
   cron_restart: '0 10 * * 5',
   max_memory_restart: '6000M', // Configuração para reiniciar quando atingir 769 MB de memória

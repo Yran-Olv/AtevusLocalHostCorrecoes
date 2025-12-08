@@ -8,7 +8,7 @@ import TicketsManager from "../../components/TicketsManager";
 import Ticket from "../../components/Ticket";
 
 import './ticket.css';
-import atevusNoticket from '../../assets/atevusMacbook.png';
+import multivusNoticket from '../../assets/multivusMacbook.png';
 
 import { i18n } from "../../translate/i18n";
 import { ClassNames } from "@emotion/react";

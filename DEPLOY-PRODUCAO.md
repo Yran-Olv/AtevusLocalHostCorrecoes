@@ -50,7 +50,7 @@ ssh usuario@seu-servidor.com
 #### 2.2. Navegar para o Diretório do Projeto
 ```bash
 cd /caminho/para/seu/projeto
-# Exemplo: cd /var/www/atevus
+# Exemplo: cd /var/www/multivus
 ```
 
 #### 2.3. Atualizar Código do Repositório
@@ -108,10 +108,10 @@ cat .env
 #### 2.10. Reiniciar Aplicação com PM2
 ```bash
 # Parar aplicação atual
-pm2 stop atevus-backend
+pm2 stop multivus-backend
 
 # Reiniciar aplicação
-pm2 restart atevus-backend
+pm2 restart multivus-backend
 
 # Ou se for a primeira vez:
 pm2 start ecosystem.config.js
@@ -123,13 +123,13 @@ pm2 start ecosystem.config.js
 pm2 status
 
 # Ver logs em tempo real
-pm2 logs atevus-backend
+pm2 logs multivus-backend
 
 # Ver logs apenas de erros
-pm2 logs atevus-backend --err
+pm2 logs multivus-backend --err
 
 # Ver informações detalhadas
-pm2 describe atevus-backend
+pm2 describe multivus-backend
 ```
 
 ---
@@ -142,7 +142,7 @@ pm2 describe atevus-backend
 curl http://localhost:PORT/api/version
 
 # Verificar logs
-pm2 logs atevus-backend --lines 50
+pm2 logs multivus-backend --lines 50
 ```
 
 ### 2. Verificar Frontend
@@ -256,7 +256,7 @@ psql -U usuario -d nome_banco < backup.sql
 
 ### 4. Reiniciar PM2
 ```bash
-pm2 restart atevus-backend
+pm2 restart multivus-backend
 ```
 
 ---
@@ -272,10 +272,10 @@ pm2 status
 pm2 monit
 
 # Informações de memória/CPU
-pm2 describe atevus-backend
+pm2 describe multivus-backend
 
 # Reiniciar com zero downtime
-pm2 reload atevus-backend
+pm2 reload multivus-backend
 
 # Salvar configuração atual
 pm2 save
@@ -287,13 +287,13 @@ pm2 startup
 ### Logs
 ```bash
 # Ver logs em tempo real
-pm2 logs atevus-backend
+pm2 logs multivus-backend
 
 # Ver apenas erros
-pm2 logs atevus-backend --err
+pm2 logs multivus-backend --err
 
 # Ver últimas 100 linhas
-pm2 logs atevus-backend --lines 100
+pm2 logs multivus-backend --lines 100
 
 # Limpar logs
 pm2 flush
