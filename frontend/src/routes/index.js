@@ -7,6 +7,7 @@ import Dashboard from "../pages/Dashboard";
 import TicketResponsiveContainer from "../pages/TicketResponsiveContainer";
 import Signup from "../pages/Signup";
 import Login from "../pages/Login";
+import ResetPassword from "../pages/ResetPassword";
 import Connections from "../pages/Connections";
 import SettingsCustom from "../pages/SettingsCustom";
 import Financeiro from "../pages/Financeiro";
@@ -64,6 +65,7 @@ const Routes = () => {
           <Switch>
             <Route exact path="/login" component={Login} />
             <Route exact path="/signup" component={Signup} />
+            <Route exact path="/reset-password" component={ResetPassword} />
             <WhatsAppsProvider>
               <LoggedInLayout>
                 <Route exact path="/financeiro" component={Financeiro} isPrivate />

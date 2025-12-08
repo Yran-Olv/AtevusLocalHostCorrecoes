@@ -1,9 +1,12 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { i18n } from "../../translate/i18n";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import ColorModeContext from "../../layout/themeContext";
+import TypingEffect from "../../components/TypingEffect";
+import api from "../../services/api";
+import { toast } from "react-toastify";
 import "./style.css";
 
 const Login = () => {
@@ -16,6 +19,62 @@ const Login = () => {
   const [focusedEmail, setFocusedEmail] = useState(false);
   const [focusedPassword, setFocusedPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginConfig, setLoginConfig] = useState(null);
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+
+  useEffect(() => {
+    loadLoginConfig();
+  }, []);
+
+  const loadLoginConfig = async () => {
+    try {
+      const { data } = await api.get("/login-config");
+      setLoginConfig(data);
+      
+      // Aplica CSS customizado se houver
+      if (data.customCss) {
+        const styleId = "login-custom-css";
+        let styleElement = document.getElementById(styleId);
+        if (!styleElement) {
+          styleElement = document.createElement("style");
+          styleElement.id = styleId;
+          document.head.appendChild(styleElement);
+        }
+        styleElement.textContent = data.customCss;
+      }
+
+      // Aplica cores do tema
+      if (data.primaryColor || data.secondaryColor) {
+        const root = document.documentElement;
+        if (data.primaryColor) {
+          root.style.setProperty("--primary", data.primaryColor);
+        }
+        if (data.secondaryColor) {
+          root.style.setProperty("--secondary", data.secondaryColor);
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao carregar configuração do login:", err);
+    }
+  };
+
+  const handleRecoveryRequest = async (e) => {
+    e.preventDefault();
+    if (!recoveryEmail) {
+      toast.error("Por favor, informe seu email");
+      return;
+    }
+
+    try {
+      await api.post("/auth/password-recovery", { email: recoveryEmail });
+      toast.success("Se o email existir, você receberá instruções para recuperar sua senha.");
+      setShowRecovery(false);
+      setRecoveryEmail("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Erro ao solicitar recuperação de senha");
+    }
+  };
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
@@ -53,22 +112,52 @@ const Login = () => {
         <link rel="icon" href={appLogoFavicon} />
       </Helmet>
       <div className="multivus-login">
-        <div className="multivus-background">
-          <div className="gradient-orb orb-1"></div>
-          <div className="gradient-orb orb-2"></div>
-          <div className="gradient-orb orb-3"></div>
-          <div className="grid-pattern"></div>
+        <div 
+          className="multivus-background"
+          style={loginConfig?.backgroundImageUrl ? {
+            backgroundImage: `url(${loginConfig.backgroundImageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          } : {}}
+        >
+          {!loginConfig?.backgroundImageUrl && (
+            <>
+              <div className="gradient-orb orb-1"></div>
+              <div className="gradient-orb orb-2"></div>
+              <div className="gradient-orb orb-3"></div>
+              <div className="grid-pattern"></div>
+            </>
+          )}
         </div>
 
         <div className="multivus-container">
           <div className="multivus-brand">
-            <div className="brand-logo">
-              <div className="logo-shape">
-                <span>M</span>
+            {loginConfig?.logoUrl ? (
+              <img src={loginConfig.logoUrl} alt="Logo" className="brand-logo-image" />
+            ) : (
+              <div className="brand-logo">
+                <div className="logo-shape">
+                  <span>M</span>
+                </div>
               </div>
-            </div>
-            <h1 className="brand-name">Multivus</h1>
-            <p className="brand-tagline">Sistema de Multiatendimento</p>
+            )}
+            <h1 className="brand-name">{loginConfig?.title || "Multivus"}</h1>
+            <p className="brand-tagline">
+              {loginConfig?.enableTypingEffect && loginConfig?.typingTexts?.length > 0 ? (
+                <TypingEffect 
+                  texts={loginConfig.typingTexts} 
+                  speed={100}
+                  deleteSpeed={50}
+                  pauseTime={2000}
+                />
+              ) : (
+                loginConfig?.subtitle || "Sistema de Multiatendimento"
+              )}
+            </p>
+            {loginConfig?.welcomeMessage && (
+              <p className="brand-welcome">{loginConfig.welcomeMessage}</p>
+            )}
           </div>
 
           <div className="multivus-card">
@@ -176,7 +265,53 @@ const Login = () => {
                   i18n.t("login.buttons.submit")
                 )}
               </button>
+
+              {loginConfig?.enablePasswordRecovery && (
+                <div className="recovery-link">
+                  <button
+                    type="button"
+                    onClick={() => setShowRecovery(true)}
+                    className="link-button"
+                  >
+                    Esqueceu sua senha?
+                  </button>
+                </div>
+              )}
             </form>
+
+            {showRecovery && loginConfig?.enablePasswordRecovery && (
+              <div className="recovery-modal">
+                <div className="recovery-content">
+                  <h3>Recuperar Senha</h3>
+                  <p>Digite seu email para receber instruções de recuperação:</p>
+                  <form onSubmit={handleRecoveryRequest}>
+                    <input
+                      type="email"
+                      value={recoveryEmail}
+                      onChange={(e) => setRecoveryEmail(e.target.value)}
+                      placeholder="Seu email"
+                      required
+                      className="recovery-input"
+                    />
+                    <div className="recovery-buttons">
+                      <button type="submit" className="recovery-submit">
+                        Enviar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowRecovery(false);
+                          setRecoveryEmail("");
+                        }}
+                        className="recovery-cancel"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="multivus-footer">

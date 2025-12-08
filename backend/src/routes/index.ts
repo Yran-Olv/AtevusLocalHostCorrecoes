@@ -38,6 +38,7 @@ import apiContactRoutes from "./api/apiContactRoutes";
 import apiMessageRoutes from "./api/apiMessageRoutes";
 import companySettingsRoutes from "./companySettingsRoutes";
 import gerencianetConfigRoutes from "./gerencianetConfigRoutes";
+import loginConfigRoutes from "./loginConfigRoutes";
 
 import promptRoutes from "./promptRouter";
 import statisticsRoutes from "./statisticsRoutes";
@@ -98,6 +99,7 @@ routes.use(promptRoutes);
 routes.use(statisticsRoutes);
 routes.use(companySettingsRoutes);
 routes.use(gerencianetConfigRoutes);
+routes.use(loginConfigRoutes);
 routes.use(scheduleMessageRoutes);
 
 export default routes;

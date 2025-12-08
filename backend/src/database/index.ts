@@ -53,6 +53,8 @@ import { FlowCampaignModel } from "../models/FlowCampaign";
 import { FlowImgModel } from "../models/FlowImg";
 import { WebhookModel } from "../models/Webhook";
 import GerencianetConfig from "../models/GerencianetConfig";
+import LoginConfig from "../models/LoginConfig";
+import PasswordRecoveryToken from "../models/PasswordRecoveryToken";
 
 // eslint-disable-next-line
 const dbConfig = require("../config/database");
@@ -113,7 +115,9 @@ const models = [
   FlowCampaignModel,
   FlowImgModel,
   WebhookModel,
-  GerencianetConfig
+  GerencianetConfig,
+  LoginConfig,
+  PasswordRecoveryToken
 ];
 
 sequelize.addModels(models);

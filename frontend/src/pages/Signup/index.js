@@ -8,6 +8,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import usePlans from '../../hooks/usePlans';
 import { i18n } from "../../translate/i18n";
 import { openApi } from "../../services/api";
+import api from "../../services/api";
 import toastError from "../../errors/toastError";
 import "../Login/style.css";
 
@@ -40,6 +41,7 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [isUnavailable, setIsUnavailable] = useState(false);
   const [focusedFields, setFocusedFields] = useState({});
+  const [loginConfig, setLoginConfig] = useState(null);
 
   let companyId = null;
   const params = qs.parse(window.location.search);
@@ -58,6 +60,7 @@ const SignUp = () => {
   };
 
   useEffect(() => {
+    loadLoginConfig();
     setLoading(true);
     const fetchData = async () => {
       try {
@@ -78,6 +81,38 @@ const SignUp = () => {
     fetchData();
   }, [getPlanList]);
 
+  const loadLoginConfig = async () => {
+    try {
+      const { data } = await api.get("/login-config");
+      setLoginConfig(data);
+      
+      // Aplica CSS customizado se houver
+      if (data.customCss) {
+        const styleId = "login-custom-css";
+        let styleElement = document.getElementById(styleId);
+        if (!styleElement) {
+          styleElement = document.createElement("style");
+          styleElement.id = styleId;
+          document.head.appendChild(styleElement);
+        }
+        styleElement.textContent = data.customCss;
+      }
+
+      // Aplica cores do tema
+      if (data.primaryColor || data.secondaryColor) {
+        const root = document.documentElement;
+        if (data.primaryColor) {
+          root.style.setProperty("--primary", data.primaryColor);
+        }
+        if (data.secondaryColor) {
+          root.style.setProperty("--secondary", data.secondaryColor);
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao carregar configuração do login:", err);
+    }
+  };
+
   const handleSignUp = async (values) => {
     try {
       await openApi.post("/auth/signup", values);
@@ -90,21 +125,37 @@ const SignUp = () => {
 
   return (
     <div className="multivus-login">
-      <div className="multivus-background">
-        <div className="gradient-orb orb-1"></div>
-        <div className="gradient-orb orb-2"></div>
-        <div className="gradient-orb orb-3"></div>
-        <div className="grid-pattern"></div>
+      <div 
+        className="multivus-background"
+        style={loginConfig?.backgroundImageUrl ? {
+          backgroundImage: `url(${loginConfig.backgroundImageUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        } : {}}
+      >
+        {!loginConfig?.backgroundImageUrl && (
+          <>
+            <div className="gradient-orb orb-1"></div>
+            <div className="gradient-orb orb-2"></div>
+            <div className="gradient-orb orb-3"></div>
+            <div className="grid-pattern"></div>
+          </>
+        )}
       </div>
 
       <div className="multivus-container">
         <div className="multivus-brand">
-          <div className="brand-logo">
-            <div className="logo-shape">
-              <span>M</span>
+          {loginConfig?.logoUrl ? (
+            <img src={loginConfig.logoUrl} alt="Logo" className="brand-logo-image" />
+          ) : (
+            <div className="brand-logo">
+              <div className="logo-shape">
+                <span>M</span>
+              </div>
             </div>
-          </div>
-          <h1 className="brand-name">Multivus</h1>
+          )}
+          <h1 className="brand-name">{loginConfig?.title || "Multivus"}</h1>
           <p className="brand-tagline">Crie sua conta</p>
         </div>
 
