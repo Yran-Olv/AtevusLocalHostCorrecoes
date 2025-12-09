@@ -13,6 +13,15 @@ Sistema SaaS completo para gerenciamento de atendimento via WhatsApp com múltip
 
 ### ✨ Novas Funcionalidades Implementadas
 
+confira em \frontend\server.js se está com a porta frontend correta 
+const PORT = process.env.PORT || 3001;
+
+
+nova forma de buildar frontend
+   cd frontend
+   npm install react-app-rewired --save-dev --legacy-peer-deps
+   npm run build
+
 #### 🎨 **Sistema de Configuração Completo via UI**
 - **Gerencianet (EfiBank)**: Configuração completa via `/settings` - chaves, secrets, webhook URL, chave PIX
 - **Tela de Login 100% Configurável**: Personalização completa da tela de login via `/settings` -> "Tela Login"

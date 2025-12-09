@@ -18,9 +18,9 @@
     "@mui/styles": "^5.14.0",
     "@mui/x-date-pickers": "^5.0.8",
     "@socket.io/admin-ui": "0.5.1",
-    "@testing-library/jest-dom": "^5.11.4",
-    "@testing-library/react": "^11.0.4",
-    "@testing-library/user-event": "^12.1.7",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.5.0",
     "axios": "^1.7.7",
     "bootstrap": "^5.2.3",
     "caniuse-lite": "^1.0.30001616",
@@ -91,12 +91,13 @@
     "zustand": "^4.4.1"
   },
   "scripts": {
-    "start": "react-app-rewired start",
-    "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 GENERATE_SOURCEMAP=false react-app-rewired build",
-    "build:fast": "cross-env NODE_OPTIONS=--max-old-space-size=4096 GENERATE_SOURCEMAP=false CI=true react-app-rewired build",
-    "builddev": "react-app-rewired build",
-    "test": "react-app-rewired test",
-    "eject": "react-scripts eject"
+    "start": "react-scripts start",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 GENERATE_SOURCEMAP=false react-scripts build",
+    "build:fast": "NODE_OPTIONS=--max-old-space-size=4096 GENERATE_SOURCEMAP=false CI=true react-scripts build",
+    "builddev": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "update-browserslist": "npx update-browserslist-db@latest"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -115,7 +116,6 @@
   },
   "devDependencies": {
     "typescript": "^5.5.3",
-    "@babel/plugin-proposal-private-property-in-object": "^7.20.5",
-    "react-app-rewired": "^2.2.1"
+    "@babel/plugin-proposal-private-property-in-object": "^7.20.5"
   }
 }
