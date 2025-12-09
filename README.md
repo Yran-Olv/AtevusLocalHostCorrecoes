@@ -366,4 +366,4 @@ Desenvolvido e mantido pela equipe Atevus Murilo e Multivus.
 
 ---
 
-**Última atualização**: Janeiro 2025
+**Última atualização**: Dezembro 2025
