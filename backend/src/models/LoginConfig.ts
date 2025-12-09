@@ -57,6 +57,9 @@ class LoginConfig extends Model<LoginConfig> {
   @Column(DataType.TEXT)
   welcomeMessage: string;
 
+  @Column(DataType.TEXT)
+  teamImages: string; // JSON array de URLs de imagens da equipe
+
   // Configurações de Email
   @Column
   mailHost: string;

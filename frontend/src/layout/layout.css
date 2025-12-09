@@ -1,25 +1,25 @@
-/* Variáveis CSS para Layout Moderno */
+/* Variáveis CSS para Layout Moderno - UNIFICADO */
 :root {
   --layout-drawer-width: 220px;
   --layout-drawer-collapsed-width: 64px;
   --layout-appbar-height: 56px;
-  --layout-bg: #f8f9fa;
-  --layout-sidebar-bg: linear-gradient(180deg, #1a1d29 0%, #252936 100%);
-  --layout-sidebar-bg-solid: #002ee8;
-  --layout-sidebar-text: #e4e6eb;
-  --layout-sidebar-text-active: #ffffff;
-  --layout-sidebar-hover: rgba(255, 255, 255, 0.08);
-  --layout-sidebar-active: rgba(6, 81, 131, 0.15);
-  --layout-appbar-bg: #0A639C; /*cor do appbar navbar de cima*/
-  --layout-appbar-text: #1a1a1a;
-  --layout-appbar-border: #e5e7eb;
-  --layout-border: #e5e7eb; /*cor da borda do menu lateral*/
-  --layout-shadow: rgba(225, 8, 8, 0.08);
-  --layout-shadow-lg: rgba(0, 0, 0, 0.12);
-  --layout-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --layout-primary: #02080d; /*cor do texto do navbar nome do usuario e empresa*/
-  --layout-primary-light: #0b6ba8; /*perfil do usuario*/
-  --layout-primary-hover: #d3d3d3;
+  --layout-bg: var(--bg-secondary);
+  --layout-sidebar-bg: var(--bg-sidebar);
+  --layout-sidebar-bg-solid: var(--bg-sidebar);
+  --layout-sidebar-text: var(--text-on-sidebar);
+  --layout-sidebar-text-active: var(--text-inverse);
+  --layout-sidebar-hover: var(--bg-hover);
+  --layout-sidebar-active: var(--bg-active);
+  --layout-appbar-bg: var(--bg-navbar);
+  --layout-appbar-text: var(--text-on-navbar);
+  --layout-appbar-border: var(--border-color);
+  --layout-border: var(--border-color);
+  --layout-shadow: var(--shadow-sm);
+  --layout-shadow-lg: var(--shadow-lg);
+  --layout-transition: var(--transition-base);
+  --layout-primary: var(--text-primary);
+  --layout-primary-light: var(--color-primary-light);
+  --layout-primary-hover: var(--bg-hover);
 }
 
 /* Layout Root */
@@ -40,6 +40,8 @@
   height: 100vh;
   height: 100dvh;
   width: var(--layout-drawer-width);
+  min-width: var(--layout-drawer-width);
+  max-width: var(--layout-drawer-width);
   background: var(--layout-sidebar-bg);
   background-color: var(--layout-sidebar-bg-solid);
   color: var(--layout-sidebar-text);
@@ -54,8 +56,14 @@
 
 .layout-drawer.collapsed {
   width: var(--layout-drawer-collapsed-width);
+  min-width: var(--layout-drawer-collapsed-width);
+  max-width: var(--layout-drawer-collapsed-width);
   position: fixed;
   z-index: 1000;
+}
+
+.layout-drawer.collapsed .layout-drawer-content {
+  overflow: visible;
 }
 
 @media (max-width: 768px) {
@@ -107,18 +115,74 @@
   padding: 1rem 0.5rem;
 }
 
-.layout-drawer-logo {
-  height: 36px;
-  width: auto;
-  max-width: 180px;
-  object-fit: contain;
+.layout-drawer-logo-text {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-on-sidebar);
   transition: opacity 0.3s ease;
+  white-space: nowrap;
 }
 
-.layout-drawer.collapsed .layout-drawer-logo {
+.layout-drawer-logo-text .logo-m {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  color: var(--text-inverse);
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 8px rgba(18, 140, 126, 0.3);
+}
+
+.layout-drawer-logo-text .logo-text {
+  color: var(--text-on-sidebar);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.layout-drawer.collapsed .layout-drawer-logo-text {
   opacity: 0;
   width: 0;
   overflow: hidden;
+}
+
+/* Responsividade do Logo */
+@media (max-width: 768px) {
+  .layout-drawer-logo-text {
+    font-size: 1.25rem;
+  }
+
+  .layout-drawer-logo-text .logo-m {
+    width: 32px;
+    height: 32px;
+    font-size: 1.125rem;
+  }
+
+  .layout-drawer-logo-text .logo-text {
+    font-size: 1.125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .layout-drawer-logo-text {
+    font-size: 1.125rem;
+  }
+
+  .layout-drawer-logo-text .logo-m {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+
+  .layout-drawer-logo-text .logo-text {
+    font-size: 1rem;
+  }
 }
 
 .layout-drawer-toggle {
@@ -219,11 +283,6 @@
   transition: var(--layout-transition);
 }
 
-.layout-root:has(.layout-drawer.collapsed) .layout-appbar.shifted {
-  left: var(--layout-drawer-collapsed-width) !important;
-  width: calc(100% - var(--layout-drawer-collapsed-width)) !important;
-}
-
 .layout-appbar-toolbar {
   display: flex;
   align-items: center;
@@ -302,7 +361,7 @@
 .layout-appbar-title b {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--layout-primary);
+  color: var(--layout-appbar-text);
 }
 
 .layout-appbar-warning {
@@ -446,14 +505,15 @@
   position: absolute;
   top: calc(100% + 0.75rem);
   right: 0;
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-lg);
   min-width: 260px;
   z-index: 1100;
   overflow: hidden;
   animation: slideDown 0.2s ease-out;
   border: 1px solid var(--layout-border);
+  color: var(--text-primary);
 }
 
 @keyframes slideDown {
@@ -472,9 +532,10 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem;
-  background: var(--layout-profile-dropdown-header, linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%));
+  background: var(--bg-card);
   border-bottom: 1px solid var(--layout-border);
   cursor: default;
+  color: var(--text-primary);
 }
 
 .layout-profile-dropdown-avatar {
@@ -528,7 +589,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1.25rem;
-  color: #4b5563;
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
@@ -541,8 +602,8 @@
 }
 
 .layout-profile-dropdown-item:hover {
-  background: #f3f4f6;
-  color: var(--layout-primary);
+  background: var(--bg-hover);
+  color: var(--color-primary);
   padding-left: 1.5rem;
 }
 
@@ -552,7 +613,7 @@
 
 .layout-profile-dropdown-item-icon {
   font-size: 1.25rem;
-  color: #757575;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -587,7 +648,13 @@
   transition: var(--layout-transition);
 }
 
-.layout-root:has(.layout-drawer.collapsed) .layout-main.shifted {
+/* Quando drawer está colapsado (permanent) */
+.layout-appbar.shifted.collapsed {
+  left: var(--layout-drawer-collapsed-width) !important;
+  width: calc(100% - var(--layout-drawer-collapsed-width)) !important;
+}
+
+.layout-main.shifted.collapsed {
   margin-left: var(--layout-drawer-collapsed-width) !important;
   width: calc(100% - var(--layout-drawer-collapsed-width)) !important;
 }
@@ -968,33 +1035,33 @@
   }
 }
 
-/* Dark Mode Support */
+/* Dark Mode Support - Usa variáveis globais */
 [data-theme="dark"] {
-  --layout-bg: #0f1117;
-  --layout-appbar-bg: #1a1d29;
-  --layout-appbar-text: #e4e6eb;
-  --layout-appbar-border: rgba(255, 255, 255, 0.1);
-  --layout-border: rgba(255, 255, 255, 0.1);
-  --layout-sidebar-bg: linear-gradient(180deg, #0f1117 0%, #1a1d29 100%);
-  --layout-sidebar-bg-solid: #0f1117;
-  --layout-sidebar-text: #9ca3af;
-  --layout-sidebar-text-active: #ffffff;
-  --layout-sidebar-hover: rgba(255, 255, 255, 0.1);
-  --layout-profile-dropdown-header: linear-gradient(135deg, #1a1d29 0%, #252936 100%);
+  --layout-bg: var(--bg-secondary);
+  --layout-appbar-bg: var(--bg-navbar);
+  --layout-appbar-text: var(--text-on-navbar);
+  --layout-appbar-border: var(--border-color);
+  --layout-border: var(--border-color);
+  --layout-sidebar-bg: var(--bg-sidebar);
+  --layout-sidebar-bg-solid: var(--bg-sidebar);
+  --layout-sidebar-text: var(--text-on-sidebar);
+  --layout-sidebar-text-active: var(--text-inverse);
+  --layout-sidebar-hover: var(--bg-hover);
+  --layout-profile-dropdown-header: var(--bg-card);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --layout-bg: #0f1117;
-    --layout-appbar-bg: #1a1d29;
-    --layout-appbar-text: #e4e6eb;
-    --layout-appbar-border: rgba(255, 255, 255, 0.1);
-    --layout-border: rgba(255, 255, 255, 0.1);
-    --layout-sidebar-bg: linear-gradient(180deg, #0f1117 0%, #1a1d29 100%);
-    --layout-sidebar-bg-solid: #0f1117;
-    --layout-sidebar-text: #9ca3af;
-    --layout-sidebar-text-active: #ffffff;
-    --layout-sidebar-hover: rgba(255, 255, 255, 0.1);
+    --layout-bg: var(--bg-secondary);
+    --layout-appbar-bg: var(--bg-navbar);
+    --layout-appbar-text: var(--text-on-navbar);
+    --layout-appbar-border: var(--border-color);
+    --layout-border: var(--border-color);
+    --layout-sidebar-bg: var(--bg-sidebar);
+    --layout-sidebar-bg-solid: var(--bg-sidebar);
+    --layout-sidebar-text: var(--text-on-sidebar);
+    --layout-sidebar-text-active: var(--text-inverse);
+    --layout-sidebar-hover: var(--bg-hover);
   }
 }
 

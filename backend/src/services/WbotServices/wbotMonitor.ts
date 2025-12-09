@@ -148,8 +148,18 @@ const wbotMonitor = async (
 
         const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
         if (!fs.existsSync(path.join(publicFolder, `company${companyId}`))) {
-          fs.mkdirSync(path.join(publicFolder, `company${companyId}`), { recursive: true })
-          fs.chmodSync(path.join(publicFolder, `company${companyId}`), 0o777)
+          const companyFolder = path.join(publicFolder, `company${companyId}`);
+          fs.mkdirSync(companyFolder, { recursive: true });
+          // Em produção, usar permissões mais restritivas (0o755)
+          try {
+            const permissions = process.env.NODE_ENV === 'production' ? 0o755 : 0o777;
+            fs.chmodSync(companyFolder, permissions);
+          } catch (chmodError) {
+            // Ignorar erro de chmod no Windows
+            if (process.platform !== 'win32') {
+              console.warn('Erro ao definir permissões:', chmodError);
+            }
+          }
         }
         const contatcJson = path.join(publicFolder, `company${companyId}`, "contactJson.txt");
         if (fs.existsSync(contatcJson)) {

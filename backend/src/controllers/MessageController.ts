@@ -148,7 +148,8 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
           }
 
           //limpar arquivo nao utilizado mais após envio
-          const filePath = path.resolve("public", `company${companyId}`, media.filename);
+          const { getPublicFilePath } = require("../../utils/pathHelper");
+          const filePath = getPublicFilePath(`company${companyId}/${media.filename}`);
           const fileExists = fs.existsSync(filePath);
 
           if (fileExists && isPrivate === "false") {

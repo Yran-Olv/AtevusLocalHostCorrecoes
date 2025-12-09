@@ -136,30 +136,77 @@ const SignUp = () => {
       >
         {!loginConfig?.backgroundImageUrl && (
           <>
-            <div className="gradient-orb orb-1"></div>
-            <div className="gradient-orb orb-2"></div>
-            <div className="gradient-orb orb-3"></div>
-            <div className="grid-pattern"></div>
+            <div className="whatsapp-pattern"></div>
+            <div className="gradient-overlay"></div>
           </>
         )}
       </div>
 
       <div className="multivus-container">
-        <div className="multivus-brand">
+        {/* Seção Esquerda - Branding Empresarial */}
+        <div className="multivus-brand-section">
           {loginConfig?.logoUrl ? (
             <img src={loginConfig.logoUrl} alt="Logo" className="brand-logo-image" />
           ) : (
             <div className="brand-logo">
               <div className="logo-shape">
-                <span>M</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                </svg>
               </div>
             </div>
           )}
           <h1 className="brand-name">{loginConfig?.title || "Multivus"}</h1>
-          <p className="brand-tagline">Crie sua conta</p>
+          <p className="brand-subtitle">
+            {loginConfig?.subtitle || "Sistema de Atendimento WhatsApp"}
+          </p>
+          <div className="brand-features">
+            <div className="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <span>Múltiplos Atendentes</span>
+            </div>
+            <div className="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+              </svg>
+              <span>Atendimento Organizado</span>
+            </div>
+            <div className="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+              <span>Respostas Rápidas</span>
+            </div>
+          </div>
+          {loginConfig?.welcomeMessage && (
+            <p className="brand-welcome">{loginConfig.welcomeMessage}</p>
+          )}
         </div>
 
-        <div className="multivus-card">
+        {/* Seção Direita - Formulário */}
+        <div className="multivus-form-section">
+          {/* Header Mobile */}
+          <div className="mobile-header">
+            <div className="mobile-logo">
+              {loginConfig?.logoUrl ? (
+                <img src={loginConfig.logoUrl} alt="Logo" />
+              ) : (
+                <div className="mobile-logo-shape">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                </div>
+              )}
+            </div>
+            <h2 className="mobile-title">{loginConfig?.title || "Multivus"}</h2>
+          </div>
+
+          <div className="multivus-card">
           <div className="card-header">
             <RouterLink to="/login" className="tab-button">
               Entrar
@@ -186,6 +233,11 @@ const SignUp = () => {
           >
             {({ touched, errors, isSubmitting, values, setFieldValue }) => (
               <Form className="multivus-form">
+                <div className="form-title">
+                  <h2>Crie sua conta</h2>
+                  <p>Preencha os dados abaixo para começar a usar o sistema</p>
+                </div>
+
                 <div className={`input-wrapper ${focusedFields.companyName || (touched.companyName && !errors.companyName) ? 'focused' : ''} ${values.companyName ? 'has-value' : ''}`}>
                   <div className="input-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -348,12 +400,13 @@ const SignUp = () => {
               </Form>
             )}
           </Formik>
-        </div>
+          </div>
 
-        <div className="multivus-footer">
-          <p>
-            © {new Date().getFullYear()} Multivus. Todos os direitos reservados.
-          </p>
+          <div className="multivus-footer">
+            <p>
+              © {new Date().getFullYear()} {loginConfig?.title || "Multivus"}. Todos os direitos reservados.
+            </p>
+          </div>
         </div>
       </div>
     </div>

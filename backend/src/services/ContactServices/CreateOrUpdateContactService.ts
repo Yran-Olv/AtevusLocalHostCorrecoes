@@ -45,7 +45,16 @@ const downloadProfileImage = async ({
 
   if (!fs.existsSync(folder)) {
     fs.mkdirSync(folder, { recursive: true });
-    fs.chmodSync(folder, 0o777);
+    // Em produção, usar permissões mais restritivas (0o755)
+    try {
+      const permissions = process.env.NODE_ENV === 'production' ? 0o755 : 0o777;
+      fs.chmodSync(folder, permissions);
+    } catch (chmodError) {
+      // Ignorar erro de chmod no Windows
+      if (process.platform !== 'win32') {
+        console.warn('Erro ao definir permissões:', chmodError);
+      }
+    }
   }
 
   if (profilePicUrl.includes("nopicture.png")) {

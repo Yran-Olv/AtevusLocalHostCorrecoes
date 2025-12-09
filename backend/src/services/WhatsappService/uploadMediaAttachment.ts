@@ -33,7 +33,8 @@ export const deleteMedia = async (
   
     try {
       const whatsapp = await Whatsapp.findByPk(whatsappId);
-      const filePath = path.resolve("public", whatsapp.greetingMediaAttachment);
+      const { getPublicFilePath } = require("../../utils/pathHelper");
+      const filePath = getPublicFilePath(whatsapp.greetingMediaAttachment);
       const fileExists = fs.existsSync(filePath);
       if (fileExists) {
         fs.unlinkSync(filePath);

@@ -31,6 +31,7 @@ interface SerializedUser {
 interface Request {
   email: string;
   password: string;
+  disconnectOtherSessions?: boolean;
 }
 
 interface Response {
@@ -41,7 +42,8 @@ interface Response {
 
 const AuthUserService = async ({
   email,
-  password
+  password,
+  disconnectOtherSessions
 }: Request): Promise<Response> => {
   const user = await User.findOne({
     where: { email },
@@ -87,6 +89,13 @@ const AuthUserService = async ({
   // if (!(await user.checkPassword(password))) {
   //   throw new AppError("ERR_INVALID_CREDENTIALS", 401);
   // }
+
+  // Se disconnectOtherSessions for true, incrementa tokenVersion para invalidar outras sessões
+  // Se for false ou undefined, mantém o tokenVersion atual permitindo múltiplas sessões
+  if (disconnectOtherSessions === true) {
+    await user.update({ tokenVersion: (user.tokenVersion || 0) + 1 });
+    await user.reload();
+  }
 
   const token = createAccessToken(user);
   const refreshToken = createRefreshToken(user);

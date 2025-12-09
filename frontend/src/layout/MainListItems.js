@@ -182,8 +182,14 @@ const MainListItems = ({ collapsed, drawerClose }) => {
 
   useEffect(() => {
     async function checkHelps() {
-      const helps = await list();
-      setHasHelps(helps.length > 0);
+      try {
+        const helps = await list();
+        setHasHelps(helps && helps.length > 0);
+      } catch (error) {
+        // Se der erro de rede ou 404, simplesmente não mostra o menu de ajuda
+        console.warn("Erro ao carregar helps:", error);
+        setHasHelps(false);
+      }
     }
     checkHelps();
   }, [list]);

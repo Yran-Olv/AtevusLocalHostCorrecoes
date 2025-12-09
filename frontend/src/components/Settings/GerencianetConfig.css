@@ -1,0 +1,104 @@
+.gerencianet-config-form {
+  width: 100%;
+  max-width: 100%;
+}
+
+.config-header {
+  margin-bottom: 2rem;
+}
+
+.config-header h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem 0;
+}
+
+.config-description {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.config-item-full {
+  grid-column: 1 / -1;
+}
+
+.switch-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.config-helper {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Dark mode - Usa variáveis globais */
+[data-theme="dark"] .config-header h2,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .config-header h2 {
+    color: var(--text-primary);
+  }
+
+  :root:not([data-theme="light"]) .config-description {
+    color: var(--text-secondary);
+  }
+
+  :root:not([data-theme="light"]) .config-helper {
+    color: var(--text-secondary);
+  }
+}
+
+/* Responsive - Tablets */
+@media (max-width: 1024px) {
+  .config-grid {
+    gap: 1.25rem;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .config-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .config-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .config-description {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .config-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .config-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .config-grid {
+    gap: 0.875rem;
+  }
+}
+

@@ -102,14 +102,17 @@ export const updateOne = async (
 };
 
 export const publicShow = async (req: Request, res: Response): Promise<Response> => {
-  console.log("|=============== publicShow  ==============|")
-  
   const { settingKey: key } = req.params;
   
-  const settingValue = await GetPublicSettingService({ key });
-
-
-  return res.status(200).json(settingValue);
+  try {
+    const settingValue = await GetPublicSettingService({ key });
+    
+    // Retornar null se não encontrado (em vez de erro)
+    return res.status(200).json(settingValue || null);
+  } catch (error) {
+    // Em caso de erro, retornar null silenciosamente
+    return res.status(200).json(null);
+  }
 };
 
 export const storeLogo = async (req: Request, res: Response): Promise<Response> => {

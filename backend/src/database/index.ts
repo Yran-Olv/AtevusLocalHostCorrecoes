@@ -55,6 +55,7 @@ import { WebhookModel } from "../models/Webhook";
 import GerencianetConfig from "../models/GerencianetConfig";
 import LoginConfig from "../models/LoginConfig";
 import PasswordRecoveryToken from "../models/PasswordRecoveryToken";
+import WhitelabelConfig from "../models/WhitelabelConfig";
 
 // eslint-disable-next-line
 const dbConfig = require("../config/database");
@@ -117,7 +118,8 @@ const models = [
   WebhookModel,
   GerencianetConfig,
   LoginConfig,
-  PasswordRecoveryToken
+  PasswordRecoveryToken,
+  WhitelabelConfig
 ];
 
 sequelize.addModels(models);

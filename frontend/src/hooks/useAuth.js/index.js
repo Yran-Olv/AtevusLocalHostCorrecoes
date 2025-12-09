@@ -39,15 +39,38 @@ const useAuth = () => {
     },
     async (error) => {
       const originalRequest = error.config;
+      
+      // Tratar conflito de sessão (409)
+      if (error?.response?.status === 409 && error?.response?.data?.error === "ERR_SESSION_CONFLICT") {
+        // Dispara evento customizado para o App.js tratar
+        window.dispatchEvent(new CustomEvent('session-conflict', {
+          detail: { originalRequest }
+        }));
+        return Promise.reject(error);
+      }
+      
       if (error?.response?.status === 403 && !originalRequest._retry) {
         originalRequest._retry = true;
 
-        const { data } = await api.post("/auth/refresh_token");
-        if (data) {
-          localStorage.setItem("token", JSON.stringify(data.token));
-          api.defaults.headers.Authorization = `Bearer ${data.token}`;
+        try {
+          const { data } = await api.post("/auth/refresh_token", {}, {
+            withCredentials: true
+          });
+          if (data) {
+            localStorage.setItem("token", JSON.stringify(data.token));
+            api.defaults.headers.Authorization = `Bearer ${data.token}`;
+          }
+          return api(originalRequest);
+        } catch (refreshError) {
+          // Se o refresh token também retornar 409, trata como conflito de sessão
+          if (refreshError?.response?.status === 409) {
+            window.dispatchEvent(new CustomEvent('session-conflict', {
+              detail: { originalRequest }
+            }));
+            return Promise.reject(refreshError);
+          }
+          throw refreshError;
         }
-        return api(originalRequest);
       }
       if (error?.response?.status === 401) {
         localStorage.removeItem("token");

@@ -24,7 +24,8 @@ interface Response {
 
 export const RefreshTokenService = async (
   res: Res,
-  token: string
+  token: string,
+  allowMultipleSessions: boolean = false
 ): Promise<Response> => {
   try {
     const decoded = verify(token, authConfig.refreshSecret);
@@ -32,16 +33,30 @@ export const RefreshTokenService = async (
 
     const user = await ShowUserService(id, companyId);
 
+    // Se tokenVersion não corresponde e não permite múltiplas sessões, lança erro
     if (user.tokenVersion !== tokenVersion) {
-      res.clearCookie("jrt");
-      throw new AppError("ERR_SESSION_EXPIRED", 401);
+      if (allowMultipleSessions) {
+        // Permite múltiplas sessões: atualiza o tokenVersion do token para corresponder ao atual do usuário
+        // Isso permite que esta sessão continue funcionando
+        const newToken = createAccessToken(user);
+        const refreshToken = createRefreshToken(user);
+        return { user, newToken, refreshToken };
+      } else {
+        // Retorna erro especial para indicar conflito de sessão
+        res.clearCookie("jrt");
+        throw new AppError("ERR_SESSION_CONFLICT", 409);
+      }
     }
 
     const newToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user);
 
     return { user, newToken, refreshToken };
-  } catch (err) {
+  } catch (err: any) {
+    // Se for erro de conflito de sessão, propaga
+    if (err.message === "ERR_SESSION_CONFLICT") {
+      throw err;
+    }
     res.clearCookie("jrt");
     throw new AppError("ERR_SESSION_EXPIRED", 401);
   }

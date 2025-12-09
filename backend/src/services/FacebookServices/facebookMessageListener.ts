@@ -2,7 +2,7 @@ import { writeFileSync } from "fs";
 import fs from "fs";
 import axios from "axios";
 import moment from "moment";
-import { join } from "path";
+import path from "path";
 import Contact from "../../models/Contact";
 import Ticket from "../../models/Ticket";
 import CreateOrUpdateContactService from "../ContactServices/CreateOrUpdateContactService";
@@ -150,14 +150,19 @@ export const verifyMessageMedia = async (
 
   const fileName = `${new Date().getTime()}.${type.ext}`;
 
-  const folder = `public/company${ticket.companyId}`;
+  const { getPublicFolder } = require("../../utils/pathHelper");
+  const publicFolder = getPublicFolder();
+  const folder = path.join(publicFolder, `company${ticket.companyId}`);
+  
   if (!fs.existsSync(folder)) {
-    fs.mkdirSync(folder);
-    fs.chmodSync(folder, 0o777)
+    fs.mkdirSync(folder, { recursive: true });
+    // Em produção, usar permissões mais restritivas (0o755)
+    const permissions = process.env.NODE_ENV === 'production' ? 0o755 : 0o777;
+    fs.chmodSync(folder, permissions);
   }
 
   writeFileSync(
-    join(__dirname, "..", "..", "..", folder, fileName),
+    path.join(folder, fileName),
     data,
     "base64"
   );

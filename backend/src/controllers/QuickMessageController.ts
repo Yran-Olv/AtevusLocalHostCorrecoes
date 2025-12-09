@@ -189,7 +189,8 @@ export const deleteMedia = async (
 
   try {
     const quickmessage = await QuickMessage.findByPk(id);
-    const filePath = path.resolve("public", `company${companyId}`,"quickMessage",quickmessage.mediaName);
+    const { getPublicFilePath } = require("../../utils/pathHelper");
+    const filePath = getPublicFilePath(`company${companyId}/quickMessage/${quickmessage.mediaName}`);
     const fileExists = fs.existsSync(filePath);
     if (fileExists) {
       fs.unlinkSync(filePath);

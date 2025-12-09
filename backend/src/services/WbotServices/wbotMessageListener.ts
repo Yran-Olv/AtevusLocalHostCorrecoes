@@ -1046,8 +1046,17 @@ export const verifyMediaMessage = async (
 
       // const folder = `public/company${companyId}`; // Correção adicionada por Altemir 16-08-2023
       if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder, { recursive: true }); // Correção adicionada por Altemir 16-08-2023
-        fs.chmodSync(folder, 0o777)
+        fs.mkdirSync(folder, { recursive: true });
+        // Em produção, usar permissões mais restritivas (0o755)
+        try {
+          const permissions = process.env.NODE_ENV === 'production' ? 0o755 : 0o777;
+          fs.chmodSync(folder, permissions);
+        } catch (chmodError) {
+          // Ignorar erro de chmod no Windows
+          if (process.platform !== 'win32') {
+            console.warn('Erro ao definir permissões:', chmodError);
+          }
+        }
       }
 
       await writeFileAsync(join(folder, media.filename), media.data.toString('base64'), "base64") // Correção adicionada por Altemir 16-08-2023
@@ -1560,7 +1569,8 @@ const verifyQueue = async (
       const body = formatBody(`${greetingMessage}`, ticket);
 
       if (ticket.whatsapp.greetingMediaAttachment !== null) {
-        const filePath = path.resolve("public", `company${companyId}`, ticket.whatsapp.greetingMediaAttachment);
+        const { getPublicFilePath } = require("../../utils/pathHelper");
+        const filePath = getPublicFilePath(`company${companyId}/${ticket.whatsapp.greetingMediaAttachment}`);
 
         const fileExists = fs.existsSync(filePath);
 
@@ -2102,7 +2112,8 @@ const verifyQueue = async (
 
         console.log("log... 1799")
 
-        const filePath = path.resolve("public", `company${companyId}`, ticket.whatsapp.greetingMediaAttachment);
+        const { getPublicFilePath } = require("../../utils/pathHelper");
+        const filePath = getPublicFilePath(`company${companyId}/${ticket.whatsapp.greetingMediaAttachment}`);
 
         const fileExists = fs.existsSync(filePath);
         // console.log(fileExists);

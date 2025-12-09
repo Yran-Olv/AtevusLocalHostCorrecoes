@@ -174,7 +174,8 @@ async function handleSendScheduledMessage(job) {
 
     let filePath = null;
     if (schedule.mediaPath) {
-      filePath = path.resolve("public", `company${schedule.companyId}`, schedule.mediaPath);
+      const { getPublicFilePath } = require("./utils/pathHelper");
+      filePath = getPublicFilePath(`company${schedule.companyId}/${schedule.mediaPath}`);
     }
 
     if (schedule.openTicket === "enabled") {

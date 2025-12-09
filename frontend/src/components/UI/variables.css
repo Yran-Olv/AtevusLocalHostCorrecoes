@@ -1,0 +1,60 @@
+:root {
+  /* Colors - Usa variáveis globais */
+  --primary-color: var(--color-primary);
+  --primary-hover: var(--color-primary-dark);
+  --secondary-color: var(--color-secondary);
+  --secondary-hover: var(--color-secondary-dark);
+  --error-color: var(--color-error);
+  
+  /* Text Colors - Usa variáveis globais */
+  --text-primary: var(--text-primary);
+  --text-secondary: var(--text-secondary);
+  --text-placeholder: var(--text-placeholder);
+  
+  /* Background Colors - Usa variáveis globais */
+  --bg-primary: var(--bg-primary);
+  --bg-secondary: var(--bg-secondary);
+  --bg-input: var(--bg-input);
+  --bg-disabled: var(--bg-disabled);
+  
+  /* Border Colors - Usa variáveis globais */
+  --border-color: var(--border-color);
+  
+  /* Switch */
+  --switch-bg-off: var(--border-color-dark);
+  
+  /* Chip */
+  --chip-bg: var(--bg-tertiary);
+  --chip-text: var(--text-primary);
+  
+  /* Scrollbar */
+  --scrollbar-thumb: var(--color-primary);
+  --scrollbar-track: transparent;
+}
+
+/* Dark mode - Usa variáveis globais */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary-color: var(--color-primary-light);
+    --primary-hover: var(--color-secondary-dark);
+    --secondary-color: var(--color-primary);
+    --secondary-hover: var(--color-primary-dark);
+    
+    --text-primary-dark: var(--text-primary);
+    --text-secondary-dark: var(--text-secondary);
+    --text-placeholder-dark: var(--text-placeholder);
+    
+    --bg-primary-dark: var(--bg-primary);
+    --bg-secondary-dark: var(--bg-secondary);
+    --bg-input-dark: var(--bg-input);
+    --bg-disabled-dark: var(--bg-disabled);
+    
+    --border-color-dark: var(--border-color);
+    
+    --switch-bg-off-dark: var(--border-color);
+    
+    --chip-bg-dark: var(--bg-tertiary);
+    --chip-text-dark: var(--text-primary);
+  }
+}
+

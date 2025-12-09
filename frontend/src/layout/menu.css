@@ -1,21 +1,21 @@
-/* Menu Lateral Moderno - Sistema de Atendimento WhatsApp */
+/* Menu Lateral Moderno - Sistema de Atendimento WhatsApp - UNIFICADO E RESPONSIVO */
 :root {
-  --menu-bg: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); /*cor do menu lateral*/
-  --menu-bg-solid: #dedede; /*cor do menu lateral*/
-  --menu-item-hover: rgba(37, 211, 102, 0.1); /*cor do menu lateral ao passar o mouse*/
-  --menu-item-active: rgba(37, 211, 102, 0.2); /*cor do menu lateral ao clicar*/
-  --menu-item-active-border: #25d366;
-  --menu-text: #cbd5e1; /*cor do texto do menu lateral*/
-  --menu-text-active: #ffffff; /*cor do texto do menu lateral ao clicar*/
-  --menu-text-muted: #94a3b8; /*cor do texto do menu lateral ao passar o mouse*/
-  --menu-divider: rgba(255, 255, 255, 0.1); /*cor do divisor do menu lateral*/
-  --menu-icon-size: 16px; /*tamanho do icone do menu lateral*/  
-  --menu-item-height: 48px; /*altura do item do menu lateral*/
-  --menu-padding: 0.75rem; /*padding do menu lateral*/
-  --menu-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /*transição do menu lateral*/
-  --whatsapp-green: #25d366; /*cor do whatsapp*/
-  --whatsapp-green-dark: #128c7e; /*cor do whatsapp dark*/
-  --whatsapp-green-light: #dcf8c6; /*cor do whatsapp light*/
+  --menu-bg: var(--bg-sidebar);
+  --menu-bg-solid: var(--bg-sidebar);
+  --menu-item-hover: var(--bg-hover);
+  --menu-item-active: var(--bg-active);
+  --menu-item-active-border: var(--color-primary-light);
+  --menu-text: var(--text-on-sidebar);
+  --menu-text-active: var(--text-inverse);
+  --menu-text-muted: var(--text-tertiary);
+  --menu-divider: var(--border-color);
+  --menu-icon-size: 18px;
+  --menu-item-height: 48px;
+  --menu-padding: 0.75rem;
+  --menu-transition: var(--transition-base);
+  --whatsapp-green: var(--color-secondary);
+  --whatsapp-green-dark: var(--color-primary);
+  --whatsapp-green-light: #dcf8c6;
 }
 
 /* Container do Menu */
@@ -25,6 +25,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0.5rem 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .menu-container::-webkit-scrollbar {
@@ -36,12 +37,12 @@
 }
 
 .menu-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
 }
 
 .menu-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Seção do Menu */
@@ -54,17 +55,18 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   color: var(--menu-text-muted);
   margin: 0;
   user-select: none;
+  opacity: 0.8;
 }
 
 /* Item do Menu */
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 0.875rem;
   margin: 0.125rem 0.5rem;
   border-radius: 12px;
   color: var(--menu-text);
@@ -73,9 +75,10 @@
   cursor: pointer;
   position: relative;
   min-height: var(--menu-item-height);
-  gap: 0.875rem;
+  gap: 0.75rem;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  font-weight: 500;
 }
 
 .menu-container:has(.menu-item.collapsed) .menu-item,
@@ -132,37 +135,40 @@
   min-width: 36px;
   min-height: 36px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--menu-text);
   transition: var(--menu-transition);
   flex-shrink: 0;
   font-size: var(--menu-icon-size);
+  margin-right: 0;
 }
 
 .menu-item:hover .menu-item-icon {
-  background: rgba(37, 211, 102, 0.15);
+  background: rgba(37, 211, 102, 0.2);
   color: var(--whatsapp-green);
   transform: scale(1.1);
 }
 
 .menu-item.active .menu-item-icon {
-  background: rgba(37, 211, 102, 0.2);
+  background: rgba(37, 211, 102, 0.25);
   color: var(--whatsapp-green);
-  box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.1);
+  box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.15);
 }
 
-/* Texto do Menu */
+/* Texto do Menu - GARANTIR LEGIBILIDADE E TEXTO COMPLETO VISÍVEL */
 .menu-item-text {
   flex: 1;
   font-size: 0.9375rem;
   font-weight: 500;
   line-height: 1.5;
-  white-space: normal;
+  white-space: nowrap;
   overflow: visible;
-  word-wrap: break-word;
   opacity: 1;
   transition: opacity 0.3s ease;
   min-width: 0;
+  color: inherit;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .menu-container:has(.menu-item.collapsed) .menu-item-text,
@@ -179,6 +185,7 @@
 
 .menu-item.active .menu-item-text {
   font-weight: 600;
+  color: var(--menu-text-active);
 }
 
 /* Badge de Notificação */
@@ -189,13 +196,15 @@
   min-width: 20px;
   height: 20px;
   padding: 0 0.375rem;
-  background: #ef4444;
-  color: white;
+  background: var(--color-error);
+  color: var(--text-inverse);
   border-radius: 10px;
   font-size: 0.75rem;
-  font-weight: 600;
-  margin-left: auto;
+  font-weight: 700;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
   animation: pulse 2s infinite;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
 }
 
 @keyframes pulse {
@@ -213,16 +222,17 @@
 .menu-collapsible {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 0.875rem;
   margin: 0.125rem 0.5rem;
   border-radius: 12px;
   color: var(--menu-text);
   cursor: pointer;
   transition: var(--menu-transition);
   min-height: var(--menu-item-height);
-  gap: 0.875rem;
+  gap: 0.75rem;
   user-select: none;
   position: relative;
+  font-weight: 500;
 }
 
 .menu-collapsible:hover {
@@ -244,21 +254,22 @@
   min-width: 36px;
   min-height: 36px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--menu-text);
   transition: var(--menu-transition);
   flex-shrink: 0;
   font-size: var(--menu-icon-size);
+  margin-right: 0;
 }
 
 .menu-collapsible:hover .menu-collapsible-icon {
-  background: rgba(37, 211, 102, 0.15);
+  background: rgba(37, 211, 102, 0.2);
   color: var(--whatsapp-green);
   transform: scale(1.1);
 }
 
 .menu-collapsible.active .menu-collapsible-icon {
-  background: rgba(37, 211, 102, 0.2);
+  background: rgba(37, 211, 102, 0.25);
   color: var(--whatsapp-green);
 }
 
@@ -267,10 +278,12 @@
   font-size: 0.9375rem;
   font-weight: 500;
   line-height: 1.5;
-  white-space: normal;
+  white-space: nowrap;
   overflow: visible;
-  word-wrap: break-word;
   min-width: 0;
+  color: inherit;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .menu-container:has(.menu-item.collapsed) .menu-collapsible-text,
@@ -289,6 +302,8 @@
   font-size: 1.25rem;
   transition: transform 0.3s ease;
   color: var(--menu-text-muted);
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .menu-collapsible.open .menu-collapsible-arrow {
@@ -330,6 +345,7 @@
   gap: 0.75rem;
   position: relative;
   user-select: none;
+  font-weight: 500;
 }
 
 .menu-submenu-item::before {
@@ -371,10 +387,12 @@
   flex: 1;
   font-size: 0.875rem;
   line-height: 1.5;
-  white-space: normal;
+  white-space: nowrap;
   overflow: visible;
-  word-wrap: break-word;
   min-width: 0;
+  color: inherit;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .menu-container.collapsed .menu-submenu-item-text,
@@ -406,6 +424,7 @@
   font-weight: 500;
   border-top: 1px solid var(--menu-divider);
   margin-top: auto;
+  opacity: 0.7;
 }
 
 /* Menu Colapsado */
@@ -461,17 +480,18 @@
   left: calc(100% + 0.75rem);
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.95);
   color: white;
-  padding: 0.5rem 0.75rem;
+  padding: 0.625rem 0.875rem;
   border-radius: 8px;
   font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .menu-tooltip::before {
@@ -481,7 +501,7 @@
   top: 50%;
   transform: translateY(-50%);
   border: 6px solid transparent;
-  border-right-color: rgba(0, 0, 0, 0.9);
+  border-right-color: rgba(0, 0, 0, 0.95);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
@@ -493,7 +513,33 @@
   opacity: 1;
 }
 
-/* Responsividade Mobile */
+/* ============================================
+   RESPONSIVIDADE - TABLETS (768px - 1024px)
+   ============================================ */
+@media (max-width: 1024px) {
+  .menu-item,
+  .menu-collapsible {
+    padding: 0.875rem 1rem;
+    margin: 0.125rem 0.5rem;
+    min-height: 48px;
+  }
+
+  .menu-item-text,
+  .menu-collapsible-text {
+    font-size: 0.9375rem;
+  }
+
+  .menu-item-icon,
+  .menu-collapsible-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+}
+
+/* ============================================
+   RESPONSIVIDADE - MOBILE (até 768px)
+   ============================================ */
 @media (max-width: 768px) {
   .menu-container {
     padding: 0.5rem 0;
@@ -504,7 +550,7 @@
 
   .menu-item,
   .menu-collapsible {
-    padding: 0.875rem 1rem;
+    padding: 1rem 1.125rem;
     margin: 0.125rem 0.5rem;
     border-radius: 14px;
     min-height: 52px;
@@ -531,21 +577,30 @@
   .menu-collapsible-text {
     font-size: 1rem;
     font-weight: 500;
+    line-height: 1.6;
+    white-space: nowrap;
+    overflow: visible;
   }
 
   .menu-submenu-item {
-    padding: 0.75rem 1rem 0.75rem 3.25rem;
+    padding: 0.875rem 1rem 0.875rem 3.5rem;
     min-height: 48px;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    font-size: 0.9375rem;
   }
 
   .menu-submenu-item:hover {
-    padding-left: 3.5rem;
+    padding-left: 3.75rem;
   }
 
   .menu-submenu-item:active {
     transform: scale(0.98);
+  }
+
+  .menu-submenu-item-text {
+    font-size: 0.9375rem;
+    line-height: 1.6;
   }
 
   .menu-section-title {
@@ -562,8 +617,16 @@
     height: 22px;
     font-size: 0.75rem;
   }
+
+  .menu-version {
+    padding: 1rem;
+    font-size: 0.75rem;
+  }
 }
 
+/* ============================================
+   RESPONSIVIDADE - MOBILE PEQUENO (até 480px)
+   ============================================ */
 @media (max-width: 480px) {
   .menu-container {
     padding: 0.5rem 0;
@@ -575,6 +638,7 @@
     padding: 1rem;
     margin: 0.125rem 0.5rem;
     min-height: 56px;
+    border-radius: 12px;
   }
 
   .menu-item-icon,
@@ -590,20 +654,33 @@
   .menu-collapsible-text {
     font-size: 1.0625rem;
     font-weight: 500;
-    white-space: normal;
+    line-height: 1.6;
+    white-space: nowrap;
     overflow: visible;
-    word-wrap: break-word;
   }
 
   .menu-submenu-item {
-    padding: 0.875rem 1rem 0.875rem 3.5rem;
+    padding: 1rem 1rem 1rem 3.75rem;
     min-height: 52px;
+    font-size: 1rem;
+  }
+
+  .menu-submenu-item-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    white-space: nowrap;
+    overflow: visible;
   }
 
   .menu-item-badge {
     min-width: 24px;
     height: 24px;
     font-size: 0.8125rem;
+  }
+
+  .menu-section-title {
+    padding: 1rem 1rem 0.75rem;
+    font-size: 0.875rem;
   }
 }
 
@@ -631,12 +708,12 @@
 .menu-item:nth-child(5) { animation-delay: 0.25s; }
 .menu-item:nth-child(6) { animation-delay: 0.3s; }
 
-/* Dark Mode Support */
+/* Dark Mode Support - Usa variáveis globais */
 [data-theme="dark"] {
-  --menu-bg: linear-gradient(180deg, #0a0e1a 0%, #141923 100%);
-  --menu-bg-solid: #0a0e1a;
-  --menu-item-hover: rgba(37, 211, 102, 0.15);
-  --menu-item-active: rgba(37, 211, 102, 0.25);
+  --menu-bg: var(--bg-sidebar);
+  --menu-bg-solid: var(--bg-sidebar);
+  --menu-item-hover: var(--bg-hover);
+  --menu-item-active: var(--bg-active);
 }
 
 /* Acessibilidade */
@@ -649,4 +726,3 @@
     transition-duration: 0.01ms !important;
   }
 }
-

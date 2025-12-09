@@ -1,0 +1,112 @@
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  background-color: var(--bg-card);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem;
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+}
+
+.settings-tabs {
+  margin-bottom: 1.5rem;
+}
+
+.settings-panel {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem 0;
+}
+
+.settings-panel-content {
+  width: 100%;
+  max-width: 100%;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode - Usa variáveis globais */
+[data-theme="dark"] .settings-content,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .settings-content {
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow-lg);
+    color: var(--text-primary);
+  }
+}
+
+/* Responsive - Tablets */
+@media (max-width: 1024px) {
+  .settings-content {
+    padding: 1.25rem;
+    margin: 0.75rem;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .settings-content {
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 0;
+  }
+
+  .settings-panel {
+    padding: 0.75rem 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .settings-panel-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-content {
+    padding: 0.75rem;
+    margin: 0.25rem;
+  }
+
+  .settings-panel {
+    padding: 0.5rem 0;
+  }
+}
+
+/* Garantir que não haja overflow horizontal */
+.settings-container,
+.settings-content,
+.settings-panel,
+.settings-panel-content {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.settings-panel * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+

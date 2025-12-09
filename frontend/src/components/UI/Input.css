@@ -1,0 +1,139 @@
+.input-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.input-full-width {
+  width: 100%;
+}
+
+.input-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.input-required {
+  color: var(--error-color, #f44336);
+  margin-left: 0.25rem;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(18, 140, 126, 0.1);
+}
+
+.input-field:disabled {
+  background-color: var(--bg-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.input-field::placeholder {
+  color: var(--text-placeholder);
+}
+
+.input-field.input-error {
+  border-color: var(--color-error);
+}
+
+.input-field.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+textarea.input-field {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.input-helper {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.input-error-text {
+  font-size: 0.75rem;
+  color: var(--color-error);
+  margin-top: 0.25rem;
+}
+
+/* Dark mode - Usa variáveis globais */
+[data-theme="dark"] .input-label,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .input-label {
+    color: var(--text-primary);
+  }
+
+  :root:not([data-theme="light"]) .input-field {
+    background-color: var(--bg-input);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  :root:not([data-theme="light"]) .input-field:disabled {
+    background-color: var(--bg-disabled);
+  }
+
+  :root:not([data-theme="light"]) .input-helper {
+    color: var(--text-secondary);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .input-field {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+  }
+
+  .input-label {
+    font-size: 0.8125rem;
+  }
+
+  .input-helper,
+  .input-error-text {
+    font-size: 0.6875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-field {
+    padding: 0.5625rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .input-label {
+    font-size: 0.75rem;
+    margin-bottom: 0.375rem;
+  }
+
+  .input-helper,
+  .input-error-text {
+    font-size: 0.625rem;
+  }
+
+  .input-container {
+    margin-bottom: 1.25rem;
+  }
+}
+

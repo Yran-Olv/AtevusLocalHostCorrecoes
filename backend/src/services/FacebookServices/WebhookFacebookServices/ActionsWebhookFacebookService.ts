@@ -225,15 +225,11 @@ export const ActionsWebhookFacebookService = async (
 
 
                 if (elementNowSelected.includes("img")) {
-                    const mediaPath = process.env.BACKEND_URL === "http://localhost:8090"
-                        ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                            item => item.number === elementNowSelected
-                        )[0].value
-                        }`
-                        : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                            item => item.number === elementNowSelected
-                        )[0].value
-                        }`
+                    const { getPublicPathFromRoot } = require("../../../../utils/pathHelper");
+                    const mediaRelativePath = nodeSelected.data.elements.filter(
+                        item => item.number === elementNowSelected
+                    )[0].value;
+                    const mediaPath = getPublicPathFromRoot(mediaRelativePath);
 
                     const contact = await Contact.findOne({
                         where: { number: numberPhrase.number, companyId }
@@ -283,16 +279,11 @@ export const ActionsWebhookFacebookService = async (
 
 
                 if (elementNowSelected.includes("audio")) {
-                    const mediaDirectory =
-                        process.env.BACKEND_URL === "http://localhost:8090"
-                            ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                                item => item.number === elementNowSelected
-                            )[0].value
-                            }`
-                            : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                                item => item.number === elementNowSelected
-                            )[0].value
-                            }`;
+                    const { getPublicPathFromRoot } = require("../../../../utils/pathHelper");
+                    const mediaRelativePath = nodeSelected.data.elements.filter(
+                        item => item.number === elementNowSelected
+                    )[0].value;
+                    const mediaDirectory = getPublicPathFromRoot(mediaRelativePath);
 
                     const contact = await Contact.findOne({
                         where: { number: numberPhrase.number, companyId }
@@ -349,16 +340,11 @@ export const ActionsWebhookFacebookService = async (
 
 
                 if (elementNowSelected.includes("video")) {
-                    const mediaDirectory =
-                        process.env.BACKEND_URL === "http://localhost:8090"
-                            ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                                item => item.number === elementNowSelected
-                            )[0].value
-                            }`
-                            : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                                item => item.number === elementNowSelected
-                            )[0].value
-                            }`;
+                    const { getPublicPathFromRoot } = require("../../../../utils/pathHelper");
+                    const mediaRelativePath = nodeSelected.data.elements.filter(
+                        item => item.number === elementNowSelected
+                    )[0].value;
+                    const mediaDirectory = getPublicPathFromRoot(mediaRelativePath);
 
 
                     const contact = await Contact.findOne({
@@ -407,11 +393,8 @@ export const ActionsWebhookFacebookService = async (
         }
 
         if (nodeSelected.type === "img") {
-            const mediaPath = process.env.BACKEND_URL === "http://localhost:8090"
-                ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.url
-                }`
-                : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.url
-                }`
+            const { getPublicPathFromRoot } = require("../../../../utils/pathHelper");
+            const mediaPath = getPublicPathFromRoot(nodeSelected.data.url);
 
 
             // Obtendo o tipo do arquivo
@@ -458,12 +441,8 @@ export const ActionsWebhookFacebookService = async (
         }
 
         if (nodeSelected.type === "audio") {
-            const mediaDirectory =
-                process.env.BACKEND_URL === "http://localhost:8090"
-                    ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.url
-                    }`
-                    : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.url
-                    }`;
+            const { getPublicPathFromRoot } = require("../../../../utils/pathHelper");
+            const mediaDirectory = getPublicPathFromRoot(nodeSelected.data.url);
 
             const contact = await Contact.findOne({
                 where: { number: numberPhrase.number, companyId }
@@ -499,13 +478,9 @@ export const ActionsWebhookFacebookService = async (
         if (nodeSelected.type === "interval") {
             await intervalWhats(nodeSelected.data.sec);
         }
-        if (nodeSelected.type === "video") {
-            const mediaDirectory =
-                process.env.BACKEND_URL === "http://localhost:8090"
-                    ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.url
-                    }`
-                    : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.url
-                    }`;
+            if (nodeSelected.type === "video") {
+                const { getPublicPathFromRoot } = require("../../../../utils/pathHelper");
+                const mediaDirectory = getPublicPathFromRoot(nodeSelected.data.url);
 
 
             const contact = await Contact.findOne({

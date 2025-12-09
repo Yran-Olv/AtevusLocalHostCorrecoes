@@ -1,0 +1,146 @@
+/* ============================================
+   CORREÇÃO DE LEGIBILIDADE DE TEXTOS
+   ============================================ */
+
+/* Garantir contraste mínimo em todos os textos */
+* {
+  color: inherit;
+}
+
+/* Textos primários - sempre legíveis */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Parágrafos e textos gerais */
+p, span, div, label, li, td, th {
+  color: var(--text-primary);
+}
+
+/* Textos secundários */
+small, .text-muted, .helper-text {
+  color: var(--text-secondary);
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Inputs e selects - garantir legibilidade */
+input, textarea, select {
+  color: var(--text-primary);
+  background-color: var(--bg-input);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-placeholder);
+  opacity: 1;
+}
+
+/* Labels sempre legíveis */
+label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Botões - texto sempre legível */
+button {
+  color: inherit;
+}
+
+/* Cards e containers */
+.card, .paper, .container, .box {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* Tabelas */
+table {
+  color: var(--text-primary);
+}
+
+th {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+td {
+  color: var(--text-primary);
+}
+
+/* Listas */
+ul, ol {
+  color: var(--text-primary);
+}
+
+li {
+  color: var(--text-primary);
+}
+
+/* Ícones - usar cor do texto */
+svg, .icon {
+  color: inherit;
+}
+
+/* Responsive - Ajustar tamanhos de fonte para legibilidade */
+@media (max-width: 768px) {
+  body {
+    font-size: 0.9375rem;
+  }
+
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.125rem; }
+  h5 { font-size: 1rem; }
+  h6 { font-size: 0.9375rem; }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 0.875rem;
+  }
+
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.125rem; }
+  h4 { font-size: 1rem; }
+  h5 { font-size: 0.9375rem; }
+  h6 { font-size: 0.875rem; }
+}
+
+/* Garantir contraste em modo escuro */
+[data-theme="dark"] *,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) * {
+    color: inherit;
+  }
+
+  :root:not([data-theme="light"]) h1,
+  :root:not([data-theme="light"]) h2,
+  :root:not([data-theme="light"]) h3,
+  :root:not([data-theme="light"]) h4,
+  :root:not([data-theme="light"]) h5,
+  :root:not([data-theme="light"]) h6 {
+    color: var(--text-primary);
+  }
+
+  :root:not([data-theme="light"]) p,
+  :root:not([data-theme="light"]) span,
+  :root:not([data-theme="light"]) div,
+  :root:not([data-theme="light"]) label {
+    color: var(--text-primary);
+  }
+}
+

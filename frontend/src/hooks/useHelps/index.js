@@ -12,12 +12,27 @@ const usePlans = () => {
     }
 
     const list = async (params) => {
-        const { data } = await api.request({
-            url: '/helps/list',
-            method: 'GET',
-            params
-        });
-        return data;
+        try {
+            const { data } = await api.get('/helps/list', { params });
+            return data || [];
+        } catch (error) {
+            // Se der erro de rede, 404 ou não autenticado, retorna array vazio
+            if (error.response?.status === 401) {
+                // Não autenticado - não é um erro crítico aqui
+                return [];
+            }
+            if (error.response?.status === 404) {
+                // Rota não encontrada - não é um erro crítico
+                return [];
+            }
+            if (error.code === "ERR_NETWORK" || error.message === "Network Error") {
+                // Erro de rede - backend pode não estar rodando
+                console.warn("Erro de rede ao buscar helps. Backend pode não estar rodando.");
+                return [];
+            }
+            console.warn("Erro ao buscar helps:", error);
+            return [];
+        }
     }
 
     const save = async (data) => {

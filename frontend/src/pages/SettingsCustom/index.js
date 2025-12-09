@@ -2,8 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
 import Title from "../../components/Title";
-import { makeStyles, Paper, Tabs, Tab } from "@material-ui/core";
-
+import Tabs, { Tab } from "../../components/UI/Tabs";
 import TabPanel from "../../components/TabPanel";
 
 import SchedulesForm from "../../components/SchedulesForm";
@@ -25,44 +24,9 @@ import OnlyForSuperUser from "../../components/OnlyForSuperUser";
 import useCompanySettings from "../../hooks/useSettings/companySettings";
 import useSettings from "../../hooks/useSettings";
 import ForbiddenPage from "../../components/ForbiddenPage/index.js";
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flex: 1,
-    backgroundColor: theme.palette.background.paper,
-  },
-  mainPaper: {
-    ...theme.scrollbarStyles,
-    overflowY: "scroll",
-    flex: 1,
-  },
-  tab: {
-    // background: "#f2f5f3",
-    backgroundColor: theme.mode === 'light' ? "#f2f2f2" : "#7f7f7f",
-    borderRadius: 4,
-  },
-  paper: {
-    ...theme.scrollbarStyles,
-    overflowY: "scroll",
-    padding: theme.spacing(2),
-    display: "flex",
-    alignItems: "center",
-    width: "100%",
-  },
-  container: {
-    width: "100%",
-    maxHeight: "100%",
-  },
-  control: {
-    padding: theme.spacing(1),
-  },
-  textfield: {
-    width: "100%",
-  },
-}));
+import "./SettingsCustom.css";
 
 const SettingsCustom = () => {
-  const classes = useStyles();
   const [tab, setTab] = useState("options");
   const [schedules, setSchedules] = useState([]);
   const [company, setCompany] = useState({});
@@ -95,14 +59,6 @@ const SettingsCustom = () => {
         setSettings(settingList);
         setOldSettings(settingListOld);
 
-        /*  if (Array.isArray(settingList)) {
-           const scheduleType = settingList.find(
-             (d) => d.key === "scheduleType"
-           );
-           if (scheduleType) {
-             setSchedulesEnabled(scheduleType.value === "company");
-           }
-         } */
         setSchedulesEnabled(settingList.scheduleType === "company");
         setCurrentUser(user);
       } catch (e) {
@@ -135,39 +91,27 @@ const SettingsCustom = () => {
   };
 
   return (
-    <MainContainer className={classes.root}>
-      {user.profile === "user" ?
+    <MainContainer className="settings-container">
+      {user.profile === "user" ? (
         <ForbiddenPage />
-        :
+      ) : (
         <>
           <MainHeader>
             <Title>{i18n.t("settings.title")}</Title>
           </MainHeader>
-          <Paper className={classes.mainPaper} elevation={1}>
-            <Tabs
-              value={tab}
-              indicatorColor="primary"
-              textColor="primary"
-              scrollButtons="on"
-              variant="scrollable"
-              onChange={handleTabChange}
-              className={classes.tab}
-            >
-              <Tab label={i18n.t("settings.tabs.options")} value={"options"} />
-              {schedulesEnabled && <Tab label="Horários" value={"schedules"} />}
-              {isSuper() ? <Tab label="Empresas" value={"companies"} /> : null}
-              {isSuper() ? <Tab label={i18n.t("settings.tabs.plans")} value={"plans"} /> : null}
-              {isSuper() ? <Tab label={i18n.t("settings.tabs.helps")} value={"helps"} /> : null}
-              {isSuper() ? <Tab label="Whitelabel" value={"whitelabel"} /> : null}
-              {isSuper() ? <Tab label="Gerencianet" value={"gerencianet"} /> : null}
-              {isSuper() ? <Tab label="Tela Login" value={"login"} /> : null}
+          <div className="settings-content">
+            <Tabs value={tab} onChange={handleTabChange} className="settings-tabs">
+              <Tab label={i18n.t("settings.tabs.options")} value="options" />
+              {schedulesEnabled && <Tab label="Horários" value="schedules" />}
+              {isSuper() && <Tab label="Empresas" value="companies" />}
+              {isSuper() && <Tab label={i18n.t("settings.tabs.plans")} value="plans" />}
+              {isSuper() && <Tab label={i18n.t("settings.tabs.helps")} value="helps" />}
+              {isSuper() && <Tab label="Whitelabel" value="whitelabel" />}
+              {isSuper() && <Tab label="Gerencianet" value="gerencianet" />}
+              {isSuper() && <Tab label="Tela Login" value="login" />}
             </Tabs>
-            <Paper className={classes.paper} elevation={0}>
-              <TabPanel
-                className={classes.container}
-                value={tab}
-                name={"schedules"}
-              >
+            <div className="settings-panel">
+              <TabPanel className="settings-panel-content" value={tab} name="schedules">
                 <SchedulesForm
                   loading={loading}
                   onSubmit={handleSubmitSchedules}
@@ -178,56 +122,30 @@ const SettingsCustom = () => {
                 user={currentUser}
                 yes={() => (
                   <>
-                    <TabPanel
-                      className={classes.container}
-                      value={tab}
-                      name={"companies"}
-                    >
+                    <TabPanel className="settings-panel-content" value={tab} name="companies">
                       <CompaniesManager />
                     </TabPanel>
 
-                    <TabPanel
-                      className={classes.container}
-                      value={tab}
-                      name={"plans"}
-                    >
+                    <TabPanel className="settings-panel-content" value={tab} name="plans">
                       <PlansManager />
                     </TabPanel>
 
-                    <TabPanel
-                      className={classes.container}
-                      value={tab}
-                      name={"helps"}
-                    >
+                    <TabPanel className="settings-panel-content" value={tab} name="helps">
                       <HelpsManager />
                     </TabPanel>
-                    <TabPanel
-                      className={classes.container}
-                      value={tab}
-                      name={"whitelabel"}
-                    >
-                      <Whitelabel
-                        settings={oldSettings}
-                      />
+                    <TabPanel className="settings-panel-content" value={tab} name="whitelabel">
+                      <Whitelabel settings={oldSettings} />
                     </TabPanel>
-                    <TabPanel
-                      className={classes.container}
-                      value={tab}
-                      name={"gerencianet"}
-                    >
+                    <TabPanel className="settings-panel-content" value={tab} name="gerencianet">
                       <GerencianetConfig />
                     </TabPanel>
-                    <TabPanel
-                      className={classes.container}
-                      value={tab}
-                      name={"login"}
-                    >
+                    <TabPanel className="settings-panel-content" value={tab} name="login">
                       <LoginConfig />
                     </TabPanel>
                   </>
                 )}
               />
-              <TabPanel className={classes.container} value={tab} name={"options"}>
+              <TabPanel className="settings-panel-content" value={tab} name="options">
                 <Options
                   settings={settings}
                   oldSettings={oldSettings}
@@ -237,9 +155,10 @@ const SettingsCustom = () => {
                   }
                 />
               </TabPanel>
-            </Paper>
-          </Paper>
-        </>}
+            </div>
+          </div>
+        </>
+      )}
     </MainContainer>
   );
 };

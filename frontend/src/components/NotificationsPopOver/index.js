@@ -22,6 +22,7 @@ import Favicon from "react-favicon";
 // import { getBackendUrl } from "../../config";
 import defaultLogoFavicon from "../../assets/favicon.ico";
 import { TicketsContext } from "../../context/Tickets/TicketsContext";
+import { playNotificationWithVibration } from "../../utils/notificationSound";
 
 const useStyles = makeStyles(theme => ({
 	tabContainer: {
@@ -228,39 +229,90 @@ const NotificationsPopOver = (volume) => {
 		}
 	}, [user, profile, queues, showTicketWithoutQueue, socket, showNotificationPending, showGroupNotification]);
 
-	const handleNotifications = data => {
+	const handleNotifications = async (data) => {
 		const { message, contact, ticket } = data;
 
+		// Reproduzir som de notificação com vibração (funciona em Android/iOS)
+		await playNotificationWithVibration(alertSound);
+
+		// Criar notificação do navegador
 		const options = {
 			body: `${message.body} - ${format(new Date(), "HH:mm")}`,
-			icon: contact.urlPicture,
-			tag: ticket.id,
+			icon: contact.urlPicture || '/android-chrome-192x192.png',
+			badge: '/android-chrome-192x192.png',
+			tag: String(ticket.id),
 			renotify: true,
-		};
-		const notification = new Notification(
-			`${i18n.t("tickets.notification.message")} ${contact.name}`,
-			options
-		);
-
-		notification.onclick = e => {
-			e.preventDefault();
-			window.focus();
-			setTabOpen(ticket.status)
-			historyRef.current.push(`/tickets/${ticket.uuid}`);
-			// handleChangeTab(null, ticket.isGroup? "group" : "open");
-		};
-
-		setDesktopNotifications(prevState => {
-			const notfiticationIndex = prevState.findIndex(
-				n => n.tag === notification.tag
-			);
-			if (notfiticationIndex !== -1) {
-				prevState[notfiticationIndex] = notification;
-				return [...prevState];
+			requireInteraction: false,
+			vibrate: [200, 100, 200],
+			silent: false, // Importante para iOS/Android
+			data: {
+				ticketId: ticket.id,
+				ticketUuid: ticket.uuid,
+				url: `/tickets/${ticket.uuid}`
 			}
-			return [notification, ...prevState];
-		});
-		soundAlertRef.current();
+		};
+
+		// Tentar usar Service Worker para notificação (melhor para PWA)
+		if ('serviceWorker' in navigator && 'PushManager' in window) {
+			try {
+				const registration = await navigator.serviceWorker.ready;
+				await registration.showNotification(
+					`${i18n.t("tickets.notification.message")} ${contact.name}`,
+					options
+				);
+			} catch (error) {
+				console.error('Erro ao mostrar notificação via Service Worker:', error);
+				// Fallback para Notification API
+				showBrowserNotification(contact.name, options, ticket);
+			}
+		} else {
+			// Fallback para Notification API padrão
+			showBrowserNotification(contact.name, options, ticket);
+		}
+
+		// Também reproduzir som via use-sound (fallback)
+		if (soundAlertRef.current) {
+			soundAlertRef.current();
+		}
+	};
+
+	const showBrowserNotification = (contactName, options, ticket) => {
+		if (!("Notification" in window)) {
+			console.log("Este navegador não suporta notificações");
+			return;
+		}
+
+		if (Notification.permission === "granted") {
+			const notification = new Notification(
+				`${i18n.t("tickets.notification.message")} ${contactName}`,
+				options
+			);
+
+			notification.onclick = (e) => {
+				e.preventDefault();
+				window.focus();
+				setTabOpen(ticket.status);
+				historyRef.current.push(`/tickets/${ticket.uuid}`);
+			};
+
+			setDesktopNotifications(prevState => {
+				const notfiticationIndex = prevState.findIndex(
+					n => n.tag === notification.tag
+				);
+				if (notfiticationIndex !== -1) {
+					prevState[notfiticationIndex].close();
+					prevState[notfiticationIndex] = notification;
+					return [...prevState];
+				}
+				return [notification, ...prevState];
+			});
+		} else if (Notification.permission !== "denied") {
+			Notification.requestPermission().then((permission) => {
+				if (permission === "granted") {
+					showBrowserNotification(contactName, options, ticket);
+				}
+			});
+		}
 	};
 
 	const handleClick = () => {

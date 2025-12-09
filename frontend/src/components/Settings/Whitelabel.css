@@ -1,0 +1,233 @@
+.whitelabel-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+.whitelabel-sections {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.whitelabel-section-btn {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  bottom: -0.5rem;
+}
+
+.whitelabel-section-btn:hover {
+  color: var(--color-primary);
+  background: var(--bg-hover);
+  border-radius: 8px 8px 0 0;
+}
+
+.whitelabel-section-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.whitelabel-section-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 2rem 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section-title:first-child {
+  margin-top: 0;
+}
+
+.whitelabel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.whitelabel-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.whitelabel-preview {
+  grid-column: span 1;
+}
+
+.whitelabel-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.preview-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+  margin: 0;
+}
+
+.preview-box {
+  padding: 1.5rem;
+  border: 2px solid var(--border-color, #ddd);
+  border-radius: 8px;
+  text-align: center;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.preview-light {
+  background-color: #fff;
+  border-color: #424242;
+}
+
+.preview-dark {
+  background-color: #424242;
+  border-color: #fff;
+}
+
+.preview-favicon {
+  background-color: var(--bg-secondary, #f5f5f5);
+  border-color: var(--border-color, #000);
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 72px;
+  object-fit: contain;
+}
+
+/* Dark mode - Usa variáveis globais */
+[data-theme="dark"],
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .preview-title {
+    color: var(--text-primary);
+  }
+
+  :root:not([data-theme="light"]) .preview-favicon {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+  }
+}
+
+/* Responsive - Tablets */
+@media (max-width: 1024px) {
+  .whitelabel-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  .whitelabel-sections {
+    flex-wrap: wrap;
+  }
+
+  .whitelabel-section-btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .whitelabel-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .whitelabel-preview {
+    grid-column: span 1;
+  }
+
+  .preview-box {
+    min-height: 100px;
+    padding: 1rem;
+  }
+
+  .whitelabel-sections {
+    gap: 0.375rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .whitelabel-section-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .section-title {
+    font-size: 1.125rem;
+    margin: 1.5rem 0 0.75rem 0;
+  }
+
+  .whitelabel-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .whitelabel-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .whitelabel-grid {
+    gap: 0.875rem;
+  }
+
+  .preview-box {
+    min-height: 80px;
+    padding: 0.75rem;
+  }
+
+  .preview-image {
+    max-height: 60px;
+  }
+
+  .whitelabel-section-btn {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+}
+

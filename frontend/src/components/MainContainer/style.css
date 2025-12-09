@@ -7,6 +7,8 @@
   box-sizing: border-box;
   margin-left: 0;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 /* Quando o menu está aberto (desktop) */
@@ -35,18 +37,18 @@
 }
 
 .main-container-wrapper::-webkit-scrollbar-track {
-  background: #f5f7fa;
+  background: var(--bg-secondary);
   border-radius: 10px;
 }
 
 .main-container-wrapper::-webkit-scrollbar-thumb {
-  background: #065183;
+  background: var(--color-primary);
   border-radius: 10px;
   transition: background 0.3s ease;
 }
 
 .main-container-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #0b6ba8;
+  background: var(--color-primary-dark);
 }
 
 /* Responsividade */

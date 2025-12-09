@@ -1,37 +1,14 @@
 import React, { useEffect, useState } from "react";
-import Grid from "@material-ui/core/Grid";
-import FormControl from "@material-ui/core/FormControl";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
-import { makeStyles } from "@material-ui/core/styles";
+import Input from "../UI/Input";
+import Button from "../UI/Button";
+import Switch from "../UI/Switch";
 import { toast } from "react-toastify";
 import api from "../../services/api";
 import OnlyForSuperUser from "../OnlyForSuperUser";
 import useAuth from "../../hooks/useAuth.js/index.js";
-
-const useStyles = makeStyles((theme) => ({
-  container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
-  },
-  selectContainer: {
-    width: "100%",
-    textAlign: "left",
-  },
-  button: {
-    marginTop: theme.spacing(2),
-  },
-  helperText: {
-    marginTop: theme.spacing(1),
-    fontSize: "0.75rem",
-    color: theme.palette.text.secondary,
-  },
-}));
+import "./GerencianetConfig.css";
 
 export default function GerencianetConfig() {
-  const classes = useStyles();
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState({
     sandbox: true,
@@ -90,130 +67,100 @@ export default function GerencianetConfig() {
     <OnlyForSuperUser
       user={currentUser}
       yes={() => (
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3} className={classes.container}>
-            <Grid item xs={12}>
-              <h2>Configuração do Gerencianet (EFI Bank)</h2>
-              <p className={classes.helperText}>
-                Configure as credenciais do Gerencianet para processar pagamentos PIX.
-                As configurações são salvas no banco de dados e não requerem recompilação do backend.
-              </p>
-            </Grid>
+        <form onSubmit={handleSubmit} className="gerencianet-config-form">
+          <div className="config-header">
+            <h2>Configuração do Gerencianet (EFI Bank)</h2>
+            <p className="config-description">
+              Configure as credenciais do Gerencianet para processar pagamentos PIX.
+              As configurações são salvas no banco de dados e não requerem recompilação do backend.
+            </p>
+          </div>
 
-            <Grid item xs={12} sm={6}>
-              <FormControl className={classes.selectContainer}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={config.sandbox}
-                      onChange={handleChange("sandbox")}
-                      color="primary"
-                    />
-                  }
+          <div className="config-grid">
+            <div className="config-item config-item-full">
+              <div className="switch-wrapper">
+                <Switch
+                  checked={config.sandbox}
+                  onChange={handleChange("sandbox")}
                   label="Ambiente Sandbox (Testes)"
                 />
-                <p className={classes.helperText}>
+                <p className="config-helper">
                   Ative para usar ambiente de testes. Desative para produção.
                 </p>
-              </FormControl>
-            </Grid>
+              </div>
+            </div>
 
-            <Grid item xs={12} sm={6}>
-              <FormControl className={classes.selectContainer}>
-                <TextField
-                  label="Client ID"
-                  value={config.clientId || ""}
-                  onChange={handleChange("clientId")}
-                  fullWidth
-                  variant="outlined"
-                  helperText="Client ID da aplicação Gerencianet"
-                />
-              </FormControl>
-            </Grid>
+            <div className="config-item">
+              <Input
+                label="Client ID"
+                value={config.clientId || ""}
+                onChange={handleChange("clientId")}
+                helperText="Client ID da aplicação Gerencianet"
+              />
+            </div>
 
-            <Grid item xs={12} sm={6}>
-              <FormControl className={classes.selectContainer}>
-                <TextField
-                  label="Client Secret"
-                  type="password"
-                  value={config.clientSecret && !config.clientSecret.startsWith("***") ? config.clientSecret : ""}
-                  onChange={handleChange("clientSecret")}
-                  fullWidth
-                  variant="outlined"
-                  helperText="Client Secret da aplicação Gerencianet (deixe em branco para manter o atual)"
-                  placeholder={config.clientSecret && config.clientSecret.startsWith("***") ? "Secret já configurado (digite novo para alterar)" : ""}
-                />
-              </FormControl>
-            </Grid>
+            <div className="config-item">
+              <Input
+                label="Client Secret"
+                type="password"
+                value={config.clientSecret && !config.clientSecret.startsWith("***") ? config.clientSecret : ""}
+                onChange={handleChange("clientSecret")}
+                helperText="Client Secret da aplicação Gerencianet (deixe em branco para manter o atual)"
+                placeholder={config.clientSecret && config.clientSecret.startsWith("***") ? "Secret já configurado (digite novo para alterar)" : ""}
+              />
+            </div>
 
-            <Grid item xs={12} sm={6}>
-              <FormControl className={classes.selectContainer}>
-                <TextField
-                  label="Chave PIX"
-                  value={config.chavePix || ""}
-                  onChange={handleChange("chavePix")}
-                  fullWidth
-                  variant="outlined"
-                  helperText="Chave PIX cadastrada no Gerencianet"
-                />
-              </FormControl>
-            </Grid>
+            <div className="config-item">
+              <Input
+                label="Chave PIX"
+                value={config.chavePix || ""}
+                onChange={handleChange("chavePix")}
+                helperText="Chave PIX cadastrada no Gerencianet"
+              />
+            </div>
 
-            <Grid item xs={12} sm={6}>
-              <FormControl className={classes.selectContainer}>
-                <TextField
-                  label="Nome do Certificado PIX"
-                  value={config.pixCert || ""}
-                  onChange={handleChange("pixCert")}
-                  fullWidth
-                  variant="outlined"
-                  helperText="Nome do arquivo .p12 (sem extensão) que deve estar em backend/certs/"
-                />
-              </FormControl>
-            </Grid>
+            <div className="config-item">
+              <Input
+                label="Nome do Certificado PIX"
+                value={config.pixCert || ""}
+                onChange={handleChange("pixCert")}
+                helperText="Nome do arquivo .p12 (sem extensão) que deve estar em backend/certs/"
+              />
+            </div>
 
-            <Grid item xs={12} sm={6}>
-              <FormControl className={classes.selectContainer}>
-                <TextField
-                  label="Senha do Certificado (Opcional)"
-                  type="password"
-                  value={config.pixCertPassword || ""}
-                  onChange={handleChange("pixCertPassword")}
-                  fullWidth
-                  variant="outlined"
-                  helperText="Senha do certificado .p12, se houver"
-                />
-              </FormControl>
-            </Grid>
+            <div className="config-item">
+              <Input
+                label="Senha do Certificado (Opcional)"
+                type="password"
+                value={config.pixCertPassword || ""}
+                onChange={handleChange("pixCertPassword")}
+                helperText="Senha do certificado .p12, se houver"
+              />
+            </div>
 
-            <Grid item xs={12}>
-              <FormControl className={classes.selectContainer}>
-                <TextField
-                  label="URL do Webhook"
-                  value={config.webhookUrl || ""}
-                  onChange={handleChange("webhookUrl")}
-                  fullWidth
-                  variant="outlined"
-                  helperText="URL completa do webhook (ex: https://seu-dominio.com/subscription/return/{chave}/pix)"
-                />
-              </FormControl>
-            </Grid>
+            <div className="config-item config-item-full">
+              <Input
+                label="URL do Webhook"
+                value={config.webhookUrl || ""}
+                onChange={handleChange("webhookUrl")}
+                helperText="URL completa do webhook (ex: https://seu-dominio.com/subscription/return/{chave}/pix)"
+              />
+            </div>
 
-            <Grid item xs={12}>
+            <div className="config-item config-item-full">
               <Button
                 type="submit"
-                variant="contained"
-                color="primary"
+                variant="primary"
                 disabled={loading}
-                className={classes.button}
+                loading={loading}
+                fullWidth
               >
                 {loading ? "Salvando..." : "Salvar Configuração"}
               </Button>
-            </Grid>
-          </Grid>
+            </div>
+          </div>
         </form>
       )}
     />
   );
 }
-

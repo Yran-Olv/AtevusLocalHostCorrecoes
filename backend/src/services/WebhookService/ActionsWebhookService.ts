@@ -427,35 +427,27 @@ export const ActionsWebhookService = async (
 
             await typeSimulation(ticket, 'composing')
 
+            const { getPublicPathFromRoot } = require("../../utils/pathHelper");
+            const mediaRelativePath = nodeSelected.data.elements.filter(
+              item => item.number === elementNowSelected
+            )[0].value;
+            const mediaPath = getPublicPathFromRoot(mediaRelativePath);
+            
             await SendMessage(whatsapp, {
               number: numberClient,
               body: "",
-              mediaPath:
-                process.env.BACKEND_URL === "http://localhost:8090"
-                  ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                    item => item.number === elementNowSelected
-                  )[0].value
-                  }`
-                  : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                    item => item.number === elementNowSelected
-                  )[0].value
-                  }`
+              mediaPath
             });
             await intervalWhats("1");
           }
 
 
           if (elementNowSelected.includes("audio")) {
-            const mediaDirectory =
-              process.env.BACKEND_URL === "http://localhost:8090"
-                ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                  item => item.number === elementNowSelected
-                )[0].value
-                }`
-                : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                  item => item.number === elementNowSelected
-                )[0].value
-                }`;
+            const { getPublicPathFromRoot } = require("../../utils/pathHelper");
+            const mediaRelativePath = nodeSelected.data.elements.filter(
+              item => item.number === elementNowSelected
+            )[0].value;
+            const mediaDirectory = getPublicPathFromRoot(mediaRelativePath);
             const ticketInt = await Ticket.findOne({
               where: { id: ticket.id }
             });
@@ -473,16 +465,11 @@ export const ActionsWebhookService = async (
             await intervalWhats("1");
           }
           if (elementNowSelected.includes("video")) {
-            const mediaDirectory =
-              process.env.BACKEND_URL === "http://localhost:8090"
-                ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                  item => item.number === elementNowSelected
-                )[0].value
-                }`
-                : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                  item => item.number === elementNowSelected
-                )[0].value
-                }`;
+            const { getPublicPathFromRoot } = require("../../utils/pathHelper");
+            const mediaRelativePath = nodeSelected.data.elements.filter(
+              item => item.number === elementNowSelected
+            )[0].value;
+            const mediaDirectory = getPublicPathFromRoot(mediaRelativePath);
             const ticketInt = await Ticket.findOne({
               where: { id: ticket.id }
             });

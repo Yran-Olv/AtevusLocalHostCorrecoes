@@ -1,179 +1,67 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
-
-import Grid from "@material-ui/core/Grid";
-import FormControl from "@material-ui/core/FormControl";
-import TextField from "@material-ui/core/TextField";
+import Input from "../UI/Input";
+import ColorInput from "../UI/ColorInput";
+import FileUpload from "../UI/FileUpload";
+import Button from "../UI/Button";
+import Select from "../UI/Select";
 import useSettings from "../../hooks/useSettings";
-import { toast } from 'react-toastify';
-import { makeStyles } from "@material-ui/core/styles";
-import { grey, blue } from "@material-ui/core/colors";
+import { toast } from "react-toastify";
 import OnlyForSuperUser from "../OnlyForSuperUser";
 import useAuth from "../../hooks/useAuth.js/index.js";
-
-import {
-  IconButton,
-  InputAdornment,
-} from "@material-ui/core";
-
-import { Colorize, AttachFile, Delete } from "@material-ui/icons";
-import ColorPicker from "../ColorPicker";
 import ColorModeContext from "../../layout/themeContext";
 import api from "../../services/api";
 import { getBackendUrl } from "../../config";
-
 import defaultLogoLight from "../../assets/logo.png";
 import defaultLogoDark from "../../assets/logo-black.png";
 import defaultLogoFavicon from "../../assets/favicon.ico";
 import ColorBoxModal from "../ColorBoxModal/index.js";
-
-const useStyles = makeStyles((theme) => ({
-  container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
-  },
-  fixedHeightPaper: {
-    padding: theme.spacing(2),
-    display: "flex",
-    overflow: "auto",
-    flexDirection: "column",
-    height: 240,
-  },
-  tab: {
-    borderRadius: 4,
-    width: "100%",
-    "& .MuiTab-wrapper": {
-      color: "#128c7e"
-    },
-    "& .MuiTabs-flexContainer": {
-      justifyContent: "center"
-    }
-
-
-  },
-  paper: {
-    padding: theme.spacing(2),
-    display: "flex",
-    alignItems: "center",
-    marginBottom: 12,
-    width: "100%",
-  },
-  cardAvatar: {
-    fontSize: "55px",
-    color: grey[500],
-    backgroundColor: "#ffffff",
-    width: theme.spacing(7),
-    height: theme.spacing(7),
-  },
-  cardTitle: {
-    fontSize: "18px",
-    color: blue[700],
-  },
-  cardSubtitle: {
-    color: grey[600],
-    fontSize: "14px",
-  },
-  alignRight: {
-    textAlign: "right",
-  },
-  fullWidth: {
-    width: "100%",
-  },
-  selectContainer: {
-    width: "100%",
-    textAlign: "left",
-  },
-  colorAdorment: {
-    width: 20,
-    height: 20,
-  },
-
-  uploadInput: {
-    display: "none",
-  },
-
-  appLogoLightPreviewDiv: {
-    backgroundColor: "white",
-    padding: "10px",
-    borderStyle: "solid",
-    borderWidth: "1px",
-    borderColor: "#424242",
-    textAlign: "center",
-  },
-
-  appLogoDarkPreviewDiv: {
-    backgroundColor: "#424242",
-    padding: "10px",
-    borderStyle: "solid",
-    borderWidth: "1px",
-    borderColor: "white",
-    textAlign: "center",
-  },
-
-  appLogoFaviconPreviewDiv: {
-    padding: "10px",
-    borderStyle: "solid",
-    borderWidth: "1px",
-    borderColor: "black",
-    textAlign: "center",
-  },
-
-  appLogoLightPreviewImg: {
-    width: "100%",
-    maxHeight: 72,
-    content: "url(" + theme.calculatedLogoLight() + ")"
-  },
-
-  appLogoDarkPreviewImg: {
-    width: "100%",
-    maxHeight: 72,
-    content: "url(" + theme.calculatedLogoDark() + ")"
-  },
-
-  appLogoFaviconPreviewImg: {
-    width: "100%",
-    maxHeight: 72,
-    content: "url(" + ((theme.appLogoFavicon) ? theme.appLogoFavicon : "") + ")"
-  }
-}));
+import { applyWhitelabelStyles } from "../../hooks/useWhitelabel";
+import "./Whitelabel.css";
 
 export default function Whitelabel(props) {
   const { settings } = props;
-  const classes = useStyles();
   const [settingsLoaded, setSettingsLoaded] = useState({});
-
+  const [whitelabelConfig, setWhitelabelConfig] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { getCurrentUserInfo } = useAuth();
   const [currentUser, setCurrentUser] = useState({});
-
   const { colorMode } = useContext(ColorModeContext);
   const [primaryColorLightModalOpen, setPrimaryColorLightModalOpen] = useState(false);
   const [primaryColorDarkModalOpen, setPrimaryColorDarkModalOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("colors");
 
   const logoLightInput = useRef(null);
   const logoDarkInput = useRef(null);
   const logoFaviconInput = useRef(null);
-  const appNameInput = useRef(null);
   const [appName, setAppName] = useState(settingsLoaded.appName || "");
 
   const { update } = useSettings();
 
-  function updateSettingsLoaded(key, value) {
-    console.log("|=========== updateSettingsLoaded ==========|")
-    console.log(key, value)
-    console.log("|===========================================|")
-    if (key === 'primaryColorLight' || key === 'primaryColorDark' || key === 'appName') {
-      localStorage.setItem(key, value);
+  // Carregar configuração do Whitelabel
+  useEffect(() => {
+    const loadWhitelabelConfig = async () => {
+      try {
+        const { data } = await api.get("/whitelabel-config");
+        setWhitelabelConfig(data);
+      } catch (error) {
+        console.error("Erro ao carregar configuração Whitelabel:", error);
+      }
     };
+
+    loadWhitelabelConfig();
+  }, []);
+
+
+  function updateSettingsLoaded(key, value) {
     const newSettings = { ...settingsLoaded };
     newSettings[key] = value;
     setSettingsLoaded(newSettings);
   }
 
   useEffect(() => {
-    getCurrentUserInfo().then(
-      (u) => {
-        setCurrentUser(u);
-      }
-    );
+    getCurrentUserInfo().then((u) => {
+      setCurrentUser(u);
+    });
 
     if (Array.isArray(settings) && settings.length) {
       const primaryColorLight = settings.find((s) => s.key === "primaryColorLight")?.value;
@@ -184,13 +72,20 @@ export default function Whitelabel(props) {
       const appName = settings.find((s) => s.key === "appName")?.value;
 
       setAppName(appName || "");
-      setSettingsLoaded({ ...settingsLoaded, primaryColorLight, primaryColorDark, appLogoLight, appLogoDark, appLogoFavicon, appName });
+      setSettingsLoaded({
+        ...settingsLoaded,
+        primaryColorLight,
+        primaryColorDark,
+        appLogoLight,
+        appLogoDark,
+        appLogoFavicon,
+        appName,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
   async function handleSaveSetting(key, value) {
-
     await update({
       key,
       value,
@@ -198,6 +93,63 @@ export default function Whitelabel(props) {
     updateSettingsLoaded(key, value);
     toast.success("Operação atualizada com sucesso.");
   }
+
+  // Salvar configuração do Whitelabel
+  const handleSaveWhitelabelConfig = async () => {
+    setLoading(true);
+    try {
+      const configToSave = {
+        ...whitelabelConfig,
+        appName: appName || whitelabelConfig?.appName
+      };
+      
+      const { data } = await api.put("/whitelabel-config", configToSave);
+      setWhitelabelConfig(data);
+      applyWhitelabelStyles(data);
+      // Recarregar página para aplicar todas as mudanças
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      toast.success("Configurações de Whitelabel salvas com sucesso! A página será recarregada...");
+    } catch (error) {
+      console.error("Erro ao salvar configuração:", error);
+      toast.error("Erro ao salvar configurações");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Resetar para padrões
+  const handleResetConfig = async () => {
+    if (!window.confirm("Deseja realmente resetar todas as configurações para os valores padrão?")) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { data } = await api.post("/whitelabel-config/reset");
+      setWhitelabelConfig(data);
+      applyWhitelabelStyles(data);
+      // Recarregar página para aplicar todas as mudanças
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      toast.success("Configurações resetadas para os valores padrão! A página será recarregada...");
+    } catch (error) {
+      console.error("Erro ao resetar configuração:", error);
+      toast.error("Erro ao resetar configurações");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Atualizar campo específico
+  const handleUpdateField = (field, value) => {
+    setWhitelabelConfig(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const uploadLogo = async (e, mode) => {
     if (!e.target.files) {
@@ -211,304 +163,415 @@ export default function Whitelabel(props) {
     formData.append("mode", mode);
     formData.append("file", file);
 
-    await api.post("/settings-whitelabel/logo", formData, {
-      onUploadProgress: (event) => {
-        let progress = Math.round(
-          (event.loaded * 100) / event.total
-        );
-        console.log(
-          `A imagem  está ${progress}% carregada... `
-        );
-      },
-    }).then((response) => {
-      updateSettingsLoaded(`appLogo${mode}`, response.data);
-      colorMode[`setAppLogo${mode}`](getBackendUrl() + "/public/" + response.data);
-    }).catch((err) => {
-      console.error(
-        `Houve um problema ao realizar o upload da imagem.`
-      );
-      console.log(err);
-    });
+    await api
+      .post("/settings-whitelabel/logo", formData, {
+        onUploadProgress: (event) => {
+          let progress = Math.round((event.loaded * 100) / event.total);
+          console.log(`A imagem está ${progress}% carregada... `);
+        },
+      })
+      .then(async (response) => {
+        updateSettingsLoaded(`appLogo${mode}`, response.data);
+        colorMode[`setAppLogo${mode}`](getBackendUrl() + "/public/" + response.data);
+        
+        // Atualizar também no WhitelabelConfig
+        if (whitelabelConfig) {
+          await handleUpdateField(`appLogo${mode}`, response.data);
+        }
+      })
+      .catch((err) => {
+        console.error(`Houve um problema ao realizar o upload da imagem.`);
+        console.log(err);
+        toast.error("Erro ao fazer upload da imagem");
+      });
   };
 
+  const calculatedLogoLight = colorMode.appLogoLight || defaultLogoLight;
+  const calculatedLogoDark = colorMode.appLogoDark || defaultLogoDark;
+  const calculatedLogoFavicon = colorMode.appLogoFavicon || defaultLogoFavicon;
+
+  const fontOptions = [
+    { value: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", label: "Inter (Padrão)" },
+    { value: "Roboto, sans-serif", label: "Roboto" },
+    { value: "Open Sans, sans-serif", label: "Open Sans" },
+    { value: "Lato, sans-serif", label: "Lato" },
+    { value: "Montserrat, sans-serif", label: "Montserrat" },
+    { value: "Poppins, sans-serif", label: "Poppins" },
+    { value: "Nunito, sans-serif", label: "Nunito" },
+    { value: "Raleway, sans-serif", label: "Raleway" },
+    { value: "Ubuntu, sans-serif", label: "Ubuntu" },
+    { value: "Arial, sans-serif", label: "Arial" },
+    { value: "Helvetica, sans-serif", label: "Helvetica" },
+    { value: "Georgia, serif", label: "Georgia (Serif)" },
+    { value: "Times New Roman, serif", label: "Times New Roman (Serif)" },
+  ];
+
+  if (!whitelabelConfig) {
+    return <div className="whitelabel-container">Carregando...</div>;
+  }
+
   return (
-    <>
-      <Grid spacing={3} container>
-        {/* <Grid xs={12} item>
-                    <Title>Configurações Gerais</Title>
-                </Grid> */}
-        <OnlyForSuperUser
-          user={currentUser}
-          yes={() => (
-            <>
-              <Grid xs={12} sm={6} md={4} item>
-                <FormControl className={classes.selectContainer}>
-                  <TextField
-                    id="primary-color-light-field"
-                    label="Cor Primária Modo Claro"
-                    variant="standard"
-                    value={settingsLoaded.primaryColorLight || ""}
-                    onClick={() => setPrimaryColorLightModalOpen(true)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <div
-                            style={{ backgroundColor: settingsLoaded.primaryColorLight }}
-                            className={classes.colorAdorment}
-                          ></div>
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <IconButton
-                          size="small"
-                          color="default"
-                          onClick={() => setPrimaryColorLightModalOpen(true)}
-                        >
-                          <Colorize />
-                        </IconButton>
-                      ),
-                    }}
-                  />
-                </FormControl>
-                <ColorBoxModal
-                  open={primaryColorLightModalOpen}
-                  handleClose={() => setPrimaryColorLightModalOpen(false)}
-                  onChange={(color) => {
-                    handleSaveSetting("primaryColorLight", `#${color.hex}`);
-                    colorMode.setPrimaryColorLight(`#${color.hex}`);
-                  }}
+    <div className="whitelabel-container">
+      <OnlyForSuperUser
+        user={currentUser}
+        yes={() => (
+          <>
+            {/* Seções */}
+            <div className="whitelabel-sections">
+              <button
+                className={`whitelabel-section-btn ${activeSection === "colors" ? "active" : ""}`}
+                onClick={() => setActiveSection("colors")}
+              >
+                Cores
+              </button>
+              <button
+                className={`whitelabel-section-btn ${activeSection === "fonts" ? "active" : ""}`}
+                onClick={() => setActiveSection("fonts")}
+              >
+                Fontes
+              </button>
+              <button
+                className={`whitelabel-section-btn ${activeSection === "logos" ? "active" : ""}`}
+                onClick={() => setActiveSection("logos")}
+              >
+                Logos
+              </button>
+            </div>
 
-
-                  currentColor={settingsLoaded.primaryColorLight}
-                />
-
-              </Grid>
-              <Grid xs={12} sm={6} md={4} item>
-
-                <FormControl className={classes.selectContainer}>
-                  <TextField
-                    id="primary-color-dark-field"
-                    label="Cor Primária Modo Escuro"
-                    variant="standard"
-                    value={settingsLoaded.primaryColorDark || ""}
-                    onClick={() => setPrimaryColorDarkModalOpen(true)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <div
-                            style={{ backgroundColor: settingsLoaded.primaryColorDark }}
-                            className={classes.colorAdorment}
-                          ></div>
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <IconButton
-                          size="small"
-                          color="default"
-                          onClick={() => setPrimaryColorDarkModalOpen(true)}
-                        >
-                          <Colorize />
-                        </IconButton>
-                      ),
-                    }}
-                  />
-                </FormControl>
-                <ColorBoxModal
-                  open={primaryColorDarkModalOpen}
-                  handleClose={() => setPrimaryColorDarkModalOpen(false)}
-                  onChange={(color) => {
-                    handleSaveSetting("primaryColorDark", `#${color.hex}`);
-                    colorMode.setPrimaryColorDark(`#${color.hex}`);
-                  }}
-                  currentColor={settingsLoaded.primaryColorDark}
-                />
-              </Grid>
-
-              <Grid xs={12} sm={6} md={4} item>
-                <FormControl className={classes.selectContainer}>
-                  <TextField
-                    id="appname-field"
-                    label="Nome do sistema"
-                    variant="standard"
-                    name="appName"
-                    value={appName}
-                    inputRef={appNameInput}
-                    onChange={(e) => {
-                      setAppName(e.target.value);
-                    }}
-                    onBlur={async (_) => {
-                      await handleSaveSetting("appName", appName);
-                      colorMode.setAppName(appName || "Multivus");
-                    }}
-                  />
-                </FormControl>
-              </Grid>
-              <Grid xs={12} sm={6} md={4} item>
-                <FormControl className={classes.selectContainer}>
-                  <TextField
-                    id="logo-light-upload-field"
-                    label="Logotipo claro"
-                    variant="standard"
-                    value={settingsLoaded.appLogoLight || ""}
-                    InputProps={{
-                      endAdornment: (
-                        <>
-                          {settingsLoaded.appLogoLight &&
-                            <IconButton
-                              size="small"
-                              color="default"
-                              onClick={() => {
-                                handleSaveSetting("appLogoLight", "");
-                                colorMode.setAppLogoLight(defaultLogoLight);
-                              }
-                              }
-                            >
-                              <Delete />
-                            </IconButton>
-                          }
-                          <input
-                            type="file"
-                            id="upload-logo-light-button"
-                            ref={logoLightInput}
-                            className={classes.uploadInput}
-                            onChange={(e) => uploadLogo(e, "Light")}
-                          />
-                          <label htmlFor="upload-logo-light-button">
-                            <IconButton
-                              size="small"
-                              color="default"
-                              onClick={
-                                () => {
-                                  logoLightInput.current.click();
-                                }
-                              }
-                            >
-                              <AttachFile />
-                            </IconButton>
-                          </label>
-                        </>
-                      ),
-                    }}
-                  />
-                </FormControl>
-              </Grid>
-              <Grid xs={12} sm={6} md={4} item>
-                <FormControl className={classes.selectContainer}>
-                  <TextField
-                    id="logo-dark-upload-field"
-                    label="Logotipo escuro"
-                    variant="standard"
-                    value={settingsLoaded.appLogoDark || ""}
-                    InputProps={{
-                      endAdornment: (
-                        <>
-                          {settingsLoaded.appLogoDark &&
-                            <IconButton
-                              size="small"
-                              color="default"
-                              onClick={() => {
-                                handleSaveSetting("appLogoDark", "");
-                                colorMode.setAppLogoDark(defaultLogoDark);
-                              }
-                              }
-                            >
-                              <Delete />
-                            </IconButton>
-                          }
-                          <input
-                            type="file"
-                            id="upload-logo-dark-button"
-                            ref={logoDarkInput}
-                            className={classes.uploadInput}
-                            onChange={(e) => uploadLogo(e, "Dark")}
-                          />
-                          <label htmlFor="upload-logo-dark-button">
-                            <IconButton
-                              size="small"
-                              color="default"
-                              onClick={
-                                () => {
-                                  logoDarkInput.current.click();
-                                }
-                              }
-                            >
-                              <AttachFile />
-                            </IconButton>
-                          </label>
-                        </>
-                      ),
-                    }}
-                  />
-                </FormControl>
-              </Grid>
-              <Grid xs={12} sm={6} md={4} item>
-                <FormControl className={classes.selectContainer}>
-                  <TextField
-                    id="logo-favicon-upload-field"
-                    label="Favicon"
-                    variant="standard"
-                    value={settingsLoaded.appLogoFavicon || ""}
-                    InputProps={{
-                      endAdornment: (
-                        <>
-                          {settingsLoaded.appLogoFavicon &&
-                            <IconButton
-                              size="small"
-                              color="default"
-                              onClick={() => {
-                                handleSaveSetting("appLogoFavicon", "");
-                                colorMode.setAppLogoFavicon(defaultLogoFavicon);
-                              }
-                              }
-                            >
-                              <Delete />
-                            </IconButton>
-                          }
-                          <input
-                            type="file"
-                            id="upload-logo-favicon-button"
-                            ref={logoFaviconInput}
-                            className={classes.uploadInput}
-                            onChange={(e) => uploadLogo(e, "Favicon")}
-                          />
-                          <label htmlFor="upload-logo-favicon-button">
-                            <IconButton
-                              size="small"
-                              color="default"
-                              onClick={
-                                () => {
-                                  logoFaviconInput.current.click();
-                                }
-                              }
-                            >
-                              <AttachFile />
-                            </IconButton>
-                          </label>
-                        </>
-                      ),
-                    }}
-                  />
-                </FormControl>
-              </Grid>
-              <Grid xs={12} sm={6} md={4} item>
-                <div className={classes.appLogoLightPreviewDiv}>
-                  <img className={classes.appLogoLightPreviewImg} alt="light-logo-preview" />
+            {/* Seção de Cores */}
+            {activeSection === "colors" && (
+              <div className="whitelabel-section-content">
+                <h3 className="section-title">Cores do Menu Lateral</h3>
+                <div className="whitelabel-grid">
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Fundo do Menu Lateral"
+                      value={whitelabelConfig.sidebarBg || "#1a1d29"}
+                      onChange={(e) => handleUpdateField("sidebarBg", e.target.value)}
+                      helperText="Cor de fundo do menu lateral"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Texto do Menu Lateral"
+                      value={whitelabelConfig.sidebarText || "#e4e6eb"}
+                      onChange={(e) => handleUpdateField("sidebarText", e.target.value)}
+                      helperText="Cor do texto no menu lateral"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Texto Ativo do Menu"
+                      value={whitelabelConfig.sidebarTextActive || "#ffffff"}
+                      onChange={(e) => handleUpdateField("sidebarTextActive", e.target.value)}
+                      helperText="Cor do texto quando o item está ativo"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Borda Ativa do Menu"
+                      value={whitelabelConfig.sidebarActiveBorder || "#25d366"}
+                      onChange={(e) => handleUpdateField("sidebarActiveBorder", e.target.value)}
+                      helperText="Cor da borda do item ativo"
+                    />
+                  </div>
                 </div>
-              </Grid>
-              <Grid xs={12} sm={6} md={4} item>
-                <div className={classes.appLogoDarkPreviewDiv}>
-                  <img className={classes.appLogoDarkPreviewImg} alt="dark-logo-preview" />
+
+                <h3 className="section-title">Cores do Navbar (Rodapé de Cima)</h3>
+                <div className="whitelabel-grid">
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Fundo do Navbar"
+                      value={whitelabelConfig.navbarBg || "#128c7e"}
+                      onChange={(e) => handleUpdateField("navbarBg", e.target.value)}
+                      helperText="Cor de fundo da barra superior"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Texto do Navbar"
+                      value={whitelabelConfig.navbarText || "#ffffff"}
+                      onChange={(e) => handleUpdateField("navbarText", e.target.value)}
+                      helperText="Cor do texto na barra superior"
+                    />
+                  </div>
                 </div>
-              </Grid>
-              <Grid xs={12} sm={6} md={4} item>
-                <div className={classes.appLogoFaviconPreviewDiv}>
-                  <img className={classes.appLogoFaviconPreviewImg} alt="favicon-preview" />
+
+                <h3 className="section-title">Cores de Fundo das Páginas</h3>
+                <div className="whitelabel-grid">
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Fundo Páginas (Modo Claro)"
+                      value={whitelabelConfig.pageBgLight || "#f8f9fa"}
+                      onChange={(e) => handleUpdateField("pageBgLight", e.target.value)}
+                      helperText="Cor de fundo das páginas no modo claro"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Fundo Páginas (Modo Escuro)"
+                      value={whitelabelConfig.pageBgDark || "#0f1117"}
+                      onChange={(e) => handleUpdateField("pageBgDark", e.target.value)}
+                      helperText="Cor de fundo das páginas no modo escuro"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Fundo Cards (Modo Claro)"
+                      value={whitelabelConfig.cardBgLight || "#ffffff"}
+                      onChange={(e) => handleUpdateField("cardBgLight", e.target.value)}
+                      helperText="Cor de fundo dos cards no modo claro"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Fundo Cards (Modo Escuro)"
+                      value={whitelabelConfig.cardBgDark || "#1a1d29"}
+                      onChange={(e) => handleUpdateField("cardBgDark", e.target.value)}
+                      helperText="Cor de fundo dos cards no modo escuro"
+                    />
+                  </div>
                 </div>
-              </Grid>
-            </>
-          )}
-        />
-      </Grid>
-    </>
+
+                <h3 className="section-title">Cores de Texto</h3>
+                <div className="whitelabel-grid">
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Texto Primário (Modo Claro)"
+                      value={whitelabelConfig.textPrimaryLight || "#1a1a1a"}
+                      onChange={(e) => handleUpdateField("textPrimaryLight", e.target.value)}
+                      helperText="Cor do texto principal no modo claro"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Texto Primário (Modo Escuro)"
+                      value={whitelabelConfig.textPrimaryDark || "#e4e6eb"}
+                      onChange={(e) => handleUpdateField("textPrimaryDark", e.target.value)}
+                      helperText="Cor do texto principal no modo escuro"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Texto Secundário (Modo Claro)"
+                      value={whitelabelConfig.textSecondaryLight || "#4a5568"}
+                      onChange={(e) => handleUpdateField("textSecondaryLight", e.target.value)}
+                      helperText="Cor do texto secundário no modo claro"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Texto Secundário (Modo Escuro)"
+                      value={whitelabelConfig.textSecondaryDark || "#b0b3b8"}
+                      onChange={(e) => handleUpdateField("textSecondaryDark", e.target.value)}
+                      helperText="Cor do texto secundário no modo escuro"
+                    />
+                  </div>
+                </div>
+
+                <h3 className="section-title">Cores Primárias</h3>
+                <div className="whitelabel-grid">
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Cor Primária"
+                      value={whitelabelConfig.primaryColor || "#128c7e"}
+                      onChange={(e) => handleUpdateField("primaryColor", e.target.value)}
+                      helperText="Cor primária do sistema"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <ColorInput
+                      label="Cor Secundária"
+                      value={whitelabelConfig.secondaryColor || "#25d366"}
+                      onChange={(e) => handleUpdateField("secondaryColor", e.target.value)}
+                      helperText="Cor secundária do sistema"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Seção de Fontes */}
+            {activeSection === "fonts" && (
+              <div className="whitelabel-section-content">
+                <h3 className="section-title">Configurações de Fonte</h3>
+                <div className="whitelabel-grid">
+                  <div className="whitelabel-item">
+                    <Select
+                      label="Família da Fonte"
+                      value={whitelabelConfig.fontFamily || fontOptions[0].value}
+                      onChange={(e) => handleUpdateField("fontFamily", e.target.value)}
+                      options={fontOptions}
+                      helperText="Fonte utilizada em todo o sistema"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <Input
+                      label="Tamanho Base da Fonte (px)"
+                      type="number"
+                      value={whitelabelConfig.fontSizeBase || 16}
+                      onChange={(e) => handleUpdateField("fontSizeBase", parseInt(e.target.value) || 16)}
+                      helperText="Tamanho base da fonte em pixels"
+                      min="12"
+                      max="24"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <Input
+                      label="Peso da Fonte Normal"
+                      type="number"
+                      value={whitelabelConfig.fontWeightNormal || 400}
+                      onChange={(e) => handleUpdateField("fontWeightNormal", parseInt(e.target.value) || 400)}
+                      helperText="Peso da fonte normal (100-900)"
+                      min="100"
+                      max="900"
+                      step="100"
+                    />
+                  </div>
+                  <div className="whitelabel-item">
+                    <Input
+                      label="Peso da Fonte Negrito"
+                      type="number"
+                      value={whitelabelConfig.fontWeightBold || 600}
+                      onChange={(e) => handleUpdateField("fontWeightBold", parseInt(e.target.value) || 600)}
+                      helperText="Peso da fonte negrito (100-900)"
+                      min="100"
+                      max="900"
+                      step="100"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Seção de Logos */}
+            {activeSection === "logos" && (
+              <div className="whitelabel-section-content">
+                <h3 className="section-title">Logos e Nome do Sistema</h3>
+                <div className="whitelabel-grid">
+                  <div className="whitelabel-item">
+                    <Input
+                      label="Nome do sistema"
+                      value={appName}
+                      onChange={(e) => {
+                        setAppName(e.target.value);
+                      }}
+                      onBlur={async () => {
+                        await handleSaveSetting("appName", appName);
+                        colorMode.setAppName(appName || "Multivus");
+                        handleUpdateField("appName", appName);
+                      }}
+                      helperText="Nome exibido no sistema"
+                    />
+                  </div>
+
+                  <div className="whitelabel-item">
+                    <FileUpload
+                      label="Logotipo claro"
+                      value={settingsLoaded.appLogoLight || ""}
+                      onChange={(e) => uploadLogo(e, "Light")}
+                      onDelete={() => {
+                        handleSaveSetting("appLogoLight", "");
+                        colorMode.setAppLogoLight(defaultLogoLight);
+                        handleUpdateField("appLogoLight", "");
+                      }}
+                      accept="image/*"
+                      helperText="Logo exibido no modo claro"
+                    />
+                  </div>
+
+                  <div className="whitelabel-item">
+                    <FileUpload
+                      label="Logotipo escuro"
+                      value={settingsLoaded.appLogoDark || ""}
+                      onChange={(e) => uploadLogo(e, "Dark")}
+                      onDelete={() => {
+                        handleSaveSetting("appLogoDark", "");
+                        colorMode.setAppLogoDark(defaultLogoDark);
+                        handleUpdateField("appLogoDark", "");
+                      }}
+                      accept="image/*"
+                      helperText="Logo exibido no modo escuro"
+                    />
+                  </div>
+
+                  <div className="whitelabel-item">
+                    <FileUpload
+                      label="Favicon"
+                      value={settingsLoaded.appLogoFavicon || ""}
+                      onChange={(e) => uploadLogo(e, "Favicon")}
+                      onDelete={() => {
+                        handleSaveSetting("appLogoFavicon", "");
+                        colorMode.setAppLogoFavicon(defaultLogoFavicon);
+                        handleUpdateField("appLogoFavicon", "");
+                      }}
+                      accept="image/*"
+                      helperText="Ícone exibido na aba do navegador"
+                    />
+                  </div>
+
+                  <div className="whitelabel-item whitelabel-preview">
+                    <div className="preview-container">
+                      <h3 className="preview-title">Preview - Logo Claro</h3>
+                      <div className="preview-box preview-light">
+                        <img
+                          src={calculatedLogoLight}
+                          alt="light-logo-preview"
+                          className="preview-image"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="whitelabel-item whitelabel-preview">
+                    <div className="preview-container">
+                      <h3 className="preview-title">Preview - Logo Escuro</h3>
+                      <div className="preview-box preview-dark">
+                        <img
+                          src={calculatedLogoDark}
+                          alt="dark-logo-preview"
+                          className="preview-image"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="whitelabel-item whitelabel-preview">
+                    <div className="preview-container">
+                      <h3 className="preview-title">Preview - Favicon</h3>
+                      <div className="preview-box preview-favicon">
+                        <img
+                          src={calculatedLogoFavicon}
+                          alt="favicon-preview"
+                          className="preview-image"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Botões de Ação */}
+            <div className="whitelabel-actions">
+              <Button
+                variant="primary"
+                onClick={handleSaveWhitelabelConfig}
+                disabled={loading}
+              >
+                {loading ? "Salvando..." : "Salvar Todas as Configurações"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleResetConfig}
+                disabled={loading}
+              >
+                Resetar para Padrões
+              </Button>
+            </div>
+          </>
+        )}
+      />
+    </div>
   );
 }

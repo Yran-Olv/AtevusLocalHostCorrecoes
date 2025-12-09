@@ -449,7 +449,8 @@ const backToMainMenu = async (
     const body = formatBody(`\u200e ${greetingMessage}\n\n${options}`, ticket);
 
     if (greetingMediaAttachment !== null) {
-      const filePath = path.resolve("public", `company${ticket.companyId}`, ticket.whatsapp.greetingMediaAttachment);
+      const { getPublicFilePath } = require("../../utils/pathHelper");
+      const filePath = getPublicFilePath(`company${ticket.companyId}/${ticket.whatsapp.greetingMediaAttachment}`);
 
       const messagePath = ticket.whatsapp.greetingMediaAttachment
       const optionsMsg = await getMessageOptions(messagePath, filePath, String(ticket.companyId), body);

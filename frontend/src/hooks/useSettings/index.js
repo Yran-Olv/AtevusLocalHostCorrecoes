@@ -29,16 +29,25 @@ const useSettings = () => {
   };
 
   const getPublicSetting = async (key) => {
-    const params = {
-      token: "AASaaS"
-    }
+    try {
+      const params = {
+        token: process.env.REACT_APP_ENV_TOKEN || "AASaaS"
+      }
 
-    const { data } = await openApi.request({
-        url: `/public-settings/${key}`,
-        method: 'GET',
-        params
-    });
-    return data;
+      const { data } = await openApi.request({
+          url: `/public-settings/${key}`,
+          method: 'GET',
+          params
+      });
+      return data;
+    } catch (error) {
+      // Silenciar erros de rede/CORS em desenvolvimento
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Não foi possível carregar setting público: ${key}`, error.message);
+        return null;
+      }
+      throw error;
+    }
   };
 
   return {

@@ -186,7 +186,8 @@ export const deleteMedia = async (
   try {
     const announcement = await Announcement.findByPk(id);
 
-    const filePath = path.resolve("public", "announcements", announcement.mediaPath);
+    const { getPublicFilePath } = require("../../utils/pathHelper");
+    const filePath = getPublicFilePath(`announcements/${announcement.mediaPath}`);
 
     const fileExists = fs.existsSync(filePath);
 

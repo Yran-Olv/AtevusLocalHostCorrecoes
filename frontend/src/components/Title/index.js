@@ -1,10 +1,10 @@
 import React from "react";
-import Typography from "@material-ui/core/Typography";
+import "./Title.css";
 
 export default function Title(props) {
 	return (
-		<Typography variant="h5" color="primary" gutterBottom>
+		<h2 className="title-component">
 			{props.children}
-		</Typography>
+		</h2>
 	);
 }

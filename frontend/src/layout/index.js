@@ -13,8 +13,6 @@ import { i18n } from "../translate/i18n";
 import toastError from "../errors/toastError";
 import AnnouncementsPopover from "../components/AnnouncementsPopover";
 
-import logo from "../assets/logo.png";
-import logoDark from "../assets/logo-black.png";
 import ChatPopover from "../pages/Chat/ChatPopover";
 
 import { useDate } from "../hooks/useDate";
@@ -224,10 +222,6 @@ const LoggedInLayout = ({ children, themeToggle }) => {
     return <BackdropLoading />;
   }
 
-  const getLogoUrl = () => {
-    // Usar logo baseado no tema atual
-    return currentTheme === "light" ? logo : logoDark;
-  };
 
   return (
     <div className="layout-root">
@@ -245,12 +239,10 @@ const LoggedInLayout = ({ children, themeToggle }) => {
       >
         <div className="layout-drawer-header">
           {drawerOpen && (
-            <img 
-              className="layout-drawer-logo"
-              src={getLogoUrl()}
-              alt="Logo"
-              style={{ height: "36px", width: "auto" }}
-            />
+            <div className="layout-drawer-logo-text">
+              <span className="logo-m">M</span>
+              <span className="logo-text">ultivus</span>
+            </div>
           )}
           <button 
             className="layout-drawer-toggle"
@@ -266,7 +258,7 @@ const LoggedInLayout = ({ children, themeToggle }) => {
       </aside>
 
       {/* AppBar */}
-      <header className={`layout-appbar ${drawerOpen && drawerVariant === "permanent" ? 'shifted' : ''}`}>
+      <header className={`layout-appbar ${drawerVariant === "permanent" ? 'shifted' : ''} ${drawerVariant === "permanent" && !drawerOpen ? 'collapsed' : ''}`}>
         <div className="layout-appbar-toolbar">
           <div className="layout-appbar-left">
             <button
@@ -426,7 +418,7 @@ const LoggedInLayout = ({ children, themeToggle }) => {
       </header>
 
       {/* Main Content */}
-      <main className={`layout-main ${drawerVariant === "permanent" ? 'shifted' : ''}`}>
+      <main className={`layout-main ${drawerVariant === "permanent" ? 'shifted' : ''} ${drawerVariant === "permanent" && !drawerOpen ? 'collapsed' : ''}`}>
         {children}
       </main>
     </div>

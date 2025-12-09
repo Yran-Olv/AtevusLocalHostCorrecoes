@@ -213,8 +213,11 @@ const CreateOrUpdateContactService = async ({
 
       let fileName, oldPath = "";
       if (contact.urlPicture) {
-        oldPath = path.resolve(contact.urlPicture.replace(/\\/g, '/'));
-        fileName = path.join(folder, oldPath.split('\\').pop());
+        // Normalizar caminho para funcionar em Windows e Linux
+        const normalizedPath = contact.urlPicture.replace(/\\/g, '/');
+        oldPath = path.resolve(normalizedPath);
+        // Usar path.basename ao invés de split('\\').pop() para cross-platform
+        fileName = path.join(folder, path.basename(normalizedPath));
       }
       if (!fs.existsSync(fileName) || contact.profilePicUrl === "") {
         if (wbot && ['whatsapp'].includes(channel)) {

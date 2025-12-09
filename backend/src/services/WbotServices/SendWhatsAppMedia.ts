@@ -38,7 +38,7 @@ const os = require("os");
 const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
 
 const processAudio = async (audio: string, companyId: string): Promise<string> => {
-  const outputAudio = `${publicFolder}/company${companyId}/${new Date().getTime()}.opus`;
+  const outputAudio = path.join(publicFolder, `company${companyId}`, `${new Date().getTime()}.opus`);
   return new Promise((resolve, reject) => {
     exec(
       `${ffmpegPath.path} -i ${audio} -vn -c:a libopus -b:a 128k -vbr on -compression_level 10 -ar 48000 -ac 1 -application voip ${outputAudio} -y`,
@@ -52,7 +52,7 @@ const processAudio = async (audio: string, companyId: string): Promise<string> =
 };
 
 const processAudioFile = async (audio: string, companyId: string): Promise<string> => {
-  const outputAudio = `${publicFolder}/company${companyId}/${new Date().getTime()}.opus`;
+  const outputAudio = path.join(publicFolder, `company${companyId}`, `${new Date().getTime()}.opus`);
   return new Promise((resolve, reject) => {
     exec(
       `${ffmpegPath.path} -i ${audio} -vn -c:a libopus -b:a 128k -vbr on -compression_level 10 -ar 48000 -ac 1 -application voip ${outputAudio}`,

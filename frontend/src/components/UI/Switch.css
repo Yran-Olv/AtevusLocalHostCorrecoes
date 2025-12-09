@@ -1,0 +1,96 @@
+.switch-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.switch-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  background-color: var(--switch-bg-off);
+  border-radius: 24px;
+  transition: background-color 0.3s ease;
+}
+
+.switch-slider::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 2px;
+  top: 2px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.switch-input:checked + .switch-slider {
+  background-color: var(--color-primary);
+}
+
+.switch-input:checked + .switch-slider::before {
+  transform: translateX(20px);
+}
+
+.switch-input:focus + .switch-slider {
+  box-shadow: 0 0 0 3px rgba(18, 140, 126, 0.2);
+  outline: none;
+}
+
+.switch-input:disabled + .switch-slider {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.switch-label {
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Dark mode - Usa variáveis globais */
+[data-theme="dark"] .switch-slider,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .switch-slider {
+    background-color: var(--switch-bg-off);
+  }
+
+  :root:not([data-theme="light"]) .switch-label {
+    color: var(--text-primary);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .switch-slider {
+    width: 40px;
+    height: 22px;
+  }
+
+  .switch-slider::before {
+    width: 18px;
+    height: 18px;
+  }
+
+  .switch-input:checked + .switch-slider::before {
+    transform: translateX(18px);
+  }
+}
+

@@ -90,15 +90,23 @@ app.use(
       // Permitir requisições sem origem (mobile apps, Postman, etc)
       if (!origin) return callback(null, true);
       
+      // Em desenvolvimento, permitir todas as origens
+      if (process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+      
       // Permitir se estiver na lista de origens permitidas
-      if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Type', 'Authorization'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   })
 );
 app.use(cookieParser());
@@ -114,6 +122,13 @@ app.use(Sentry.Handlers.errorHandler());
 
 // Middleware de tratamento de erros
 app.use(async (err: Error, req: Request, res: Response, _: NextFunction) => {
+  // Garantir que headers CORS estão presentes mesmo em erros
+  const origin = req.headers.origin;
+  if (origin && (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production')) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
   if (err instanceof AppError) {
     logger.warn(err);
     return res.status(err.statusCode).json({ error: err.message });

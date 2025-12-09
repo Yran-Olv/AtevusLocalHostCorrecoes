@@ -165,7 +165,8 @@ export const deleteMedia = async (
 
   try {
     const schedule = await Schedule.findByPk(id);
-    const filePath = path.resolve("public", schedule.mediaPath);
+    const { getPublicFilePath } = require("../../utils/pathHelper");
+    const filePath = getPublicFilePath(schedule.mediaPath);
     const fileExists = fs.existsSync(filePath);
     if (fileExists) {
       fs.unlinkSync(filePath);
