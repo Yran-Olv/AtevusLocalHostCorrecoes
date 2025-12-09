@@ -91,10 +91,11 @@
     "zustand": "^4.4.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider GENERATE_SOURCEMAP=false react-scripts build",
-    "builddev": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "react-app-rewired start",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 GENERATE_SOURCEMAP=false react-app-rewired build",
+    "build:fast": "cross-env NODE_OPTIONS=--max-old-space-size=4096 GENERATE_SOURCEMAP=false CI=true react-app-rewired build",
+    "builddev": "react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -114,6 +115,7 @@
   },
   "devDependencies": {
     "typescript": "^5.5.3",
-    "@babel/plugin-proposal-private-property-in-object": "^7.20.5"
+    "@babel/plugin-proposal-private-property-in-object": "^7.20.5",
+    "react-app-rewired": "^2.2.1"
   }
 }
