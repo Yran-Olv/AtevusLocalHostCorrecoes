@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider nodemon dist/server.js",
+    "start": "node dist/server.js",
+    "start:dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider nodemon dist/server.js",
     "dev:server": "ts-node-dev --respawn --transpile-only --ignore node_modules src/server.ts",
     "db:migrate": "npx sequelize db:migrate",
     "db:seed": "sequelize db:seed:all",

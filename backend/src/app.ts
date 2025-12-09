@@ -19,6 +19,7 @@ import { messageQueue, sendScheduledMessages } from "./queues";
 import BullQueue from "./libs/queue"
 import BullBoard from 'bull-board';
 import basicAuth from 'basic-auth';
+import { validateEnvironment } from "./config/validateEnv";
 
 // Função de middleware para autenticação básica
 export const isBullAuth = (req, res, next) => {
@@ -34,8 +35,17 @@ export const isBullAuth = (req, res, next) => {
 // Carregar variáveis de ambiente
 dotenvConfig();
 
+// Validar variáveis de ambiente obrigatórias
+validateEnvironment();
+
 // Inicializar Sentry
-Sentry.init({ dsn: process.env.SENTRY_DSN });
+if (process.env.SENTRY_DSN) {
+  Sentry.init({ 
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || "development",
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0
+  });
+}
 
 const app = express();
 
@@ -59,24 +69,35 @@ if (String(process.env.BULL_BOARD).toLocaleLowerCase() === 'true' && process.env
   app.use('/admin/queues', isBullAuth, BullBoard.UI);
 }
 
-// Middlewares
-// app.use(helmet({
-//   contentSecurityPolicy: {
-//     directives: {
-//       defaultSrc: ["'self'", "http://localhost:8080"],
-//       imgSrc: ["'self'", "data:", "http://localhost:8080"],
-//       scriptSrc: ["'self'", "http://localhost:8080"],
-//       styleSrc: ["'self'", "'unsafe-inline'", "http://localhost:8080"],
-//       connectSrc: ["'self'", "http://localhost:8080"]
-//     }
-//   },
-//   crossOriginResourcePolicy: false, // Permite recursos de diferentes origens
-//   crossOriginEmbedderPolicy: false, // Permite incorporação de diferentes origens
-//   crossOriginOpenerPolicy: false, // Permite abertura de diferentes origens
-//   // crossOriginResourcePolicy: {
-//   //   policy: "cross-origin" // Permite carregamento de recursos de diferentes origens
-//   // }
-// }));
+// Middlewares de Segurança
+// Helmet - Headers de segurança HTTP
+if (process.env.NODE_ENV === 'production') {
+  // Em produção, usar configuração mais restritiva
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:", "http:"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        connectSrc: ["'self'"],
+        frameSrc: ["'self'"]
+      }
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false
+  }));
+} else {
+  // Em desenvolvimento, configuração mais permissiva
+  app.use(helmet({
+    contentSecurityPolicy: false, // Desabilitar CSP em desenvolvimento
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false
+  }));
+}
 
 app.use(compression()); // Compressão HTTP
 app.use(bodyParser.json({ limit: '5mb' })); // Aumentar o limite de carga para 5 MB
@@ -131,11 +152,30 @@ app.use(async (err: Error, req: Request, res: Response, _: NextFunction) => {
 
   if (err instanceof AppError) {
     logger.warn(err);
-    return res.status(err.statusCode).json({ error: err.message });
+    return res.status(err.statusCode).json({ 
+      error: err.message,
+      ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+    });
   }
 
-  logger.error(err);
-  return res.status(500).json({ error: "Internal server error" });
+  // Log completo do erro
+  logger.error({
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+    body: req.body,
+    query: req.query
+  });
+
+  // Em produção, não expor detalhes do erro
+  return res.status(500).json({ 
+    error: "Internal server error",
+    ...(process.env.NODE_ENV !== 'production' && { 
+      message: err.message,
+      stack: err.stack 
+    })
+  });
 });
 
 export default app;

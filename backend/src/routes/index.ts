@@ -48,6 +48,7 @@ import flowDefaultRoutes from "./flowDefaultRoutes";
 import webHook from "./webHookRoutes";
 import flowBuilder from "./flowBuilderRoutes";
 import flowCampaignRoutes from "./flowCampaignRoutes";
+import healthRoutes from "./healthRoutes";
 
 
 const routes = Router();
@@ -103,5 +104,6 @@ routes.use(gerencianetConfigRoutes);
 routes.use(loginConfigRoutes);
 routes.use(whitelabelConfigRoutes);
 routes.use(scheduleMessageRoutes);
+routes.use(healthRoutes); // Health check endpoints
 
 export default routes;

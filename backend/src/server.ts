@@ -9,44 +9,65 @@ import Company from "./models/Company";
 import BullQueue from './libs/queue';
 
 import { startQueueProcess } from "./queues";
+
+// Configurar timeout para requisições (30 segundos)
+const REQUEST_TIMEOUT = 30000;
 // import { ScheduledMessagesJob, ScheduleMessagesGenerateJob, ScheduleMessagesEnvioJob, ScheduleMessagesEnvioForaHorarioJob } from "./wbotScheduledMessages";
 
-const server = app.listen(process.env.PORT, async () => {
-  const companies = await Company.findAll({
-    where: { status: true },
-    attributes: ["id"]
-  });
+const server = app.listen(process.env.PORT || 8080, async () => {
+  try {
+    const companies = await Company.findAll({
+      where: { status: true },
+      attributes: ["id"]
+    });
 
-  const allPromises: any[] = [];
-  companies.map(async c => {
-    const promise = StartAllWhatsAppsSessions(c.id);
-    allPromises.push(promise);
-  });
+    const allPromises: any[] = [];
+    companies.map(async c => {
+      const promise = StartAllWhatsAppsSessions(c.id);
+      allPromises.push(promise);
+    });
 
-  Promise.all(allPromises).then(async () => {
+    Promise.all(allPromises).then(async () => {
+      await startQueueProcess();
+    }).catch(error => {
+      logger.error("Erro ao iniciar sessões WhatsApp:", error);
+    });
 
-    await startQueueProcess();
-  });
+    if (process.env.REDIS_URI_ACK && process.env.REDIS_URI_ACK !== '') {
+      BullQueue.process();
+    }
 
-  if (process.env.REDIS_URI_ACK && process.env.REDIS_URI_ACK !== '') {
-    BullQueue.process();
+    logger.info(`✅ Server started on port: ${process.env.PORT || 8080}`);
+    logger.info(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
+  } catch (error) {
+    logger.error("❌ Erro ao iniciar servidor:", error);
+    process.exit(1);
   }
-
-  logger.info(`Server started on port: ${process.env.PORT}`);
 });
 
+// Configurar timeout do servidor
+server.timeout = REQUEST_TIMEOUT;
+server.keepAliveTimeout = 65000; // 65 segundos
+server.headersTimeout = 66000; // 66 segundos
+
 process.on("uncaughtException", err => {
-  console.error(`${new Date().toUTCString()} uncaughtException:`, err.message);
-  console.error(err.stack);
+  logger.error({
+    type: "uncaughtException",
+    message: err.message,
+    stack: err.stack,
+    timestamp: new Date().toISOString()
+  });
   process.exit(1);
 });
 
-process.on("unhandledRejection", (reason, p) => {
-  console.error(
-    `${new Date().toUTCString()} unhandledRejection:`,
-    reason,
-    p
-  );
+process.on("unhandledRejection", (reason: any, p: Promise<any>) => {
+  logger.error({
+    type: "unhandledRejection",
+    reason: reason?.message || reason,
+    stack: reason?.stack,
+    promise: p,
+    timestamp: new Date().toISOString()
+  });
   process.exit(1);
 });
 
