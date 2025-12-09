@@ -9,7 +9,7 @@ Sistema SaaS completo para gerenciamento de atendimento via WhatsApp com múltip
 
 ---
 
-## 🔄 Última Atualização (Janeiro 2025)
+## 🔄 Última Atualização 09/12/2025 01:05 Madrugada
 
 ### ✨ Novas Funcionalidades Implementadas
 
@@ -334,7 +334,7 @@ Para dúvidas e suporte:
 
 ## 📝 Changelog
 
-### Janeiro 2025
+### Dezembro 2025
 - ✨ Sistema de configuração completo via UI (Gerencianet, Login, Whitelabel)
 - ✨ Tela de Login 100% configurável com temas brasileiros
 - ✨ Sistema de recuperação de senha
@@ -348,7 +348,7 @@ Para dúvidas e suporte:
 - 🐛 Correções de caminhos cross-platform
 - 🐛 Melhorias de validação e tratamento de erros
 
-### Novembro 2024
+### Novembro 2025
 - ✨ Suporte a LID (Linked ID) do WhatsApp
 - ⚡ Otimizações de performance
 
@@ -362,8 +362,8 @@ Este projeto é proprietário. Todos os direitos reservados.
 
 ## 👥 Contribuidores
 
-Desenvolvido e mantido pela equipe Multivus.
+Desenvolvido e mantido pela equipe Atevus Murilo e Multivus.
 
 ---
 
-**Última atualização**: Janeiro 2025
+**Última atualização**: Dezembro 2025
