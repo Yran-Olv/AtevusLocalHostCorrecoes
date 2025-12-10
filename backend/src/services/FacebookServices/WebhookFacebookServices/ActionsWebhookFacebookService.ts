@@ -22,6 +22,8 @@ import ffmpeg from "fluent-ffmpeg";
 import { fi } from "date-fns/locale";
 import queue from "../../../libs/queue";
 import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
+import logger from "../../../utils/logger";
+import AppError from "../../../errors/AppError";
 
 // Usar FFmpeg do pacote @ffmpeg-installer/ffmpeg
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
@@ -41,6 +43,92 @@ interface NumberPhrase {
     email: string
 }
 
+// Helper function to construct JSON line
+const constructJsonLine = (line: string, json: any) => {
+    let valor = json
+    const chaves = line.split(".")
+
+    if (chaves.length === 1) {
+        return valor[chaves[0]]
+    }
+
+    for (const chave of chaves) {
+        valor = valor[chave]
+    }
+    return valor
+};
+
+// Helper function to get field value from dataWebhook or ticket
+const getFieldValue = (key: string, dataWebhook: any, ticket: Ticket | null): any => {
+    if (!key) return null;
+    
+    // Try to get from dataWebhook first
+    if (dataWebhook && typeof dataWebhook === 'object') {
+        try {
+            return constructJsonLine(key, dataWebhook);
+        } catch (e) {
+            // Continue to try ticket
+        }
+    }
+    
+    // Try to get from ticket
+    if (ticket) {
+        const ticketData: any = ticket.toJSON ? ticket.toJSON() : ticket;
+        try {
+            return constructJsonLine(key, ticketData);
+        } catch (e) {
+            // Field not found
+        }
+    }
+    
+    return null;
+};
+
+// Helper function to evaluate condition
+const evaluateCondition = (
+    fieldValue: any,
+    condition: string,
+    compareValue: string
+): boolean => {
+    if (fieldValue === null || fieldValue === undefined) {
+        return false;
+    }
+
+    const fieldStr = String(fieldValue).toLowerCase().trim();
+    const compareStr = String(compareValue).toLowerCase().trim();
+
+    switch (condition) {
+        case "equals":
+        case "==":
+            return fieldStr === compareStr;
+        case "notEquals":
+        case "!=":
+            return fieldStr !== compareStr;
+        case "contains":
+            return fieldStr.includes(compareStr);
+        case "notContains":
+            return !fieldStr.includes(compareStr);
+        case "startsWith":
+            return fieldStr.startsWith(compareStr);
+        case "endsWith":
+            return fieldStr.endsWith(compareStr);
+        case "greaterThan":
+        case ">":
+            return Number(fieldValue) > Number(compareValue);
+        case "lessThan":
+        case "<":
+            return Number(fieldValue) < Number(compareValue);
+        case "greaterThanOrEqual":
+        case ">=":
+            return Number(fieldValue) >= Number(compareValue);
+        case "lessThanOrEqual":
+        case "<=":
+            return Number(fieldValue) <= Number(compareValue);
+        default:
+            logger.warn(`Operador de condição desconhecido: ${condition}`);
+            return false;
+    }
+};
 
 export const ActionsWebhookFacebookService = async (
     token: Whatsapp,
@@ -56,14 +144,39 @@ export const ActionsWebhookFacebookService = async (
     idTicket?: number,
     numberPhrase?: NumberPhrase
 ): Promise<string> => {
+    const startTime = Date.now();
+    const TIMEOUT_PER_NODE = 30000; // 30 segundos por nó
+    const MAX_EXECUTION_TIME = 300000; // 5 minutos total
 
-    const io = getIO()
-    let next = nextStage;
-    let createFieldJsonName = "";
-    const connectStatic = connects;
+    try {
+        const io = getIO()
+        let next = nextStage;
+        logger.debug('ActionsWebhookFacebookService iniciado', {
+            idFlowDb,
+            companyId,
+            nextStage,
+            idTicket,
+            nodesCount: nodes.length,
+            connectionsCount: connects.length
+        });
+        let createFieldJsonName = "";
+        const connectStatic = connects;
 
+        // Otimização: Criar Maps para busca O(1)
+        const nodesMap = new Map<string, INodes>();
+        nodes.forEach(node => {
+            nodesMap.set(node.id, node);
+        });
 
-    const lengthLoop = nodes.length;
+        const connectionsBySource = new Map<string, IConnections[]>();
+        connects.forEach(conn => {
+            if (!connectionsBySource.has(conn.source)) {
+                connectionsBySource.set(conn.source, []);
+            }
+            connectionsBySource.get(conn.source)!.push(conn);
+        });
+
+        const lengthLoop = nodes.length;
     const getSession = await Whatsapp.findOne({
         where: {
             facebookPageUserId: token.facebookPageUserId
@@ -98,15 +211,35 @@ export const ActionsWebhookFacebookService = async (
 
     let selectedQueueid = null;
 
+        // Verificar timeout total
+        if (Date.now() - startTime > MAX_EXECUTION_TIME) {
+            logger.error('Timeout total do fluxo Facebook', { idFlowDb, idTicket, executionTime: Date.now() - startTime });
+            throw new AppError('Tempo máximo de execução do fluxo excedido');
+        }
+
     for (var i = 0; i < lengthLoop; i++) {
+        // Verificar timeout por nó
+        const nodeStartTime = Date.now();
+        if (Date.now() - nodeStartTime > TIMEOUT_PER_NODE) {
+            logger.warn('Timeout no nó Facebook', { idFlowDb, idTicket, nodeIndex: i, executionTime: Date.now() - nodeStartTime });
+            break;
+        }
+
         let nodeSelected: any;
         let ticketInit: Ticket;
         if (idTicket) {
             ticketInit = await Ticket.findOne({
                 where: { id: idTicket }
             });
+
+            if (!ticketInit) {
+                logger.warn('Ticket não encontrado Facebook', { idTicket });
+                break;
+            }
+
             if (ticketInit.status === "closed") {
-               break
+                logger.debug('Ticket fechado, interrompendo fluxo Facebook', { idTicket });
+                break;
             } else {
                 await ticketInit.update({
                     dataWebhook: {
@@ -121,10 +254,13 @@ export const ActionsWebhookFacebookService = async (
                     const ticket = await Ticket.findOne({
                         where: { id: idTicket }
                     });
-                    await ticket.update({
-                        status: "closed"
-                    });
+                    if (ticket) {
+                        await ticket.update({
+                            status: "closed"
+                        });
+                    }
                 }
+                logger.debug('Fluxo Facebook interrompido por comando "parar"', { idFlowDb, idTicket });
                 break;
             }
 
@@ -133,34 +269,107 @@ export const ActionsWebhookFacebookService = async (
                     type: "menu"
                 };
             } else {
-                nodeSelected = nodes.filter(node => node.id === execFn)[0];
+                nodeSelected = nodesMap.get(execFn);
+                if (!nodeSelected) {
+                    logger.warn('Nó não encontrado Facebook', { nodeId: execFn, idFlowDb });
+                    break;
+                }
             }
         } else {
-            const otherNode = nodes.filter(node => node.id === next)[0];
+            const otherNode = nodesMap.get(next);
             if (otherNode) {
                 nodeSelected = otherNode;
+            } else {
+                logger.warn('Próximo nó não encontrado Facebook', { nodeId: next, idFlowDb });
+                break;
             }
         }
 
-        if (nodeSelected.type === "ticket") {
-            const queue = await ShowQueueService(nodeSelected.data.data.id, companyId)
+        if (!nodeSelected) {
+            logger.warn('Nó selecionado é nulo Facebook', { next, execFn, idFlowDb });
+            break;
+        }
 
-            console.clear()
-            console.log("====================================")
-            console.log("              TICKET                ")
-            console.log("====================================")
+        // Implementação do nó CONDITION
+        if (nodeSelected.type === "condition") {
+            try {
+                const fieldKey = nodeSelected.data?.key;
+                const condition = nodeSelected.data?.condition;
+                const compareValue = nodeSelected.data?.value;
+
+                if (!fieldKey || !condition || compareValue === undefined) {
+                    logger.error('Condição inválida Facebook: campos obrigatórios faltando', {
+                        nodeId: nodeSelected.id,
+                        fieldKey,
+                        condition,
+                        compareValue
+                    });
+                    break;
+                }
+
+                const fieldValue = getFieldValue(fieldKey, dataWebhook, ticket);
+                const conditionMet = evaluateCondition(fieldValue, condition, compareValue);
+
+                logger.debug('Condição avaliada Facebook', {
+                    nodeId: nodeSelected.id,
+                    fieldKey,
+                    fieldValue,
+                    condition,
+                    compareValue,
+                    result: conditionMet
+                });
+
+                // Buscar conexões do nó condition
+                const conditionConnections = connectionsBySource.get(nodeSelected.id) || [];
+                const trueConnection = conditionConnections.find(c => c.sourceHandle === "true");
+                const falseConnection = conditionConnections.find(c => c.sourceHandle === "false");
+
+                if (conditionMet && trueConnection) {
+                    next = trueConnection.target;
+                    noAlterNext = true;
+                    logger.debug('Condição verdadeira Facebook, seguindo para nó', { next });
+                } else if (!conditionMet && falseConnection) {
+                    next = falseConnection.target;
+                    noAlterNext = true;
+                    logger.debug('Condição falsa Facebook, seguindo para nó', { next });
+                } else {
+                    logger.warn('Conexões de condição não encontradas Facebook', {
+                        nodeId: nodeSelected.id,
+                        hasTrueConnection: !!trueConnection,
+                        hasFalseConnection: !!falseConnection
+                    });
+                    break;
+                }
+            } catch (error) {
+                logger.error('Erro ao processar nó condition Facebook', {
+                    nodeId: nodeSelected.id,
+                    error: error instanceof Error ? error.message : String(error),
+                    stack: error instanceof Error ? error.stack : undefined
+                });
+                break;
+            }
+        }
+
+        // Implementação do nó INTERVAL
+        if (nodeSelected.type === "interval") {
+            const seconds = nodeSelected.data?.sec || 1;
+            await intervalWhats(String(seconds));
+            logger.debug('Intervalo executado Facebook', { nodeId: nodeSelected.id, seconds });
+        }
+
+        if (nodeSelected.type === "ticket") {
+            const queueId = nodeSelected.data?.data?.id || nodeSelected.data?.id;
+            const queue = await ShowQueueService(queueId, companyId);
 
             selectedQueueid = queue.id;
-            console.log({ selectedQueueid })
-            //await updateQueueId(ticket, companyId, queue.id)
-
+            logger.debug('Ticket node processado Facebook', { queueId: queue.id, nodeId: nodeSelected.id });
         }
 
         if (nodeSelected.type === "singleBlock") {
 
             for (var iLoc = 0; iLoc < nodeSelected.data.seq.length; iLoc++) {
                 const elementNowSelected = nodeSelected.data.seq[iLoc];
-                console.log(elementNowSelected, "elementNowSelected")
+                logger.debug('Processando elemento singleBlock Facebook', { elementNowSelected, nodeId: nodeSelected.id });
 
                 if (elementNowSelected.includes("message")) {
                     // await SendMessageFlow(whatsapp, {
@@ -528,17 +737,25 @@ export const ActionsWebhookFacebookService = async (
         if (nodeSelected.type === "randomizer") {
             const selectedRandom = randomizarCaminho(nodeSelected.data.percent / 100);
 
-            const resultConnect = connects.filter(
-                connect => connect.source === nodeSelected.id
-            );
+            const resultConnect = connectionsBySource.get(nodeSelected.id) || [];
             if (selectedRandom === "A") {
-                next = resultConnect.filter(item => item.sourceHandle === "a")[0]
-                    .target;
-                noAlterNext = true;
+                const connA = resultConnect.find(item => item.sourceHandle === "a");
+                if (connA) {
+                    next = connA.target;
+                    noAlterNext = true;
+                } else {
+                    logger.warn('Conexão "a" não encontrada no randomizador Facebook', { nodeId: nodeSelected.id });
+                    break;
+                }
             } else {
-                next = resultConnect.filter(item => item.sourceHandle === "b")[0]
-                    .target;
-                noAlterNext = true;
+                const connB = resultConnect.find(item => item.sourceHandle === "b");
+                if (connB) {
+                    next = connB.target;
+                    noAlterNext = true;
+                } else {
+                    logger.warn('Conexão "b" não encontrada no randomizador Facebook', { nodeId: nodeSelected.id });
+                    break;
+                }
             }
             isRandomizer = true;
         }
@@ -546,28 +763,25 @@ export const ActionsWebhookFacebookService = async (
 
         if (nodeSelected.type === "menu") {
             if (pressKey) {
-
-                const filterOne = connectStatic.filter(confil => confil.source === next)
-                const filterTwo = filterOne.filter(filt2 => filt2.sourceHandle === "a" + pressKey)
+                const nextConnections = connectionsBySource.get(next) || [];
+                const filterTwo = nextConnections.filter(filt2 => filt2.sourceHandle === "a" + pressKey);
+                
                 if (filterTwo.length > 0) {
-                    execFn = filterTwo[0].target
+                    execFn = filterTwo[0].target;
                 } else {
-                    execFn = undefined
+                    execFn = undefined;
                 }
-                // execFn =
-                //   connectStatic
-                //     .filter(confil => confil.source === next)
-                //     .filter(filt2 => filt2.sourceHandle === "a" + pressKey)[0]?.target ??
-                //   undefined;
+
                 if (execFn === undefined) {
+                    logger.warn('Opção de menu não encontrada Facebook', { pressKey, next, idFlowDb });
                     break;
                 }
                 pressKey = "999";
 
-                const isNodeExist = nodes.filter(item => item.id === execFn);
+                const isNodeExist = nodesMap.get(execFn);
 
-                if (isNodeExist.length > 0) {
-                    isMenu = isNodeExist[0].type === "menu" ? true : false;
+                if (isNodeExist) {
+                    isMenu = isNodeExist.type === "menu";
                 } else {
                     isMenu = false;
                 }
@@ -650,13 +864,16 @@ export const ActionsWebhookFacebookService = async (
 
         if (pressKey === "999" && execCount > 0) {
             pressKey = undefined;
-            let result = connects.filter(connect => connect.source === execFn)[0];
-            if (typeof result === "undefined") {
+            const execConnections = connectionsBySource.get(execFn) || [];
+            const result = execConnections[0];
+            if (!result) {
+                logger.debug('Nenhuma conexão encontrada após execFn Facebook', { execFn });
                 next = "";
             } else {
                 if (!noAlterNext) {
-                    await ticket.reload();
-
+                    if (ticket) {
+                        await ticket.reload();
+                    }
                     next = result.target;
                 }
             }
@@ -671,28 +888,29 @@ export const ActionsWebhookFacebookService = async (
                 isRandomizer = false;
                 result = next;
             } else {
-                result = connects.filter(connect => connect.source === next)[0];
-                console.log(512, "ActionsWebhookFacebookService")
+                const nextConnections = connectionsBySource.get(next) || [];
+                result = nextConnections[0];
             }
 
-            if (typeof result === "undefined") {
-                console.log(517, "ActionsWebhookFacebookService")
+            if (!result) {
+                logger.debug('Nenhuma conexão encontrada Facebook', { next, isMenu, isRandomizer });
                 next = "";
             } else {
                 if (!noAlterNext) {
-                    console.log(520, "ActionsWebhookFacebookService")
                     next = result.target;
                 }
             }
         }
 
         if (!pressKey && !isContinue) {
-            const nextNode = connects.filter(
-                connect => connect.source === nodeSelected.id
-            ).length;
-            console.log(530, "ActionsWebhookFacebookService")
-            if (nextNode === 0) {
-                console.log(532, "ActionsWebhookFacebookService")
+            const nextNodeConnections = connectionsBySource.get(nodeSelected.id) || [];
+            const nextNodeCount = nextNodeConnections.length;
+
+            if (nextNodeCount === 0) {
+                logger.debug('Fim do fluxo Facebook: nenhuma conexão encontrada', {
+                    nodeId: nodeSelected.id,
+                    nodeType: nodeSelected.type
+                });
 
                 const ticket = await Ticket.findOne({
                     where: { id: idTicket, companyId: companyId }
@@ -741,23 +959,55 @@ export const ActionsWebhookFacebookService = async (
         execCount++;
     }
 
-    return "ds";
-};
+    const executionTime = Date.now() - startTime;
+    logger.info('Fluxo Facebook executado com sucesso', {
+        idFlowDb,
+        idTicket,
+        nodesExecuted: execCount,
+        executionTime,
+        finalNode: next
+    });
 
-const constructJsonLine = (line: string, json: any) => {
-    let valor = json
-    const chaves = line.split(".")
+    return "ok";
+    } catch (error) {
+        const executionTime = Date.now() - startTime;
+        logger.error('Erro ao executar fluxo Facebook', {
+            idFlowDb,
+            idTicket,
+            companyId,
+            executionTime,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        });
 
-    if (chaves.length === 1) {
-        return valor[chaves[0]]
+        // Atualizar ticket para limpar estado do fluxo em caso de erro
+        if (idTicket) {
+            try {
+                const errorTicket = await Ticket.findOne({
+                    where: { id: idTicket, companyId }
+                });
+                if (errorTicket) {
+                    await errorTicket.update({
+                        flowWebhook: false,
+                        lastFlowId: null,
+                        flowStopped: null,
+                        dataWebhook: {
+                            status: "error",
+                            error: error instanceof Error ? error.message : String(error)
+                        }
+                    });
+                }
+            } catch (updateError) {
+                logger.error('Erro ao atualizar ticket após erro no fluxo Facebook', {
+                    idTicket,
+                    updateError: updateError instanceof Error ? updateError.message : String(updateError)
+                });
+            }
+        }
+
+        throw error;
     }
-
-    for (const chave of chaves) {
-        valor = valor[chave]
-    }
-    return valor
 };
-
 
 function removerNaoLetrasNumeros(texto: string) {
     // Substitui todos os caracteres que não são letras ou números por vazio
@@ -850,18 +1100,22 @@ function convertAudio(inputFile: string): Promise<string> {
         outputFile = inputFile.replace(".mp3", ".mp4");
     }
 
-    console.log("output", outputFile);
-
+    logger.debug('Convertendo áudio para MP4', { inputFile, outputFile });
 
     return new Promise((resolve, reject) => {
         ffmpeg(inputFile)
             .toFormat('mp4')
             .save(outputFile)
             .on('end', () => {
+                logger.debug('Conversão de áudio concluída', { outputFile });
                 resolve(outputFile);
             })
             .on('error', (err) => {
-                console.error('Error during conversion:', err);
+                logger.error('Erro durante conversão de áudio', {
+                    inputFile,
+                    outputFile,
+                    error: err instanceof Error ? err.message : String(err)
+                });
                 reject(err);
             });
     });

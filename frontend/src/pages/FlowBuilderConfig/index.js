@@ -78,6 +78,9 @@ import FlowBuilderAddVideoModal from "../../components/FlowBuilderAddVideoModal"
 import FlowBuilderSingleBlockModal from "../../components/FlowBuilderSingleBlockModal";
 import singleBlockNode from "./nodes/singleBlockNode";
 import { colorPrimary } from "../../styles/styles";
+import { useTheme, useMediaQuery, Box, Fab, Zoom } from "@mui/material";
+import SaveIcon from "@mui/icons-material/Save";
+import "./FlowBuilderConfig.css";
 import ticketNode from "./nodes/ticketNode";
 import { ConfirmationNumber } from "@material-ui/icons";
 
@@ -88,10 +91,63 @@ const useStyles = makeStyles(theme => ({
     position: "relative",
     backgroundColor: "#F8F9FA",
     overflowY: "scroll",
-    ...theme.scrollbarStyles
+    ...theme.scrollbarStyles,
+    [theme.breakpoints.down("sm")]: {
+      padding: theme.spacing(0.5)
+    }
   },
   speeddial: {
     backgroundColor: "red"
+  },
+  saveButton: {
+    position: "fixed",
+    bottom: theme.spacing(3),
+    right: theme.spacing(3),
+    zIndex: 1000,
+    borderRadius: "50px",
+    padding: theme.spacing(1.5, 3),
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      transform: "translateY(-4px)",
+      boxShadow: "0 12px 32px rgba(0, 0, 0, 0.2)"
+    },
+    [theme.breakpoints.down("sm")]: {
+      bottom: theme.spacing(2),
+      right: theme.spacing(2),
+      padding: theme.spacing(1, 2)
+    }
+  },
+  saveReminder: {
+    position: "fixed",
+    top: 80,
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 999,
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    color: "white",
+    padding: theme.spacing(1.5, 3),
+    borderRadius: "50px",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+    fontWeight: 500,
+    animation: "$pulse 2s ease-in-out infinite",
+    [theme.breakpoints.down("sm")]: {
+      top: 70,
+      padding: theme.spacing(1, 2),
+      fontSize: "0.875rem",
+      width: "90%",
+      textAlign: "center"
+    }
+  },
+  "@keyframes pulse": {
+    "0%, 100%": {
+      opacity: 1,
+      transform: "translateX(-50%) scale(1)"
+    },
+    "50%": {
+      opacity: 0.8,
+      transform: "translateX(-50%) scale(1.05)"
+    }
   }
 }));
 
@@ -140,6 +196,9 @@ export const FlowBuilderConfig = () => {
   const classes = useStyles();
   const history = useHistory();
   const { id } = useParams();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
   const storageItems = useNodeStorage();
 
@@ -699,62 +758,64 @@ export const FlowBuilderConfig = () => {
           <Stack>
             <SpeedDial
               ariaLabel="SpeedDial basic example"
+              className="flow-speeddial"
               sx={{
                 position: "absolute",
-                top: 16,
-                left: 16,
+                top: isMobile ? 12 : 16,
+                left: isMobile ? 12 : 16,
                 ".MuiSpeedDial-fab": {
                   backgroundColor: colorPrimary(),
+                  width: isMobile ? 48 : 56,
+                  height: isMobile ? 48 : 56,
                   '&:hover': {
-                    backgroundColor: colorPrimary()
-                  }
+                    backgroundColor: colorPrimary(),
+                    transform: "scale(1.1)"
+                  },
+                  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
                 }
               }}
               icon={<SpeedDialIcon />}
               direction={"down"}
             >
-              {actions.map(action => (
+              {actions.map((action, index) => (
                 <SpeedDialAction
                   key={action.name}
                   icon={action.icon}
                   tooltipTitle={action.name}
-                  tooltipOpen
-                  tooltipPlacement={"right"}
+                  tooltipOpen={!isMobile}
+                  tooltipPlacement={isMobile ? "left" : "right"}
                   onClick={() => clickActions(action.type)}
+                  className="flow-speeddial-action"
+                  sx={{
+                    animation: `speedDialAction 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.05}s both`
+                  }}
                 />
               ))}
             </SpeedDial>
           </Stack>
-          <Stack
-            sx={{
-              position: "absolute",
-              justifyContent: "center",
-              flexDirection: "row",
-              width: "100%"
-            }}
-          >
-            <Typography
-              style={{ color: "#010101", textShadow: "#010101 1px 0 10px" }}
-            >
-              Não se esqueça de salvar seu fluxo!
+          <Box className={classes.saveReminder}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              💾 Não se esqueça de salvar seu fluxo!
             </Typography>
-          </Stack>
-          <Stack direction={"row"} justifyContent={"end"}>
-            <Button
-              sx={{ textTransform: "none" }}
-              variant="contained"
+          </Box>
+          <Zoom in={true}>
+            <Fab
               color="primary"
+              aria-label="save"
+              className={classes.saveButton}
               onClick={() => saveFlow()}
+              size={isMobile ? "medium" : "large"}
             >
-              Salvar
-            </Button>
-          </Stack>
+              <SaveIcon sx={{ mr: 1 }} />
+              {!isMobile && "Salvar"}
+            </Fab>
+          </Zoom>
 
-          <Stack
-            direction={"row"}
-            style={{
+          <Box
+            className="flow-reactflow-container"
+            sx={{
               width: "100%",
-              height: "90%",
+              height: isMobile ? "calc(100vh - 120px)" : "calc(100vh - 180px)",
               position: "relative",
               display: "flex"
             }}
@@ -773,20 +834,38 @@ export const FlowBuilderConfig = () => {
               fitView
               connectionLineStyle={connectionLineStyle}
               style={{
-                //backgroundImage: `url(${imgBackground})`,
-                //backgroundSize: "cover"
                 backgroundColor: "#F8F9FA"
               }}
               edgeTypes={edgeTypes}
               variant={"cross"}
               defaultEdgeOptions={{
-                style: { color: "#ff0000", strokeWidth: "6px" },
-                animated: false
+                style: { 
+                  color: colorPrimary(), 
+                  strokeWidth: isMobile ? "4px" : "6px" 
+                },
+                animated: true
               }}
             >
-              <Controls />
-              <MiniMap />
-              <Background variant="dots" gap={12} size={-1} />
+              <Controls 
+                className="flow-controls"
+                showInteractive={!isMobile}
+              />
+              <MiniMap 
+                className="flow-minimap"
+                nodeColor={colorPrimary()}
+                maskColor="rgba(0, 0, 0, 0.1)"
+                style={{
+                  width: isMobile ? 120 : 200,
+                  height: isMobile ? 80 : 150
+                }}
+              />
+              <Background 
+                variant="dots" 
+                gap={isMobile ? 16 : 20} 
+                size={isMobile ? 0.5 : 1}
+                color={colorPrimary()}
+                style={{ opacity: 0.3 }}
+              />
             </ReactFlow>
 
             <Stack

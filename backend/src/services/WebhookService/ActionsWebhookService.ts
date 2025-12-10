@@ -46,6 +46,93 @@ interface IAddContact {
   dataMore?: any;
 }
 
+// Helper function to construct JSON line (moved before getFieldValue)
+const constructJsonLine = (line: string, json: any) => {
+  let valor = json
+  const chaves = line.split(".")
+
+  if (chaves.length === 1) {
+    return valor[chaves[0]]
+  }
+
+  for (const chave of chaves) {
+    valor = valor[chave]
+  }
+  return valor
+};
+
+// Helper function to get field value from dataWebhook or ticket
+const getFieldValue = (key: string, dataWebhook: any, ticket: Ticket | null): any => {
+  if (!key) return null;
+  
+  // Try to get from dataWebhook first
+  if (dataWebhook && typeof dataWebhook === 'object') {
+    try {
+      return constructJsonLine(key, dataWebhook);
+    } catch (e) {
+      // Continue to try ticket
+    }
+  }
+  
+  // Try to get from ticket
+  if (ticket) {
+    const ticketData: any = ticket.toJSON ? ticket.toJSON() : ticket;
+    try {
+      return constructJsonLine(key, ticketData);
+    } catch (e) {
+      // Field not found
+    }
+  }
+  
+  return null;
+};
+
+// Helper function to evaluate condition
+const evaluateCondition = (
+  fieldValue: any,
+  condition: string,
+  compareValue: string
+): boolean => {
+  if (fieldValue === null || fieldValue === undefined) {
+    return false;
+  }
+
+  const fieldStr = String(fieldValue).toLowerCase().trim();
+  const compareStr = String(compareValue).toLowerCase().trim();
+
+  switch (condition) {
+    case "equals":
+    case "==":
+      return fieldStr === compareStr;
+    case "notEquals":
+    case "!=":
+      return fieldStr !== compareStr;
+    case "contains":
+      return fieldStr.includes(compareStr);
+    case "notContains":
+      return !fieldStr.includes(compareStr);
+    case "startsWith":
+      return fieldStr.startsWith(compareStr);
+    case "endsWith":
+      return fieldStr.endsWith(compareStr);
+    case "greaterThan":
+    case ">":
+      return Number(fieldValue) > Number(compareValue);
+    case "lessThan":
+    case "<":
+      return Number(fieldValue) < Number(compareValue);
+    case "greaterThanOrEqual":
+    case ">=":
+      return Number(fieldValue) >= Number(compareValue);
+    case "lessThanOrEqual":
+    case "<=":
+      return Number(fieldValue) <= Number(compareValue);
+    default:
+      logger.warn(`Operador de condição desconhecido: ${condition}`);
+      return false;
+  }
+};
+
 export const ActionsWebhookService = async (
   whatsappId: number,
   idFlowDb: number,
@@ -60,10 +147,21 @@ export const ActionsWebhookService = async (
   idTicket?: number,
   numberPhrase: "" | { number: string; name: string; email: string } = ""
 ): Promise<string> => {
+  const startTime = Date.now();
+  const TIMEOUT_PER_NODE = 30000; // 30 segundos por nó
+  const MAX_EXECUTION_TIME = 300000; // 5 minutos total
+  
   try {
     const io = getIO()
     let next = nextStage;
-    console.log('ActionWebhookService | 53', idFlowDb, companyId, nodes, connects, nextStage, dataWebhook, details, hashWebhookId, pressKey, idTicket, numberPhrase)
+    logger.debug('ActionsWebhookService iniciado', {
+      idFlowDb,
+      companyId,
+      nextStage,
+      idTicket,
+      nodesCount: nodes.length,
+      connectionsCount: connects.length
+    });
     let createFieldJsonName = "";
 
     const connectStatic = connects;
@@ -146,32 +244,72 @@ export const ActionsWebhookService = async (
 
 
 
+    // Otimização: Criar Maps para busca O(1)
+    const nodesMap = new Map<string, INodes>();
+    nodes.forEach(node => {
+      nodesMap.set(node.id, node);
+    });
+
+    const connectionsMap = new Map<string, IConnections[]>();
+    connects.forEach(conn => {
+      const key = `${conn.source}-${conn.sourceHandle || ''}`;
+      if (!connectionsMap.has(key)) {
+        connectionsMap.set(key, []);
+      }
+      connectionsMap.get(key)!.push(conn);
+    });
+
+    // Map de conexões por source (para busca rápida)
+    const connectionsBySource = new Map<string, IConnections[]>();
+    connects.forEach(conn => {
+      if (!connectionsBySource.has(conn.source)) {
+        connectionsBySource.set(conn.source, []);
+      }
+      connectionsBySource.get(conn.source)!.push(conn);
+    });
+
     const lengthLoop = nodes.length;
     const whatsapp = await GetDefaultWhatsApp(whatsappId, companyId);
 
     if (whatsapp.status !== "CONNECTED") {
-      return;
+      logger.warn('WhatsApp não conectado', { whatsappId, companyId });
+      return "";
     }
 
     let execCount = 0;
-
     let execFn = "";
-
     let ticket = null;
-
     let noAlterNext = false;
 
+    // Verificar timeout total
+    if (Date.now() - startTime > MAX_EXECUTION_TIME) {
+      logger.error('Timeout total do fluxo', { idFlowDb, idTicket, executionTime: Date.now() - startTime });
+      throw new AppError('Tempo máximo de execução do fluxo excedido');
+    }
 
     for (var i = 0; i < lengthLoop; i++) {
+      // Verificar timeout por nó
+      const nodeStartTime = Date.now();
+      if (Date.now() - nodeStartTime > TIMEOUT_PER_NODE) {
+        logger.warn('Timeout no nó', { idFlowDb, idTicket, nodeIndex: i, executionTime: Date.now() - nodeStartTime });
+        break;
+      }
+
       let nodeSelected: any;
       let ticketInit: Ticket;
+      
       if (idTicket) {
-        console.log("UPDATE1...");
         ticketInit = await Ticket.findOne({
           where: { id: idTicket, whatsappId }
         });
 
+        if (!ticketInit) {
+          logger.warn('Ticket não encontrado', { idTicket, whatsappId });
+          break;
+        }
+
         if (ticketInit.status === "closed") {
+          logger.debug('Ticket fechado, interrompendo fluxo', { idTicket });
           break;
         } else {
           await ticketInit.update({
@@ -180,40 +318,48 @@ export const ActionsWebhookService = async (
             },
           });
         }
-
       }
 
       if (pressKey) {
-        console.log("UPDATE2...");
         if (pressKey === "parar") {
-          console.log("UPDATE3...");
           if (idTicket) {
-            console.log("UPDATE4...");
             ticketInit = await Ticket.findOne({
               where: { id: idTicket, whatsappId }
             });
-            await ticket.update({
-              status: "closed"
-            });
+            if (ticketInit) {
+              await ticketInit.update({
+                status: "closed"
+              });
+            }
           }
+          logger.debug('Fluxo interrompido por comando "parar"', { idFlowDb, idTicket });
           break;
         }
 
         if (execFn === "") {
-          console.log("UPDATE5...");
           nodeSelected = {
             type: "menu"
           };
         } else {
-          console.log("UPDATE6...");
-          nodeSelected = nodes.filter(node => node.id === execFn)[0];
+          nodeSelected = nodesMap.get(execFn);
+          if (!nodeSelected) {
+            logger.warn('Nó não encontrado', { nodeId: execFn, idFlowDb });
+            break;
+          }
         }
       } else {
-        console.log("UPDATE7...");
-        const otherNode = nodes.filter((node) => node.id === next)[0]
+        const otherNode = nodesMap.get(next);
         if (otherNode) {
           nodeSelected = otherNode;
+        } else {
+          logger.warn('Próximo nó não encontrado', { nodeId: next, idFlowDb });
+          break;
         }
+      }
+
+      if (!nodeSelected) {
+        logger.warn('Nó selecionado é nulo', { next, execFn, idFlowDb });
+        break;
       }
 
       if (nodeSelected.type === "message") {
@@ -487,21 +633,96 @@ export const ActionsWebhookService = async (
       }
 
 
+      // Implementação do nó CONDITION
+      if (nodeSelected.type === "condition") {
+        try {
+          const fieldKey = nodeSelected.data?.key;
+          const condition = nodeSelected.data?.condition;
+          const compareValue = nodeSelected.data?.value;
+
+          if (!fieldKey || !condition || compareValue === undefined) {
+            logger.error('Condição inválida: campos obrigatórios faltando', {
+              nodeId: nodeSelected.id,
+              fieldKey,
+              condition,
+              compareValue
+            });
+            break;
+          }
+
+          const fieldValue = getFieldValue(fieldKey, dataWebhook, ticket);
+          const conditionMet = evaluateCondition(fieldValue, condition, compareValue);
+
+          logger.debug('Condição avaliada', {
+            nodeId: nodeSelected.id,
+            fieldKey,
+            fieldValue,
+            condition,
+            compareValue,
+            result: conditionMet
+          });
+
+          // Buscar conexões do nó condition
+          const conditionConnections = connectionsBySource.get(nodeSelected.id) || [];
+          const trueConnection = conditionConnections.find(c => c.sourceHandle === "true");
+          const falseConnection = conditionConnections.find(c => c.sourceHandle === "false");
+
+          if (conditionMet && trueConnection) {
+            next = trueConnection.target;
+            noAlterNext = true;
+            logger.debug('Condição verdadeira, seguindo para nó', { next });
+          } else if (!conditionMet && falseConnection) {
+            next = falseConnection.target;
+            noAlterNext = true;
+            logger.debug('Condição falsa, seguindo para nó', { next });
+          } else {
+            logger.warn('Conexões de condição não encontradas', {
+              nodeId: nodeSelected.id,
+              hasTrueConnection: !!trueConnection,
+              hasFalseConnection: !!falseConnection
+            });
+            break;
+          }
+        } catch (error) {
+          logger.error('Erro ao processar nó condition', {
+            nodeId: nodeSelected.id,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          });
+          break;
+        }
+      }
+
+      // Implementação do nó INTERVAL
+      if (nodeSelected.type === "interval") {
+        const seconds = nodeSelected.data?.sec || 1;
+        await intervalWhats(String(seconds));
+        logger.debug('Intervalo executado', { nodeId: nodeSelected.id, seconds });
+      }
+
       let isRandomizer: boolean;
       if (nodeSelected.type === "randomizer") {
         const selectedRandom = randomizarCaminho(nodeSelected.data.percent / 100);
 
-        const resultConnect = connects.filter(
-          connect => connect.source === nodeSelected.id
-        );
+        const resultConnect = connectionsBySource.get(nodeSelected.id) || [];
         if (selectedRandom === "A") {
-          next = resultConnect.filter(item => item.sourceHandle === "a")[0]
-            .target;
-          noAlterNext = true;
+          const connA = resultConnect.find(item => item.sourceHandle === "a");
+          if (connA) {
+            next = connA.target;
+            noAlterNext = true;
+          } else {
+            logger.warn('Conexão "a" não encontrada no randomizador', { nodeId: nodeSelected.id });
+            break;
+          }
         } else {
-          next = resultConnect.filter(item => item.sourceHandle === "b")[0]
-            .target;
-          noAlterNext = true;
+          const connB = resultConnect.find(item => item.sourceHandle === "b");
+          if (connB) {
+            next = connB.target;
+            noAlterNext = true;
+          } else {
+            logger.warn('Conexão "b" não encontrada no randomizador', { nodeId: nodeSelected.id });
+            break;
+          }
         }
         isRandomizer = true;
       }
@@ -529,10 +750,10 @@ export const ActionsWebhookService = async (
           }
           pressKey = "999";
 
-          const isNodeExist = nodes.filter(item => item.id === execFn);
+          const isNodeExist = nodesMap.get(execFn);
 
-          if (isNodeExist.length > 0) {
-            isMenu = isNodeExist[0].type === "menu" ? true : false;
+          if (isNodeExist) {
+            isMenu = isNodeExist.type === "menu";
           } else {
             isMenu = false;
           }
@@ -628,19 +849,19 @@ export const ActionsWebhookService = async (
       let isContinue = false;
 
       if (pressKey === "999" && execCount > 0) {
-        console.log(587, "ActionsWebhookService | 587")
-
         pressKey = undefined;
-        let result = connects.filter(connect => connect.source === execFn)[0];
-        if (typeof result === "undefined") {
+        const execConnections = connectionsBySource.get(execFn) || [];
+        const result = execConnections[0];
+        if (!result) {
           next = "";
+          logger.debug('Nenhuma conexão encontrada após execFn', { execFn });
         } else {
           if (!noAlterNext) {
             next = result.target;
           }
         }
       } else {
-        let result;
+        let result: IConnections | { target: string } | undefined;
 
         if (isMenu) {
           result = { target: execFn };
@@ -648,32 +869,31 @@ export const ActionsWebhookService = async (
           pressKey = undefined;
         } else if (isRandomizer) {
           isRandomizer = false;
-          result = next;
+          result = { target: next };
         } else {
-          result = connects.filter(connect => connect.source === next)[0];
+          const nextConnections = connectionsBySource.get(next) || [];
+          result = nextConnections[0];
         }
 
-        if (typeof result === "undefined") {
+        if (!result) {
           next = "";
+          logger.debug('Nenhuma conexão encontrada', { next, isMenu, isRandomizer });
         } else {
           if (!noAlterNext) {
             next = result.target;
           }
         }
-        console.log(619, "ActionsWebhookService")
       }
 
       if (!pressKey && !isContinue) {
-        const nextNode = connects.filter(
-          connect => connect.source === nodeSelected.id
-        ).length;
+        const nextNodeConnections = connectionsBySource.get(nodeSelected.id) || [];
+        const nextNodeCount = nextNodeConnections.length;
 
-        console.log(626, "ActionsWebhookService")
-
-
-        if (nextNode === 0) {
-
-          console.log(654, "ActionsWebhookService")
+        if (nextNodeCount === 0) {
+          logger.debug('Fim do fluxo: nenhuma conexão encontrada', {
+            nodeId: nodeSelected.id,
+            nodeType: nodeSelected.type
+          });
 
           await Ticket.findOne({
             where: { id: idTicket, whatsappId, companyId: companyId }
@@ -697,26 +917,24 @@ export const ActionsWebhookService = async (
         break;
       }
 
-      console.log(678, "ActionsWebhookService")
-
-      console.log("UPDATE10...");
       ticket = await Ticket.findOne({
         where: { id: idTicket, whatsappId, companyId: companyId }
       });
 
+      if (!ticket) {
+        logger.warn('Ticket não encontrado para atualização', { idTicket, whatsappId, companyId });
+        break;
+      }
 
       if (ticket.status === "closed") {
         io.of(String(companyId))
-          // .to(oldStatus)
-          // .to(ticketId.toString())
           .emit(`company-${ticket.companyId}-ticket`, {
             action: "delete",
             ticketId: ticket.id
           });
-
+        logger.debug('Ticket fechado durante execução do fluxo', { idTicket });
+        break;
       }
-
-      console.log("UPDATE12...");
       await ticket.update({
         whatsappId: whatsappId,
         queueId: ticket?.queueId,
@@ -733,26 +951,55 @@ export const ActionsWebhookService = async (
       execCount++;
     }
 
-    return "ds";
+    const executionTime = Date.now() - startTime;
+    logger.info('Fluxo executado com sucesso', {
+      idFlowDb,
+      idTicket,
+      nodesExecuted: execCount,
+      executionTime,
+      finalNode: next
+    });
+
+    return "ok";
   } catch (error) {
-    logger.error(error)
+    const executionTime = Date.now() - startTime;
+    logger.error('Erro ao executar fluxo', {
+      idFlowDb,
+      idTicket,
+      companyId,
+      executionTime,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+
+    // Atualizar ticket para limpar estado do fluxo em caso de erro
+    if (idTicket) {
+      try {
+        const errorTicket = await Ticket.findOne({
+          where: { id: idTicket, companyId }
+        });
+        if (errorTicket) {
+          await errorTicket.update({
+            flowWebhook: false,
+            lastFlowId: null,
+            flowStopped: null,
+            dataWebhook: {
+              status: "error",
+              error: error instanceof Error ? error.message : String(error)
+            }
+          });
+        }
+      } catch (updateError) {
+        logger.error('Erro ao atualizar ticket após erro no fluxo', {
+          idTicket,
+          updateError: updateError instanceof Error ? updateError.message : String(updateError)
+        });
+      }
+    }
+
+    throw error;
   }
 };
-
-const constructJsonLine = (line: string, json: any) => {
-  let valor = json
-  const chaves = line.split(".")
-
-  if (chaves.length === 1) {
-    return valor[chaves[0]]
-  }
-
-  for (const chave of chaves) {
-    valor = valor[chave]
-  }
-  return valor
-};
-
 
 function removerNaoLetrasNumeros(texto: string) {
   // Substitui todos os caracteres que não são letras ou números por vazio

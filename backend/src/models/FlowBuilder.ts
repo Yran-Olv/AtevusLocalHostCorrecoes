@@ -6,11 +6,27 @@ import {
   AutoIncrement,
   DataType,
   CreatedAt,
-  UpdatedAt
+  UpdatedAt,
+  ForeignKey,
+  BelongsTo,
+  Default
 } from "sequelize-typescript";
+import Company from "./Company";
+import User from "./User";
 
 @Table({
-  tableName: "FlowBuilders"
+  tableName: "FlowBuilders",
+  indexes: [
+    {
+      fields: ["company_id"]
+    },
+    {
+      fields: ["user_id"]
+    },
+    {
+      fields: ["company_id", "active"]
+    }
+  ]
 })
 export class FlowBuilderModel extends Model<FlowBuilderModel> {
   @PrimaryKey
@@ -18,20 +34,42 @@ export class FlowBuilderModel extends Model<FlowBuilderModel> {
   @Column
   id: number;
 
+  @ForeignKey(() => User)
   @Column
   user_id: number;
 
-  @Column
+  @BelongsTo(() => User)
+  user: User;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false
+  })
   name: string;
 
+  @ForeignKey(() => Company)
   @Column
   company_id: number;
 
-  @Column
+  @BelongsTo(() => Company)
+  company: Company;
+
+  @Default(true)
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
+  })
   active: boolean;
 
-  @Column(DataType.JSON)
-  flow: {} | null;
+  @Column({
+    type: DataType.JSON,
+    allowNull: true
+  })
+  flow: {
+    nodes?: any[];
+    connections?: any[];
+  } | null;
 
   @CreatedAt
   createdAt: Date;

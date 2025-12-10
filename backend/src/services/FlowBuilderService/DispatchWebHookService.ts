@@ -1,5 +1,7 @@
 import { WebhookModel } from "../../models/Webhook";
 import { randomString } from "../../utils/randomCode";
+import logger from "../../utils/logger";
+import AppError from "../../errors/AppError";
 
 interface Request {
   userId: number;
@@ -38,11 +40,21 @@ const DispatchWebHookService = async ({
       where: {hash_id: hashId, user_id: userId}
     });
 
+    if (!webhook) {
+      throw new AppError('Webhook não encontrado');
+    }
+
+    logger.debug('Webhook atualizado', { userId, hashId });
     return webhook;
   } catch (error) {
-    console.error("Erro ao inserir o usuário:", error);
+    logger.error("Erro ao atualizar webhook", {
+      userId,
+      hashId,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
 
-    return error
+    throw error instanceof AppError ? error : new AppError('Erro ao atualizar webhook');
   }
 };
 

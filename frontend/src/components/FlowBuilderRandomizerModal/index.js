@@ -21,7 +21,7 @@ import { i18n } from "../../translate/i18n";
 
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
-import { Slider, Stack } from "@mui/material";
+import { Slider, Stack, useTheme, useMediaQuery, Box } from "@mui/material";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -50,6 +50,30 @@ const useStyles = makeStyles(theme => ({
     left: "50%",
     marginTop: -12,
     marginLeft: -12
+  },
+  dialog: {
+    "& .MuiDialog-paper": {
+      borderRadius: 16,
+      [theme.breakpoints.down("sm")]: {
+        margin: 16,
+        maxWidth: "calc(100% - 32px)"
+      }
+    }
+  },
+  button: {
+    borderRadius: 12,
+    textTransform: "none",
+    padding: theme.spacing(1, 3),
+    fontWeight: 600,
+    transition: "all 0.3s ease",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
+    },
+    [theme.breakpoints.down("sm")]: {
+      padding: theme.spacing(0.8, 2),
+      fontSize: "0.875rem"
+    }
   }
 }));
 
@@ -62,6 +86,8 @@ const FlowBuilderRandomizerModal = ({
 }) => {
   const classes = useStyles();
   const isMounted = useRef(true);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [percent, setPercent] = useState(0);
   const [activeModal, setActiveModal] = useState(false);
@@ -114,41 +140,100 @@ const FlowBuilderRandomizerModal = ({
       <Dialog
         open={activeModal}
         onClose={handleClose}
-        fullWidth="md"
+        fullWidth
+        maxWidth="sm"
         scroll="paper"
+        className={classes.dialog}
+        PaperProps={{
+          sx: {
+            animation: "modalContent 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            animation: "modalBackdrop 0.2s ease-out"
+          }
+        }}
       >
-        <DialogTitle id="form-dialog-title">
+        <DialogTitle 
+          id="form-dialog-title"
+          sx={{
+            fontSize: isMobile ? "1.25rem" : "1.5rem",
+            fontWeight: 600,
+            pb: 2
+          }}
+        >
           {open === "create"
             ? `Adicionar um randomizador ao fluxo`
             : `Editar randomizador`}
         </DialogTitle>
         <Stack>
           <DialogContent dividers>
-            <Stack direction={'row'} minHeight={120} alignItems={'center'} gap={4}>
-              <Typography>{percent}%</Typography>
+            <Stack 
+              direction={isMobile ? "column" : "row"} 
+              minHeight={isMobile ? 160 : 120} 
+              alignItems={'center'} 
+              spacing={isMobile ? 2 : 4}
+              sx={{ px: isMobile ? 1 : 0 }}
+            >
+              <Typography 
+                sx={{ 
+                  fontSize: isMobile ? "1.5rem" : "2rem", 
+                  fontWeight: 600,
+                  color: "primary.main",
+                  minWidth: isMobile ? "auto" : 60,
+                  textAlign: "center"
+                }}
+              >
+                {percent}%
+              </Typography>
               <Slider
-                aria-label="Temperature"
-                defaultValue={percent}
+                aria-label="Percentual"
+                value={percent}
                 valueLabelDisplay="auto"
                 onChange={handleValue}
                 step={10}
                 marks
                 min={0}
                 max={100}
+                sx={{
+                  flex: 1,
+                  "& .MuiSlider-thumb": {
+                    width: isMobile ? 20 : 24,
+                    height: isMobile ? 20 : 24
+                  }
+                }}
               />
-              <Typography>{100 - percent}%</Typography>
+              <Typography 
+                sx={{ 
+                  fontSize: isMobile ? "1.5rem" : "2rem", 
+                  fontWeight: 600,
+                  color: "secondary.main",
+                  minWidth: isMobile ? "auto" : 60,
+                  textAlign: "center"
+                }}
+              >
+                {100 - percent}%
+              </Typography>
             </Stack>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose} color="secondary" variant="outlined">
+          <DialogActions sx={{ p: 3, pt: 2, gap: 1, flexDirection: isMobile ? "column" : "row" }}>
+            <Button 
+              onClick={handleClose} 
+              color="secondary" 
+              variant="outlined"
+              className={classes.button}
+              fullWidth={isMobile}
+            >
               {i18n.t("contactModal.buttons.cancel")}
             </Button>
             <Button
               type="submit"
               color="primary"
               variant="contained"
-              className={classes.btnWrapper}
+              className={`${classes.btnWrapper} ${classes.button}`}
               onClick={() => handleSaveContact()}
+              fullWidth={isMobile}
             >
               {open === "create" ? `Adicionar` : "Editar"}
             </Button>

@@ -1,6 +1,8 @@
 import { FlowBuilderModel } from "../../models/FlowBuilder";
 import { WebhookModel } from "../../models/Webhook";
 import { randomString } from "../../utils/randomCode";
+import logger from "../../utils/logger";
+import AppError from "../../errors/AppError";
 
 interface Request {
   userId: number;
@@ -33,11 +35,18 @@ const CreateFlowBuilderService = async ({
       name: name,
     });
 
+    logger.info('Fluxo criado com sucesso', { userId, name, companyId, flowId: flow.id });
     return flow;
   } catch (error) {
-    console.error("Erro ao inserir o usuário:", error);
+    logger.error("Erro ao criar fluxo", {
+      userId,
+      name,
+      companyId,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
 
-    return error
+    throw new AppError('Erro ao criar fluxo');
   }
 };
 

@@ -1,6 +1,8 @@
 import { WebhookModel } from "../../models/Webhook";
 import User from "../../models/User";
 import { FlowBuilderModel } from "../../models/FlowBuilder";
+import logger from "../../utils/logger";
+import AppError from "../../errors/AppError";
 
 interface Request {
   companyId: number;
@@ -15,24 +17,24 @@ const ListFlowBuilderService = async ({
 }: Request): Promise<Response> => {
   
     try {
-    
-        // Realiza a consulta com paginação usando findAndCountAll
-        const { count, rows } = await FlowBuilderModel.findAndCountAll({
+        const flows = await FlowBuilderModel.findAll({
           where: {
             company_id: companyId
-          }
-        });
-    
-        const flowResult = []
-        rows.forEach((flow) => {
-          flowResult.push(flow.toJSON());
+          },
+          order: [['createdAt', 'DESC']]
         });
 
+        logger.debug('Fluxos listados', { companyId, count: flows.length });
         return {
-            flows: flowResult,
+            flows: flows.map(flow => flow.toJSON()),
         }
       } catch (error) {
-        console.error('Erro ao consultar usuários:', error);
+        logger.error('Erro ao listar fluxos', {
+          companyId,
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        throw new AppError('Erro ao listar fluxos');
       }
 };
 

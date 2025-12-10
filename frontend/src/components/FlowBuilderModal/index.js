@@ -16,6 +16,7 @@ import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import { useTheme, useMediaQuery, Box } from "@mui/material";
 
 import { i18n } from "../../translate/i18n";
 
@@ -30,6 +31,20 @@ const useStyles = makeStyles(theme => ({
 	textField: {
 		marginRight: theme.spacing(1),
 		flex: 1,
+		"& .MuiOutlinedInput-root": {
+			borderRadius: 12,
+			transition: "all 0.3s ease",
+			"&:hover": {
+				transform: "scale(1.01)"
+			},
+			"&.Mui-focused": {
+				transform: "scale(1.01)",
+				boxShadow: "0 0 0 3px rgba(0, 123, 255, 0.1)"
+			}
+		},
+		[theme.breakpoints.down("sm")]: {
+			width: "100%"
+		}
 	},
 
 	extraAttr: {
@@ -50,6 +65,30 @@ const useStyles = makeStyles(theme => ({
 		marginTop: -12,
 		marginLeft: -12,
 	},
+	dialog: {
+		"& .MuiDialog-paper": {
+			borderRadius: 16,
+			[theme.breakpoints.down("sm")]: {
+				margin: 16,
+				maxWidth: "calc(100% - 32px)"
+			}
+		}
+	},
+	button: {
+		borderRadius: 12,
+		textTransform: "none",
+		padding: theme.spacing(1, 3),
+		fontWeight: 600,
+		transition: "all 0.3s ease",
+		"&:hover": {
+			transform: "translateY(-2px)",
+			boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
+		},
+		[theme.breakpoints.down("sm")]: {
+			padding: theme.spacing(0.8, 2),
+			fontSize: "0.875rem"
+		}
+	}
 }));
 
 const ContactSchema = Yup.object().shape({
@@ -62,6 +101,8 @@ const ContactSchema = Yup.object().shape({
 const FlowBuilderModal = ({ open, onClose, flowId, nameWebhook = "", initialValues, onSave }) => {
 	const classes = useStyles();
 	const isMounted = useRef(true);
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
 	const [contact, setContact] = useState({
 		name: nameWebhook,
@@ -109,8 +150,32 @@ const FlowBuilderModal = ({ open, onClose, flowId, nameWebhook = "", initialValu
 	
 	return (
 		<div className={classes.root}>
-			<Dialog open={open} onClose={handleClose} fullWidth="md" scroll="paper">
-				<DialogTitle id="form-dialog-title">
+			<Dialog 
+				open={open} 
+				onClose={handleClose} 
+				fullWidth 
+				maxWidth="sm"
+				scroll="paper"
+				className={classes.dialog}
+				PaperProps={{
+					sx: {
+						animation: "modalContent 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+					}
+				}}
+				BackdropProps={{
+					sx: {
+						animation: "modalBackdrop 0.2s ease-out"
+					}
+				}}
+			>
+				<DialogTitle 
+					id="form-dialog-title"
+					sx={{
+						fontSize: isMobile ? "1.25rem" : "1.5rem",
+						fontWeight: 600,
+						pb: 2
+					}}
+				>
 					{flowId
 						? `Editar Fluxo`
 						: `Adicionar Fluxo`}
@@ -144,12 +209,14 @@ const FlowBuilderModal = ({ open, onClose, flowId, nameWebhook = "", initialValu
 								/>
 							
 							</DialogContent>
-							<DialogActions>
+							<DialogActions sx={{ p: 3, pt: 2, gap: 1, flexDirection: isMobile ? "column" : "row" }}>
 								<Button
 									onClick={handleClose}
 									color="secondary"
 									disabled={isSubmitting}
 									variant="outlined"
+									className={classes.button}
+									fullWidth={isMobile}
 								>
 									{i18n.t("contactModal.buttons.cancel")}
 								</Button>
@@ -158,7 +225,8 @@ const FlowBuilderModal = ({ open, onClose, flowId, nameWebhook = "", initialValu
 									color="primary"
 									disabled={isSubmitting}
 									variant="contained"
-									className={classes.btnWrapper}
+									className={`${classes.btnWrapper} ${classes.button}`}
+									fullWidth={isMobile}
 								>
 									{flowId
 										? `${i18n.t("contactModal.buttons.okEdit")}`

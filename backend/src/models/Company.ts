@@ -24,6 +24,7 @@ import UserRating from "./UserRating";
 import Whatsapp from "./Whatsapp";
 import CompaniesSettings from "./CompaniesSettings";
 import Invoices from "./Invoices";
+import { FlowBuilderModel } from "./FlowBuilder";
 
 @Table
 class Company extends Model<Company> {
@@ -162,6 +163,14 @@ class Company extends Model<Company> {
     hooks: true
   })
   invoices: Invoices[];
+
+  @HasMany(() => FlowBuilderModel, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+    hooks: true,
+    foreignKey: "company_id"
+  })
+  flowBuilders: FlowBuilderModel[];
 }
 
 export default Company;
