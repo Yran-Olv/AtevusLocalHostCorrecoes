@@ -160,23 +160,7 @@ import DOMPurify from 'dompurify';
 
 ---
 
-### 7. 🟢 **Pasta `apagar/` com 99.563 arquivos** (CRÍTICO)
-
-**Problema:** Pasta `frontend/apagar/` contém:
-- 59.993 arquivos `.js`
-- 21.277 arquivos `.ts`
-- 4.231 arquivos `.json`
-
-**Impacto:**
-- Build lento
-- Espaço em disco desperdiçado
-- Confusão no código
-
-**Ação Imediata:**
-```bash
-# Remover pasta apagar/
-rm -rf frontend/apagar/
-```
+---
 
 ---
 
@@ -268,7 +252,6 @@ rm -rf frontend/apagar/
 ## 🚀 Plano de Ação
 
 ### Fase 1: Limpeza (1-2 dias)
-- [ ] Remover pasta `apagar/`
 - [ ] Remover arquivos duplicados
 - [ ] Remover console.logs em produção
 
