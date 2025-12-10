@@ -108,7 +108,7 @@ const SettingsCustom = () => {
               {isSuper() && <Tab label={i18n.t("settings.tabs.helps")} value="helps" />}
               {isSuper() && <Tab label="Whitelabel" value="whitelabel" />}
               {isSuper() && <Tab label="Gerencianet" value="gerencianet" />}
-              {isSuper() && <Tab label="Tela Login" value="login" />}
+              {isSuper() && <Tab label="Tela de Login" value="login" />}
             </Tabs>
             <div className="settings-panel">
               <TabPanel className="settings-panel-content" value={tab} name="schedules">

@@ -25,7 +25,7 @@ export async function SendMailWithConfig(mailData: MailData) {
       (!loginConfig?.mailUser && !process.env.MAIL_USER) || 
       (!loginConfig?.mailPass && !process.env.MAIL_PASS) || 
       (!loginConfig?.mailFrom && !process.env.MAIL_FROM)) {
-    throw new Error("Configuração de email incompleta. Configure em Settings → Tela Login → Configurações de Email ou nas variáveis de ambiente (.env)");
+    throw new Error("Configuração de email incompleta. Configure em Settings → Tela de Login → Configurações de Email ou nas variáveis de ambiente (.env)");
   }
 
   const options: any = {

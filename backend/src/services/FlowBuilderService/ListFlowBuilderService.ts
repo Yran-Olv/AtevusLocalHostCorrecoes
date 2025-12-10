@@ -9,7 +9,7 @@ interface Request {
 }
 
 interface Response {
-  flows: FlowBuilderModel[];
+  flows: any[];
 }
 
 const ListFlowBuilderService = async ({

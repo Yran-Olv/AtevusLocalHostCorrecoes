@@ -22,6 +22,11 @@ interface node {
         seq?: string[]
         elements?: Array<{ number: string; value: string; original?: string; record?: boolean }>
         id?: number
+        data?: {
+            id?: number
+            name?: string
+        }
+        name?: string
     },
     type: string,
     style?: { backgroundColor: string; color: string; padding?: number; borderRadius?: number }
@@ -77,8 +82,8 @@ const validateFlow = (nodes: node[], connections: any[]): void => {
     }
 
     if (node.type === 'ticket') {
-      if (!node.data?.id && !node.data?.data?.id) {
-        throw new AppError(`Nó ticket (${node.id}) deve ter um id de fila`);
+      if (!node.data?.id && !node.data?.data?.id && !node.data?.name) {
+        throw new AppError(`Nó ticket (${node.id}) deve ter um id ou name de fila`);
       }
     }
   }

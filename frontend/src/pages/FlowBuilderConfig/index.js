@@ -879,6 +879,7 @@ export const FlowBuilderConfig = () => {
                 zIndex: 1111
               }}
             />
+          </Box>
             {/* <Stack
                 style={{
                   backgroundColor: "#1B1B1B",
@@ -1091,7 +1092,6 @@ export const FlowBuilderConfig = () => {
                   Conteúdo
                 </Button>
               </Stack> */}
-          </Stack>
         </Paper>
       )}
       {loading && (
