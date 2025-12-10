@@ -375,7 +375,12 @@ export const getContactProfileURL = async (req: Request, res: Response) => {
 
   console.log("getContactProfileURL", { number, companyId })
   if (number) {
-    const validNumber = await CheckContactNumber(number, companyId);
+    let validNumber;
+    try {
+      validNumber = await CheckContactNumber(number, companyId);
+    } catch (err) {
+      return res.status(400).json({ error: "NUMBER_NOT_ON_WHATSAPP" });
+    }
     const numberIsValided = validNumber.jid || validNumber.lid;
 
 
