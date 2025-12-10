@@ -40,8 +40,10 @@ const msgCache = new NodeCache({
   useClones: false
 });
 
+const BAILEYS_LOG_LEVEL = process.env.BAILEYS_LOG_LEVEL || "error";
+MAIN_LOGGER.level = BAILEYS_LOG_LEVEL;
 const loggerBaileys = MAIN_LOGGER.child({});
-loggerBaileys.level = "error";
+loggerBaileys.level = BAILEYS_LOG_LEVEL;
 
 type Session = WASocket & {
   id?: number;

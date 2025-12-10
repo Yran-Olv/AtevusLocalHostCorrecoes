@@ -78,7 +78,8 @@ const SendWhatsAppMessage = async ({
   if (!isNil(vCard)) {
     const numberContact = vCard.number;
     const firstName = vCard.name.split(' ')[0];
-    const lastName = String(vCard.name).replace(vCard.name.split(' ')[0], '')
+    const lastName = String(vCard.name).replace(vCard.name.split(' ')[0], '').trim();
+
 
     const vcard = `BEGIN:VCARD\n`
       + `VERSION:3.0\n`
@@ -93,12 +94,13 @@ const SendWhatsAppMessage = async ({
         GetJidOf(ticket),
         {
           contacts: {
-            displayName: `${vCard.name}`,
+            displayName: vCard.name,
             contacts: [{ vcard }]
           }
         }
       );
-      await ticket.update({ lastMessage: formatBody(vcard, ticket), imported: null });
+
+      await ticket.update({ lastMessage: vCard.name, imported: null });
       return sentMessage;
     } catch (err) {
       Sentry.captureException(err);

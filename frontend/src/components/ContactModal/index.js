@@ -96,8 +96,11 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
       try {
         const { data } = await api.get(`/contacts/${contactId}`);
         if (isMounted.current) {
-          setContact(data);
-          setDisableBot(data.disableBot); // Atualizando o estado do switch aqui
+          setContact((prevState) => ({
+            ...data,
+            ...initialValues,
+          }));
+          setDisableBot(data.disableBot);
         }
       } catch (err) {
         toastError(err);

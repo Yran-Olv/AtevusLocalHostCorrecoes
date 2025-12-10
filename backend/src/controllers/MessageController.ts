@@ -148,8 +148,7 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
           }
 
           //limpar arquivo nao utilizado mais após envio
-          const { getPublicFilePath } = require("../../utils/pathHelper");
-          const filePath = getPublicFilePath(`company${companyId}/${media.filename}`);
+          const filePath = path.resolve("public", `company${companyId}`, media.filename);
           const fileExists = fs.existsSync(filePath);
 
           if (fileExists && isPrivate === "false") {
@@ -277,27 +276,62 @@ export const forwardMessage = async (
     await SendWhatsAppMessage({ body, ticket: createTicket, quotedMsg, isForwarded: message.fromMe ? false : true });
   } else {
 
-    const mediaUrl = message.mediaUrl.replace(`:${process.env.PORT}`, '');
-    const fileName = obterNomeEExtensaoDoArquivo(mediaUrl);
+    if (message.mediaType === "contactMessage") {
+      let vcardName = "Contato";
+      let vcardNumber = "";
+      try {
+        const fnMatch = body.match(/FN:([^\n\r]+)/i);
+        if (fnMatch && fnMatch[1]) vcardName = fnMatch[1].trim();
+        const waidMatch = body.match(/waid=([0-9]+)/i);
+        if (waidMatch && waidMatch[1]) vcardNumber = waidMatch[1];
+        if (!vcardNumber) {
+          const telMatch = body.match(/TEL[^:]*:([+\d]+)/i);
+          if (telMatch && telMatch[1]) vcardNumber = telMatch[1].replace(/\D/g, "");
+        }
+      } catch (e) {
+      }
+      const vcardContact = {
+        name: vcardName,
+        number: vcardNumber
+      } as any;
 
-    if (body === fileName) {
-      body = "";
+      await SendWhatsAppMessage({
+        body,
+        vCard: vcardContact,
+        ticket: createTicket,
+        quotedMsg,
+        isForwarded: message.fromMe ? false : true
+      });
+    } else if (!message.mediaUrl) {
+      await SendWhatsAppMessage({
+        body,
+        ticket: createTicket,
+        quotedMsg,
+        isForwarded: message.fromMe ? false : true
+      });
+    } else {
+      const mediaUrl = message.mediaUrl.replace(`:${process.env.PORT}`, '');
+      const fileName = obterNomeEExtensaoDoArquivo(mediaUrl);
+
+      if (body === fileName) {
+        body = "";
+      }
+
+      const publicFolder = path.join(__dirname, '..', '..', '..', 'backend', 'public');
+
+      const filePath = path.join(publicFolder, `company${createTicket.companyId}`, fileName)
+
+      const mediaSrc = {
+        fieldname: 'medias',
+        originalname: fileName,
+        encoding: '7bit',
+        mimetype: message.mediaType,
+        filename: fileName,
+        path: filePath
+      } as Express.Multer.File
+
+      await SendWhatsAppMedia({ media: mediaSrc, ticket: createTicket, body, isForwarded: message.fromMe ? false : true });
     }
-
-    const publicFolder = path.join(__dirname, '..', '..', '..', 'backend', 'public');
-
-    const filePath = path.join(publicFolder, `company${createTicket.companyId}`, fileName)
-
-    const mediaSrc = {
-      fieldname: 'medias',
-      originalname: fileName,
-      encoding: '7bit',
-      mimetype: message.mediaType,
-      filename: fileName,
-      path: filePath
-    } as Express.Multer.File
-
-    await SendWhatsAppMedia({ media: mediaSrc, ticket: createTicket, body, isForwarded: message.fromMe ? false : true });
   }
 
   return res.send();

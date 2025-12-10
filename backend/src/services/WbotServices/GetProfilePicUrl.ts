@@ -13,7 +13,9 @@ const GetProfilePicUrl = async (
 
   let profilePicUrl: string;
   try {
-    profilePicUrl = await wbot.profilePictureUrl(contact && contact.isGroup ? contact.remoteJid:`${number}@s.whatsapp.net`, "image");
+    const jid = number.includes("@") ? number : `${number}@s.whatsapp.net`;
+    const targetJid = contact && contact.isGroup ? contact.remoteJid : jid;
+    profilePicUrl = await wbot.profilePictureUrl(targetJid, "image");
   } catch (error) {
     profilePicUrl = `${process.env.FRONTEND_URL}/nopicture.png`;
   }

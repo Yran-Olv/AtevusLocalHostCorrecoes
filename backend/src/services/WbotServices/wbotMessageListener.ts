@@ -159,6 +159,19 @@ const multVecardGet = function (param: any) {
   return output
 }
 
+const sanitizeVcardString = (vcard?: string | null): string | null => {
+  if (!vcard || typeof vcard !== "string") return vcard ?? null;
+
+  const sanitized = vcard
+    .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F\uFEFF]/g, "")
+    .replace(/[\u2028\u2029]/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim();
+
+  return sanitized;
+};
+
 const extractArrayVcard = (msg: proto.IWebMessageInfo) => {
 
   if (!msg?.message?.contactsArrayMessage) return null;
@@ -269,9 +282,11 @@ export const getBodyMessage = (msg: proto.IWebMessageInfo): string | null => {
       messageContextInfo: msg.message?.buttonsResponseMessage?.selectedButtonId || msg.message?.listResponseMessage?.title,
       buttonsMessage: getBodyButton(msg) || msg.message?.listResponseMessage?.title,
       stickerMessage: "sticker",
-      contactMessage: msg.message?.contactMessage?.vcard,
-      contactsArrayMessage: (msg.message?.contactsArrayMessage?.contacts) && contactsArrayMessageGet(msg),
-      // contactsArrayMessage: extractArrayVcard(msg),
+      contactMessage:
+        msg.message?.contactMessage?.vcard ||
+        msg.message?.contactMessage?.displayName ||
+        null,
+      contactsArrayMessage: extractArrayVcard(msg),
       //locationMessage: `Latitude: ${msg.message.locationMessage?.degreesLatitude} - Longitude: ${msg.message.locationMessage?.degreesLongitude}`,
       locationMessage: msgLocation(msg.message?.locationMessage?.jpegThumbnail, msg.message?.locationMessage?.degreesLatitude, msg.message?.locationMessage?.degreesLongitude),
       liveLocationMessage: `Latitude: ${msg.message?.liveLocationMessage?.degreesLatitude} - Longitude: ${msg.message?.liveLocationMessage?.degreesLongitude}`,
@@ -361,104 +376,6 @@ const getSenderMessage = (
 
   return senderId && jidNormalizedUser(senderId);
 };
-
-// const getContactMessage = async (msg: proto.IWebMessageInfo, wbot: Session) => {
-//   const isGroup = msg.key.remoteJid.includes("g.us");
-
-//   const isLidContact = isLidUser(msg.key.remoteJid);
-//   const hasSenderLid = !!(msg.key as any).senderLid;
-
-//   if (isLidContact || hasSenderLid) {
-//     console.log('\n' + '='.repeat(80));
-//     console.log('🔍 LID DETECTADO - Capturando campos importantes');
-//     console.log('='.repeat(80));
-//     console.log('📱 remoteJid:', msg.key.remoteJid);
-//     console.log('🔑 isLidUser():', isLidContact);
-//     console.log('🔑 remoteJidAlt:', (msg.key as any).remoteJidAlt || 'null');
-//     console.log('🔑 senderLid:', (msg.key as any).senderLid || 'null');
-//     console.log('👤 pushName:', msg.pushName);
-//     console.log('📤 fromMe:', msg.key.fromMe);
-//     console.log('👥 participant:', msg.participant || 'null');
-//     console.log('👥 participantAlt:', (msg.key as any).participantAlt || 'null');
-
-//     try {
-//       const decoded = jidDecode(msg.key.remoteJid);
-//       console.log('\n🔍 jidDecode(remoteJid):');
-//       console.log('  user:', decoded?.user || 'null');
-//       console.log('  server:', decoded?.server || 'null');
-//       console.log('  device:', decoded?.device || 'null');
-//     } catch (e) {
-//       console.log('\n⚠️ Erro ao decodificar JID:', e.message);
-//     }
-
-//     const normalized = jidNormalizedUser(msg.key.remoteJid);
-//     console.log('\n📋 jidNormalizedUser(remoteJid):');
-//     console.log('  Normalizado:', normalized);
-//     console.log('  Número extraído:', normalized.replace(/\D/g, ''));
-
-//     if ((msg.key as any).remoteJidAlt) {
-//       console.log('\n✅ NÚMERO REAL ENCONTRADO (remoteJidAlt):');
-//       console.log('  JID Real:', (msg.key as any).remoteJidAlt);
-//       console.log('  Número:', (msg.key as any).remoteJidAlt.replace(/\D/g, ''));
-//     }
-
-//     if ((msg.key as any).participantAlt) {
-//       console.log('\n✅ NÚMERO REAL DO PARTICIPANTE ENCONTRADO (participantAlt):');
-//       console.log('  JID Real:', (msg.key as any).participantAlt);
-//       console.log('  Número:', (msg.key as any).participantAlt.replace(/\D/g, ''));
-//     }
-
-//     if (hasSenderLid) {
-//       const lidNormalized = jidNormalizedUser((msg.key as any).senderLid);
-//       console.log('\n📋 jidNormalizedUser(senderLid):');
-//       console.log('  Normalizado:', lidNormalized);
-//       console.log('  Número extraído:', lidNormalized.replace(/\D/g, ''));
-//     }
-
-//     console.log('='.repeat(80) + '\n');
-//   }
-
-//   let finalJid = msg.key.remoteJid;
-//   let lidToSave = undefined;
-
-//   if ((msg.key as any).remoteJidAlt && isLidContact) {
-//     finalJid = (msg.key as any).remoteJidAlt;
-//     lidToSave = msg.key.remoteJid;
-//     console.log(`✅ Usando remoteJidAlt como JID principal: ${finalJid}`);
-//   }
-//   else if (hasSenderLid) {
-//     finalJid = msg.key.remoteJid;
-//     lidToSave = (msg.key as any).senderLid;
-//     console.log(`✅ Detectado senderLid! Usando remoteJid (número real): ${finalJid}, salvando LID: ${lidToSave}`);
-//   }
-//   else if (isLidContact) {
-//     finalJid = msg.key.remoteJid;
-//     lidToSave = msg.key.remoteJid;
-//   }
-
-//   if (isGroup) {
-//     const participant = msg.participant || (msg.key as any).participant;
-//     if (participant && isLidUser(participant)) {
-//       lidToSave = participant;
-//       console.log(`✅ Detectado LID do participante em grupo: ${lidToSave}`);
-//     }
-//   }
-
-//   const normalizedJid = jidNormalizedUser(finalJid);
-//   const rawNumber = normalizedJid.replace(/\D/g, "");
-
-//   return isGroup
-//     ? {
-//       id: getSenderMessage(msg, wbot),
-//       name: msg.pushName,
-//       lid: lidToSave
-//     }
-//     : {
-//       id: normalizedJid,
-//       name: msg.key.fromMe ? rawNumber : msg.pushName,
-//       lid: lidToSave
-//     };
-// };
 
 
 export const verifyTypeMessage = (msg: string): "group" | "lid" | "jid" | "unknown" => {
@@ -1046,17 +963,8 @@ export const verifyMediaMessage = async (
 
       // const folder = `public/company${companyId}`; // Correção adicionada por Altemir 16-08-2023
       if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder, { recursive: true });
-        // Em produção, usar permissões mais restritivas (0o755)
-        try {
-          const permissions = process.env.NODE_ENV === 'production' ? 0o755 : 0o777;
-          fs.chmodSync(folder, permissions);
-        } catch (chmodError) {
-          // Ignorar erro de chmod no Windows
-          if (process.platform !== 'win32') {
-            console.warn('Erro ao definir permissões:', chmodError);
-          }
-        }
+        fs.mkdirSync(folder, { recursive: true }); // Correção adicionada por Altemir 16-08-2023
+        fs.chmodSync(folder, 0o777)
       }
 
       await writeFileAsync(join(folder, media.filename), media.data.toString('base64'), "base64") // Correção adicionada por Altemir 16-08-2023
@@ -1208,8 +1116,28 @@ export const verifyMessage = async (
 ) => {
   const io = getIO();
   const quotedMsg = await verifyQuotedMessage(msg);
+  
   const body = getBodyMessage(msg);
   const companyId = ticket.companyId;
+
+  let msgForDataJson = msg;
+  
+  if (msg.message?.contactMessage?.vcard || msg.message?.contactsArrayMessage?.contacts) {
+    msgForDataJson = JSON.parse(JSON.stringify(msg));
+    
+    if (msgForDataJson.message?.contactMessage?.vcard) {
+      msgForDataJson.message.contactMessage.vcard = sanitizeVcardString(msgForDataJson.message.contactMessage.vcard) as string;
+    }
+    
+    if (msgForDataJson.message?.contactsArrayMessage?.contacts) {
+      msgForDataJson.message.contactsArrayMessage.contacts = msgForDataJson.message.contactsArrayMessage.contacts.map(
+        (contact: any) => ({
+          ...contact,
+          vcard: sanitizeVcardString(contact.vcard)
+        })
+      );
+    }
+  }
 
   const messageData = {
     wid: msg.key.id,
@@ -1223,7 +1151,7 @@ export const verifyMessage = async (
     ack: Number(String(msg.status).replace('PENDING', '2').replace('NaN', '1')) || 2,
     remoteJid: msg.key.remoteJid,
     participant: msg.key.participant,
-    dataJson: JSON.stringify(msg),
+    dataJson: JSON.stringify(msgForDataJson),
     ticketTrakingId: ticketTraking?.id,
     isPrivate,
     createdAt: new Date(
@@ -1347,6 +1275,26 @@ const sendDialogflowAwswer = async (
     return;
   }
 
+  let msgForProcessing = msg;
+  if ((msg as any).message?.contactMessage?.vcard || (msg as any).message?.contactsArrayMessage?.contacts) {
+    msgForProcessing = JSON.parse(JSON.stringify(msg)) as WAMessage;
+    
+    if ((msgForProcessing as any).message?.contactMessage?.vcard) {
+      (msgForProcessing as any).message.contactMessage.vcard = sanitizeVcardString(
+        (msgForProcessing as any).message.contactMessage.vcard
+      ) as string;
+    }
+    
+    if ((msgForProcessing as any).message?.contactsArrayMessage?.contacts) {
+      (msgForProcessing as any).message.contactsArrayMessage.contacts = (msgForProcessing as any).message.contactsArrayMessage.contacts.map(
+        (contact: any) => ({
+          ...contact,
+          vcard: sanitizeVcardString(contact.vcard)
+        })
+      );
+    }
+  }
+
   wbot.presenceSubscribe(contact.remoteJid);
   await delay(500)
 
@@ -1354,7 +1302,7 @@ const sendDialogflowAwswer = async (
     session,
     queueIntegration.projectName,
     contact.remoteJid,
-    getBodyMessage(msg),
+    getBodyMessage(msgForProcessing),
     queueIntegration.language,
     inputAudio
   );
@@ -1569,8 +1517,7 @@ const verifyQueue = async (
       const body = formatBody(`${greetingMessage}`, ticket);
 
       if (ticket.whatsapp.greetingMediaAttachment !== null) {
-        const { getPublicFilePath } = require("../../utils/pathHelper");
-        const filePath = getPublicFilePath(`company${companyId}/${ticket.whatsapp.greetingMediaAttachment}`);
+        const filePath = path.resolve("public", `company${companyId}`, ticket.whatsapp.greetingMediaAttachment);
 
         const fileExists = fs.existsSync(filePath);
 
@@ -2112,8 +2059,7 @@ const verifyQueue = async (
 
         console.log("log... 1799")
 
-        const { getPublicFilePath } = require("../../utils/pathHelper");
-        const filePath = getPublicFilePath(`company${companyId}/${ticket.whatsapp.greetingMediaAttachment}`);
+        const filePath = path.resolve("public", `company${companyId}`, ticket.whatsapp.greetingMediaAttachment);
 
         const fileExists = fs.existsSync(filePath);
         // console.log(fileExists);
@@ -2618,8 +2564,29 @@ const flowbuilderIntegration = async (
 ) => {
 
   const io = getIO();
-  const quotedMsg = await verifyQuotedMessage(msg);
-  const body = getBodyMessage(msg);
+  
+  let msgForProcessing = msg;
+  if (msg.message?.contactMessage?.vcard || msg.message?.contactsArrayMessage?.contacts) {
+    msgForProcessing = JSON.parse(JSON.stringify(msg));
+    
+    if (msgForProcessing.message?.contactMessage?.vcard) {
+      msgForProcessing.message.contactMessage.vcard = sanitizeVcardString(
+        msgForProcessing.message.contactMessage.vcard
+      ) as string;
+    }
+    
+    if (msgForProcessing.message?.contactsArrayMessage?.contacts) {
+      msgForProcessing.message.contactsArrayMessage.contacts = msgForProcessing.message.contactsArrayMessage.contacts.map(
+        (contact: any) => ({
+          ...contact,
+          vcard: sanitizeVcardString(contact.vcard)
+        })
+      );
+    }
+  }
+  
+  const quotedMsg = await verifyQuotedMessage(msgForProcessing);
+  const body = getBodyMessage(msgForProcessing);
 
   // REGRA PARA DESABILITAR O BOT PARA ALGUM CONTATO
   if (ticket?.contact?.disableBot) {
@@ -3001,13 +2968,34 @@ export const handleMessageIntegration = async (
 
   if (queueIntegration.type === "n8n" || queueIntegration.type === "webhook") {
     if (queueIntegration?.urlN8N) {
+      
+      let msgForWebhook = msg;
+      if (msg.message?.contactMessage?.vcard || msg.message?.contactsArrayMessage?.contacts) {
+        msgForWebhook = JSON.parse(JSON.stringify(msg));
+        
+        if (msgForWebhook.message?.contactMessage?.vcard) {
+          msgForWebhook.message.contactMessage.vcard = sanitizeVcardString(
+            msgForWebhook.message.contactMessage.vcard
+          ) as string;
+        }
+        
+        if (msgForWebhook.message?.contactsArrayMessage?.contacts) {
+          msgForWebhook.message.contactsArrayMessage.contacts = msgForWebhook.message.contactsArrayMessage.contacts.map(
+            (contact: any) => ({
+              ...contact,
+              vcard: sanitizeVcardString(contact.vcard)
+            })
+          );
+        }
+      }
+      
       const options = {
         method: "POST",
         url: queueIntegration?.urlN8N,
         headers: {
           "Content-Type": "application/json"
         },
-        json: msg
+        json: msgForWebhook
       };
       try {
         request(options, function (error, response) {
@@ -3133,6 +3121,8 @@ const handleMessage = async (
 ): Promise<void> => {
 
   console.log("log... 2874")
+
+  sanitizeVCardInMessage(msg);
 
   if (!isValidMsg(msg)) {
     console.log("log... 2877")
@@ -4013,11 +4003,35 @@ const filterMessages = (msg: WAMessage): boolean => {
   return true;
 };
 
+const sanitizeVCardInMessage = (msg: proto.IWebMessageInfo): void => {
+  if (msg.message?.contactMessage?.vcard) {
+    const before = msg.message.contactMessage.vcard;
+    const after = sanitizeVcardString(before);
+    msg.message.contactMessage.vcard = after as string;
+  }
+  
+  if (msg.message?.contactsArrayMessage?.contacts) {
+    msg.message.contactsArrayMessage.contacts = msg.message.contactsArrayMessage.contacts.map(
+      (contact: any) => {
+        const before = contact.vcard;
+        const after = sanitizeVcardString(contact.vcard);
+        return {
+          ...contact,
+          vcard: after
+        };
+      }
+    );
+  }
+};
+
 const wbotMessageListener = (wbot: Session, companyId: number): void => {
   wbot.ev.on("messages.upsert", async (messageUpsert: ImessageUpsert) => {
     const messages = messageUpsert.messages
       .filter(filterMessages)
-      .map(msg => msg);
+      .map(msg => {
+        sanitizeVCardInMessage(msg);
+        return msg;
+      });
 
     if (!messages) return;
 

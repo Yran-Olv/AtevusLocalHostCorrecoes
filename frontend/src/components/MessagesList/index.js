@@ -9,7 +9,10 @@ import {
   Divider,
   IconButton,
   makeStyles,
-  Badge
+  Badge,
+  Dialog,
+  DialogTitle,
+  DialogContent
 } from "@material-ui/core";
 
 import {
@@ -23,12 +26,12 @@ import {
   Instagram,
   Reply,
   Close,
+  Person,
 } from "@material-ui/icons";
 
 import MarkdownWrapper from "../MarkdownWrapper";
 import VcardPreview from "../VcardPreview";
 import LocationPreview from "../LocationPreview";
-import { safeSocketOn, safeSocketOff, safeSocketEmit, isSocketValid } from "../../utils/socketHelper";
 import ModalImageCors from "../ModalImageCors";
 import MessageOptionsMenu from "../MessageOptionsMenu";
 import whatsBackground from "../../assets/wa-background.png";
@@ -537,38 +540,37 @@ const MessagesList = ({
       return;
     }
 
-    if (isSocketValid(socket) && user.companyId && ticketId) {
-      const companyId = user.companyId;
+    const companyId = user.companyId;
 
-      //    const socket = socketManager.GetSocket();
-      const connectEventMessagesList = () => {
-        safeSocketEmit(socket, "joinChatBox", `${ticketId}`);
-      }
-
-      const onAppMessageMessagesList = (data) => {
-        if (data.action === "create" && data.ticket.uuid === ticketId) {
-          dispatch({ type: "ADD_MESSAGE", payload: data.message });
-          scrollToBottom();
-        }
-
-        if (data.action === "update" && data?.message?.ticket?.uuid === ticketId) {
-          dispatch({ type: "UPDATE_MESSAGE", payload: data.message });
-        }
-
-        if (data.action == "delete" && data.message.ticket?.uuid === ticketId) {
-          dispatch({ type: "DELETE_MESSAGE", payload: data.messageId });
-        }
-      }
-      safeSocketOn(socket, "connect", connectEventMessagesList);
-      safeSocketOn(socket, `company-${companyId}-appMessage`, onAppMessageMessagesList);
-
-      return () => {
-        safeSocketEmit(socket, "joinChatBoxLeave", `${ticketId}`);
-
-        safeSocketOff(socket, "connect", connectEventMessagesList);
-        safeSocketOff(socket, `company-${companyId}-appMessage`, onAppMessageMessagesList);
-      };
+    //    const socket = socketManager.GetSocket();
+    const connectEventMessagesList = () => {
+      socket.emit("joinChatBox", `${ticketId}`);
     }
+
+    const onAppMessageMessagesList = (data) => {
+      if (data.action === "create" && data.ticket.uuid === ticketId) {
+        dispatch({ type: "ADD_MESSAGE", payload: data.message });
+        scrollToBottom();
+      }
+
+      if (data.action === "update" && data?.message?.ticket?.uuid === ticketId) {
+        dispatch({ type: "UPDATE_MESSAGE", payload: data.message });
+      }
+
+      if (data.action == "delete" && data.message.ticket?.uuid === ticketId) {
+        dispatch({ type: "DELETE_MESSAGE", payload: data.messageId });
+      }
+    }
+    socket.on("connect", connectEventMessagesList);
+    socket.on(`company-${companyId}-appMessage`, onAppMessageMessagesList);
+
+    return () => {
+
+      socket.emit("joinChatBoxLeave", `${ticketId}`)
+
+      socket.off("connect", connectEventMessagesList);
+      socket.off(`company-${companyId}-appMessage`, onAppMessageMessagesList);
+    };
 
   }, [ticketId]);
 
@@ -619,6 +621,81 @@ const hanldeReplyMessage = (e, message) => {
   //}
 };
 
+const extrairNomeENumero = (vcard) => {
+  if (!vcard) return { nome: "", numero: "" };
+  const nomeMatch = vcard.match(/FN:(.*?)\n/);
+  const nome = nomeMatch ? nomeMatch[1].trim() : '';
+  const waidMatch = vcard.match(/waid=(\d+)/);
+  const telMatch = vcard.match(/TEL[^:]*:([+\d\s-]+)/);
+  let numero = "";
+  if (waidMatch) numero = waidMatch[1];
+  else if (telMatch) numero = telMatch[1].replace(/\D/g, "");
+  return { nome, numero };
+};
+
+const ContactsArrayPreview = ({ displayName, contactsVcfs = [], queueId, whatsappId }) => {
+  const [open, setOpen] = useState(false);
+
+  const contacts = contactsVcfs.map((vcard, idx) => {
+    const { nome, numero } = extrairNomeENumero(vcard);
+    return { nome: nome || `Contato ${idx + 1}`, numero, vcard };
+  });
+
+  const firstName = contacts[0]?.nome || "Contato";
+  const extraCount = Math.max(contacts.length - 1, 0);
+  const headerTitle = extraCount > 0 ? `${firstName} + ${extraCount}` : firstName;
+
+  return (
+    <>
+      <div
+        style={{
+          minWidth: "240px",
+          width: "100%",
+          padding: "10px 15px",
+          background: "transparent"
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <img src="/nopicture.png" alt="" style={{ width: 40, height: 40, borderRadius: "50%" }} />
+          <span style={{ fontWeight: 700 }}>{headerTitle}</span>
+        </div>
+        <Divider />
+        <Button fullWidth color="primary" onClick={() => setOpen(true)} style={{ marginTop: 8 }}>
+          Ver todos
+        </Button>
+      </div>
+
+      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Contatos</DialogTitle>
+        <DialogContent dividers>
+          {contacts.map((c, idx) => (
+            <div
+              key={idx}
+              style={{
+                marginBottom: 12,
+                borderRadius: 10,
+                border: "1px solid #e0e0e0",
+                padding: "10px",
+                background: "#fff",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+                width: "100%"
+              }}
+            >
+              <VcardPreview
+                contact={c.nome}
+                numbers={c.numero}
+                vcardRaw={c.vcard}
+                queueId={queueId}
+                whatsappId={whatsappId}
+              />
+            </div>
+          ))}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 const checkMessageMedia = (message) => {
   console.log(message)
   if (message.mediaType === "locationMessage" && message.body.split('|').length >= 2) {
@@ -635,24 +712,107 @@ const checkMessageMedia = (message) => {
   } else
 
     if (message.mediaType === "contactMessage") {
-      let array = message.body.split("\n");
-      let obj = [];
       let contact = "";
-      for (let index = 0; index < array.length; index++) {
-        const v = array[index];
-        let values = v.split(":");
-        for (let ind = 0; ind < values.length; ind++) {
-          if (values[ind].indexOf("+") !== -1) {
-            obj.push({ number: values[ind] });
-          }
-          if (values[ind].indexOf("FN") !== -1) {
-            contact = values[ind + 1];
+      let number = "";
+      
+      if (!message.body) {
+        console.warn("contactMessage sem body:", message);
+        return <VcardPreview contact={contact} numbers={number} vcardRaw={message.body} queueId={message?.ticket?.queueId} whatsappId={message?.ticket?.whatsappId} />
+      }
+      
+      if (message.body.includes("FN:") && message.body.includes("TEL:")) {
+        const fnMatch = message.body.match(/FN:(.*?)(\n|$)/);
+        const telMatch = message.body.match(/TEL:([+\d\s-]+)/);
+        
+        contact = fnMatch ? fnMatch[1].trim() : "";
+        number = telMatch ? telMatch[1].trim() : "";
+        
+        if (!contact || !number) {
+          console.log("Erro ao extrair vCard do novo formato:", { body: message.body, contact, number, fnMatch, telMatch });
+        }
+      } else if (message.body.includes("BEGIN:VCARD")) {
+        let array = message.body.split("\n");
+        let obj = [];
+        for (let index = 0; index < array.length; index++) {
+          const v = array[index];
+          let values = v.split(":");
+          for (let ind = 0; ind < values.length; ind++) {
+            if (values[ind].indexOf("+") !== -1) {
+              obj.push({ number: values[ind] });
+            }
+            if (values[ind].indexOf("FN") !== -1) {
+              contact = values[ind + 1];
+            }
           }
         }
+        number = obj[0]?.number || "";
+      } else {
+        contact = message.body;
+        
+            try {
+          if (message.dataJson) {
+            const dataJson = JSON.parse(message.dataJson);
+            const vcard = dataJson?.message?.contactMessage?.vcard;
+            
+            if (vcard) {
+
+              const waidMatch = vcard.match(/waid=(\d+)/);
+
+              const telMatch = vcard.match(/(?:item\d+\.)?TEL[^:]*:([+\d\s-]+)/);
+              
+              if (waidMatch) {
+                number = `+${waidMatch[1]}`;
+              } else if (telMatch) {
+                number = telMatch[1].trim();
+              }
+              
+            }
+          }
+        } catch (e) {
+        }
       }
-      // console.log(message)
-      return <VcardPreview contact={contact} numbers={obj[0]?.number} queueId={message?.ticket?.queueId} whatsappId={message?.ticket?.whatsappId} />
+      
+      return <VcardPreview contact={contact} numbers={number} queueId={message?.ticket?.queueId} whatsappId={message?.ticket?.whatsappId} />
     } else
+      if (message.mediaType === "contactsArrayMessage") {
+        let contactsArray = [];
+        let displayName = "";
+
+        // Primeiro tentar pelo body (permanece após reload)
+        try {
+          const parsedBody = JSON.parse(message.body);
+          if (Array.isArray(parsedBody)) {
+            contactsArray = parsedBody;
+            displayName = `${parsedBody.length} contato${parsedBody.length > 1 ? "s" : ""}`;
+          }
+        } catch (e) {
+          contactsArray = [];
+        }
+
+        // Fallback: dataJson (quando disponível)
+        if (!contactsArray.length) {
+          try {
+            if (message.dataJson) {
+              const dataJson = JSON.parse(message.dataJson);
+              displayName = dataJson?.message?.contactsArrayMessage?.displayName || displayName;
+              contactsArray = dataJson?.message?.contactsArrayMessage?.contacts?.map(
+                (c) => c.vcard
+              ) || contactsArray;
+            }
+          } catch (e) {
+            // mantém arrays vazios
+          }
+        }
+
+        return (
+          <ContactsArrayPreview
+            displayName={displayName}
+            contactsVcfs={contactsArray}
+            queueId={message?.ticket?.queueId}
+            whatsappId={message?.ticket?.whatsappId}
+          />
+        );
+      } else
 
       if (message.mediaType === "image") {
         return <ModalImageCors imageUrl={message.mediaUrl} />;
@@ -813,6 +973,19 @@ const renderMessageDivider = (message, index) => {
 
 const renderQuotedMessage = (message) => {
 
+  const parseContactNameFromVcard = (body) => {
+    if (!body) return "Contato";
+    try {
+      const fnMatch = body.match(/FN:([^\n\r]+)/i);
+      if (fnMatch && fnMatch[1]) return fnMatch[1].trim();
+      const nMatch = body.match(/N:([^\n\r]+)/i);
+      if (nMatch && nMatch[1]) return nMatch[1].split(";").filter(Boolean).join(" ").trim();
+      return body.replace(/BEGIN:VCARD|END:VCARD/gi, "").trim() || "Contato";
+    } catch (e) {
+      return "Contato";
+    }
+  };
+
   return (
     <div
       className={clsx(classes.quotedContainerLeft, {
@@ -852,11 +1025,12 @@ const renderQuotedMessage = (message) => {
             />
           )
         }
-        {message.quotedMsg.mediaType === "contactMessage"
-          && (
-            "Contato"
-          )
-        }
+        {message.quotedMsg.mediaType === "contactMessage" && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Person fontSize="small" />
+            <span>{parseContactNameFromVcard(message.quotedMsg?.body)}</span>
+          </div>
+        )}
         {message.quotedMsg.mediaType === "application"
           && (
             <div className={classes.downloadMedia}>
@@ -873,12 +1047,13 @@ const renderQuotedMessage = (message) => {
           )
         }
 
-        {message.quotedMsg.mediaType === "image"
-          && (
-            <ModalImageCors imageUrl={message.quotedMsg.mediaUrl} />)
-          || message.quotedMsg?.body}
-
-        {!message.quotedMsg.mediaType === "image" && message.quotedMsg?.body}
+        {message.quotedMsg.mediaType === "image" && (
+          <ModalImageCors imageUrl={message.quotedMsg.mediaUrl} />
+        )}
+        {message.quotedMsg.mediaType === "contactMessage" && (
+          <></>
+        )}
+        {message.quotedMsg.mediaType !== "image" && message.quotedMsg.mediaType !== "contactMessage" && message.quotedMsg?.body}
 
 
       </div>
@@ -1029,7 +1204,7 @@ const renderMessages = () => {
                 </div>
               )}
 
-              {(message.mediaUrl || message.mediaType === "locationMessage" || message.mediaType === "contactMessage"
+              {(message.mediaUrl || message.mediaType === "locationMessage" || message.mediaType === "contactMessage" || message.mediaType === "contactsArrayMessage"
                 //|| message.mediaType === "multi_vcard" 
               ) && checkMessageMedia(message)}
 
@@ -1044,13 +1219,15 @@ const renderMessages = () => {
                     message.mediaType !== "image" &&
                     message.mediaType !== "video" &&
                     message.mediaType != "reactionMessage" &&
-                    message.mediaType != "locationMessage" && message.mediaType !== "contactMessage") && (
+                    message.mediaType != "locationMessage" && 
+                    message.mediaType !== "contactMessage" && 
+                    message.mediaType !== "contactsArrayMessage") && (
                     <>
-                      {xmlRegex.test(message.body) && (
+                      {xmlRegex.test(message.body) && !message.body.includes("BEGIN:VCARD") && (
                         <span>{message.body}</span>
 
                       )}
-                      {!xmlRegex.test(message.body) && (
+                      {!xmlRegex.test(message.body) && !message.body.includes("BEGIN:VCARD") && (
                         <MarkdownWrapper>{(lgpdDeleteMessage && message.isDeleted) ? "🚫 _Mensagem apagada_ " :
                           message.body
                         }</MarkdownWrapper>)}
@@ -1126,7 +1303,7 @@ const renderMessages = () => {
                   </span>
                 </div>
               )}
-              {(message.mediaUrl || message.mediaType === "locationMessage" || message.mediaType === "contactMessage"
+              {(message.mediaUrl || message.mediaType === "locationMessage" || message.mediaType === "contactMessage" || message.mediaType === "contactsArrayMessage"
                 //|| message.mediaType === "multi_vcard" 
               ) && checkMessageMedia(message)}
               <div
@@ -1143,13 +1320,15 @@ const renderMessages = () => {
 
                 {
                   ((message.mediaType === "image" || message.mediaType === "video") && path.basename(message.mediaUrl) === message.body) ||
-                  (message.mediaType !== "audio" && message.mediaType != "reactionMessage" && message.mediaType != "locationMessage" && message.mediaType !== "contactMessage") && (
+                  (message.mediaType !== "audio" && message.mediaType != "reactionMessage" && message.mediaType != "locationMessage" && message.mediaType !== "contactMessage" && message.mediaType !== "contactsArrayMessage") && (
                     <>
-                      {xmlRegex.test(message.body) && (
+                      {xmlRegex.test(message.body) && !message.body.includes("BEGIN:VCARD") && (
                         <div>{formatXml(message.body)}</div>
 
                       )}
-                      {!xmlRegex.test(message.body) && (<MarkdownWrapper>{message.body}</MarkdownWrapper>)}
+                      {!xmlRegex.test(message.body) && !message.body.includes("BEGIN:VCARD") && (
+                        <MarkdownWrapper>{message.body}</MarkdownWrapper>
+                      )}
 
                     </>
                   )}
