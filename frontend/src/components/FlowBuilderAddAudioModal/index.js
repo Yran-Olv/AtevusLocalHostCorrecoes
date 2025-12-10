@@ -1,95 +1,58 @@
 import React, { useState, useEffect, useRef } from "react";
-
-import * as Yup from "yup";
-import { Formik, FieldArray, Form, Field } from "formik";
 import { toast } from "react-toastify";
-
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  IconButton,
+  CircularProgress,
+  Stack,
+  Box,
+  Checkbox,
+  FormControlLabel,
+  useTheme,
+  useMediaQuery
+} from "@mui/material";
+import { Close as CloseIcon, CloudUpload as CloudUploadIcon, Mic as MicIcon } from "@mui/icons-material";
 import Compressor from "compressorjs";
-
 import { i18n } from "../../translate/i18n";
-
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
-import { Checkbox, Stack } from "@mui/material";
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: "flex",
-    flexWrap: "wrap"
-  },
-  textField: {
-    marginRight: theme.spacing(1),
-    flex: 1
-  },
-
-  extraAttr: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center"
-  },
-
-  btnWrapper: {
-    position: "relative"
-  },
-
-  buttonProgress: {
-    color: green[500],
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    marginTop: -12,
-    marginLeft: -12
-  }
-}));
+import "./FlowBuilderAddAudioModal.css";
 
 const FlowBuilderAddAudioModal = ({ open, onSave, onUpdate, data, close }) => {
-  const classes = useStyles();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isMounted = useRef(true);
 
   const [activeModal, setActiveModal] = useState(false);
-
   const [loading, setLoading] = useState(false);
-
   const [record, setRecord] = useState(false);
-
   const [preview, setPreview] = useState();
-
   const [labels, setLabels] = useState({
-    title: "Adicionar audio ao fluxo",
+    title: "Adicionar áudio ao fluxo",
     btn: "Adicionar"
   });
-
-  const [textDig, setTextDig] = useState();
-
   const [medias, setMedias] = useState([]);
 
   useEffect(() => {
     if (open === "edit") {
       setLabels({
-        title: "Editar audio",
+        title: "Editar áudio",
         btn: "Salvar"
       });
-      setPreview(process.env.REACT_APP_BACKEND_URL + '/public/' + data.data.url)
-      setRecord(data.data.record)
+      setPreview(process.env.REACT_APP_BACKEND_URL + '/public/' + data.data.url);
+      setRecord(data.data.record);
       setActiveModal(true);
     } else if (open === "create") {
       setLabels({
-        title: "Adicionar audio ao fluxo",
+        title: "Adicionar áudio ao fluxo",
         btn: "Adicionar"
       });
-      setTextDig("");
       setActiveModal(true);
     } else {
       setActiveModal(false);
@@ -105,6 +68,9 @@ const FlowBuilderAddAudioModal = ({ open, onSave, onUpdate, data, close }) => {
   const handleClose = () => {
     close(null);
     setActiveModal(false);
+    setMedias([]);
+    setPreview();
+    setRecord(false);
   };
 
   const handleSaveContact = async () => {
@@ -112,32 +78,34 @@ const FlowBuilderAddAudioModal = ({ open, onSave, onUpdate, data, close }) => {
       handleClose();
       onUpdate({
         ...data,
-        data: { url: data.data.url,
-        record: record }
+        data: { url: data.data.url, record: record }
       });
       return;
     } else if (open === "create") {
+      if (medias.length === 0) {
+        toast.error("Selecione um arquivo de áudio", {
+          position: "bottom-right",
+        });
+        return;
+      }
+
       setLoading(true);
       const formData = new FormData();
       formData.append("fromMe", true);
 
-      medias.forEach(async (media, idx) => {
+      medias.forEach(async (media) => {
         const file = media;
+        if (!file) return;
 
-        if (!file) {
-          return;
-        }
-
-        if (media?.type.split("/")[0] == "image") {
+        if (media?.type.split("/")[0] === "image") {
           new Compressor(file, {
             quality: 0.7,
-
             async success(media) {
               formData.append("medias", media);
               formData.append("body", media.name);
             },
             error(err) {
-              alert("erro");
+              toast.error("Erro ao comprimir arquivo");
               console.log(err.message);
             }
           });
@@ -148,116 +116,201 @@ const FlowBuilderAddAudioModal = ({ open, onSave, onUpdate, data, close }) => {
       });
 
       setTimeout(async () => {
-        console.log(formData);
-        await api.post("/flowbuilder/audio", formData).then(res => {
+        try {
+          const res = await api.post("/flowbuilder/audio", formData);
           handleClose();
           onSave({
             url: res.data.name,
             record: record
           });
-          toast.success("Audio adicionada com sucesso!");
+          toast.success("Áudio adicionado com sucesso!", {
+            position: "bottom-right",
+            autoClose: 2000,
+          });
           setLoading(false);
           setMedias([]);
           setPreview();
-        });
+        } catch (error) {
+          toastError(error);
+          setLoading(false);
+        }
       }, 1000);
     }
   };
 
   const handleChangeMedias = e => {
-    if (!e.target.files) {
+    if (!e.target.files) return;
+
+    if(e.target.files[0].size > 5000000){
+      toast.error("Arquivo é muito grande! 5MB máximo", {
+        position: "bottom-right",
+      });
       return;
     }
 
-    if(e.target.files[0].size > 5000000){
-      toast.error("Arquivo é muito grande! 5MB máximo")
-      return
-    }
-
     const selectedMedias = Array.from(e.target.files);
-    setPreview((URL.createObjectURL(e.target.files[0])));
+    setPreview(URL.createObjectURL(e.target.files[0]));
     setMedias(selectedMedias);
   };
 
   return (
-    <div className={classes.root}>
-      <Dialog
-        open={activeModal}
-        onClose={handleClose}
-        fullWidth="md"
-        scroll="paper"
+    <Dialog
+      open={activeModal}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+      PaperProps={{
+        sx: {
+          borderRadius: isMobile ? 0 : 2,
+          maxHeight: isMobile ? '100vh' : '90vh',
+          margin: isMobile ? 0 : 2,
+        }
+      }}
+      className="flowbuilder-modal"
+    >
+      <DialogTitle 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 1,
+          borderBottom: '1px solid',
+          borderColor: 'divider'
+        }}
       >
-        <DialogTitle id="form-dialog-title">{labels.title}</DialogTitle>
-        <Stack>
-          <DialogContent dividers>
-            <Stack gap={"16px"}>
-              {preview && (
-                <Stack direction={'row'} justifyContent={'center'}>
-                <audio controls="controls">
-                  <source src={preview} type="audio/mp3" />
-                  seu navegador não suporta HTML5
-                </audio>
-                </Stack>
-              )}
-              {preview && (
-                <Stack direction={'row'} justifyContent={'center'}>
-                <Checkbox checked={record} onChange={(e) => setRecord(old => !old)}/>
-                <Stack justifyContent={'center'}>
-                <Typography>Enviar como audio gravado na hora</Typography>
-                </Stack>
-                </Stack>
-              )}
-              {!loading && open !== "edit" && (
-                <Button variant="contained" component="label">
-                  Enviar audio
-                  <input
-                    type="file"
-                    accept="audio/ogg, audio/mp3"
-                    disabled={loading}
-                    hidden
-                    onChange={handleChangeMedias}
-                  />
-                </Button>
-              )}
-              {loading && (
-                <>
-                  <Stack justifyContent={"center"} alignSelf={"center"}>
-                    <CircularProgress />
-                  </Stack>
-                </>
-              )}
-            </Stack>
-          </DialogContent>
-          <DialogActions>
-            {!loading && (
-              <>
-                <Button
-                  onClick={() => {
-                    handleClose();
-                    setMedias([]);
-                    setPreview();
-                  }}
-                  color="secondary"
-                  variant="outlined"
-                >
-                  {i18n.t("contactModal.buttons.cancel")}
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={loading}
+        <Typography variant="h6" component="div" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <MicIcon fontSize="small" />
+          {labels.title}
+        </Typography>
+        <IconButton
+          onClick={handleClose}
+          size="small"
+          sx={{
+            color: 'text.secondary',
+            '&:hover': {
+              backgroundColor: 'action.hover',
+            }
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent sx={{ pt: 3, pb: 2 }}>
+        <Stack spacing={3}>
+          {preview && (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                borderRadius: 2,
+                overflow: 'hidden',
+                border: '1px solid',
+                borderColor: 'divider',
+                backgroundColor: 'grey.100',
+                p: 2
+              }}
+            >
+              <audio controls style={{ width: '100%', maxWidth: '500px' }}>
+                <source src={preview} type="audio/mp3" />
+                Seu navegador não suporta HTML5
+              </audio>
+            </Box>
+          )}
+
+          {preview && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={record}
+                  onChange={(e) => setRecord(e.target.checked)}
                   color="primary"
-                  variant="contained"
-                  className={classes.btnWrapper}
-                  onClick={() => handleSaveContact()}
-                >
-                  {`${labels.btn}`}
-                </Button>
-              </>
-            )}
-          </DialogActions>
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  Enviar como áudio gravado na hora
+                </Typography>
+              }
+            />
+          )}
+
+          {!loading && open !== "edit" && (
+            <Button
+              variant="contained"
+              component="label"
+              startIcon={<CloudUploadIcon />}
+              fullWidth={isMobile}
+              sx={{
+                py: 1.5,
+                fontSize: isMobile ? '0.875rem' : '1rem',
+                textTransform: 'none',
+                fontWeight: 500,
+              }}
+            >
+              {medias.length > 0 ? 'Trocar áudio' : 'Enviar áudio'}
+              <input
+                type="file"
+                accept="audio/ogg, audio/mp3, audio/mpeg, audio/wav"
+                disabled={loading}
+                hidden
+                onChange={handleChangeMedias}
+              />
+            </Button>
+          )}
+
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress size={isMobile ? 32 : 40} />
+            </Box>
+          )}
         </Stack>
-      </Dialog>
-    </div>
+      </DialogContent>
+
+      <DialogActions 
+        sx={{ 
+          px: 3, 
+          pb: 2, 
+          pt: 2,
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          gap: 1
+        }}
+      >
+        {!loading && (
+          <>
+            <Button
+              onClick={handleClose}
+              color="inherit"
+              variant="outlined"
+              fullWidth={isMobile}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 500,
+              }}
+            >
+              {i18n.t("contactModal.buttons.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading || (open === "create" && medias.length === 0)}
+              color="primary"
+              variant="contained"
+              onClick={handleSaveContact}
+              fullWidth={isMobile}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 500,
+              }}
+            >
+              {labels.btn}
+            </Button>
+          </>
+        )}
+      </DialogActions>
+    </Dialog>
   );
 };
 

@@ -13,12 +13,27 @@ export default memo(({ data, isConnectable, id }) => {
   const storageItems = useNodeStorage();
   return (
     <div
-      style={{ backgroundColor: "#555", padding: "8px", borderRadius: "8px" }}
+      style={{ 
+        backgroundColor: "#555", 
+        padding: "8px", 
+        borderRadius: "8px",
+        minWidth: "140px",
+        maxWidth: "180px",
+        width: "auto",
+        position: "relative"
+      }}
     >
       <Handle
         type="target"
         position="left"
-        style={{ background: "#0000FF" }}
+        style={{ 
+          background: "#0000FF",
+          width: "14px",
+          height: "14px",
+          top: "20px",
+          left: "-9px",
+          cursor: 'pointer'
+        }}
         onConnect={params => console.log("handle onConnect", params)}
         isConnectable={isConnectable}
       />
@@ -51,30 +66,30 @@ export default memo(({ data, isConnectable, id }) => {
       <div
         style={{
           color: "#ededed",
-          fontSize: "16px",
+          fontSize: "14px",
           flexDirection: "row",
-          display: "flex"
+          display: "flex",
+          alignItems: "center"
         }}
       >
         <MicNone
           sx={{
-            width: "16px",
-            height: "16px",
-            marginRight: "4px",
-            marginTop: "4px"
+            width: "14px",
+            height: "14px",
+            marginRight: "4px"
           }}
         />
-        <div style={{ color: "#ededed", fontSize: "16px" }}>Audio</div>
+        <div style={{ color: "#ededed", fontSize: "14px", fontWeight: 500 }}>Audio</div>
       </div>
-      <div style={{ color: "#ededed", fontSize: "12px" }}>
-        <div style={{ position: "absolute", right: "50px", top: "12px" }}>
+      <div style={{ color: "#ededed", fontSize: "11px", marginTop: "4px" }}>
+        <div style={{ marginBottom: "4px", fontSize: "10px" }}>
           {data.record && data.record ? (
             <div>Gravado na hora</div>
           ) : (
             <div>Audio enviado</div>
           )}
         </div>
-        <audio controls="controls">
+        <audio controls="controls" style={{ width: "100%", maxWidth: "180px" }}>
           <source src={`${link}/public/${data.url}`} type="audio/mp3" />
           seu navegador não suporta HTML5
         </audio>
@@ -83,7 +98,14 @@ export default memo(({ data, isConnectable, id }) => {
         type="source"
         position="right"
         id="a"
-        style={{ background: "#0000FF" }}
+        style={{ 
+          background: "#0000FF",
+          width: "14px",
+          height: "14px",
+          top: "70%",
+          right: "-9px",
+          cursor: 'pointer'
+        }}
         isConnectable={isConnectable}
       />
     </div>

@@ -3,7 +3,8 @@ import React, {
   useEffect,
   useReducer,
   useContext,
-  useCallback
+  useCallback,
+  useRef
 } from "react";
 
 import { toast } from "react-toastify";
@@ -29,7 +30,7 @@ import {
   Typography
 } from "@mui/material";
 import { useParams } from "react-router-dom/cjs/react-router-dom.min";
-import { CircularProgress } from "@material-ui/core";
+import { CircularProgress } from "@mui/material";
 import messageNode from "./nodes/messageNode.js";
 
 import "reactflow/dist/style.css";
@@ -78,7 +79,7 @@ import FlowBuilderAddVideoModal from "../../components/FlowBuilderAddVideoModal"
 import FlowBuilderSingleBlockModal from "../../components/FlowBuilderSingleBlockModal";
 import singleBlockNode from "./nodes/singleBlockNode";
 import { colorPrimary } from "../../styles/styles";
-import { useTheme, useMediaQuery, Box, Fab, Zoom } from "@mui/material";
+import { useTheme, useMediaQuery, Box, Zoom } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import "./FlowBuilderConfig.css";
 import ticketNode from "./nodes/ticketNode";
@@ -104,19 +105,7 @@ const useStyles = makeStyles(theme => ({
     bottom: theme.spacing(3),
     right: theme.spacing(3),
     zIndex: 1000,
-    borderRadius: "50px",
-    padding: theme.spacing(1.5, 3),
-    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
-    transition: "all 0.3s ease",
-    "&:hover": {
-      transform: "translateY(-4px)",
-      boxShadow: "0 12px 32px rgba(0, 0, 0, 0.2)"
-    },
-    [theme.breakpoints.down("sm")]: {
-      bottom: theme.spacing(2),
-      right: theme.spacing(2),
-      padding: theme.spacing(1, 2)
-    }
+    minWidth: "auto"
   },
   saveReminder: {
     position: "fixed",
@@ -422,6 +411,8 @@ export const FlowBuilderConfig = () => {
 
   useEffect(() => {
     setLoading(true);
+    setHasUnsavedChanges(false); // Resetar ao carregar novo fluxo
+    isInitialLoad.current = true;
     const delayDebounceFn = setTimeout(() => {
       const fetchContacts = async () => {
         try {
@@ -431,8 +422,13 @@ export const FlowBuilderConfig = () => {
             setEdges(data.flow.flow.connections);
           }
           setLoading(false);
+          setHasUnsavedChanges(false); // Garantir que não há mudanças não salvas após carregar
+          setTimeout(() => {
+            isInitialLoad.current = false;
+          }, 2000);
         } catch (err) {
           toastError(err);
+          setLoading(false);
         }
       };
       fetchContacts();
@@ -496,17 +492,103 @@ export const FlowBuilderConfig = () => {
     [setEdges]
   );
 
-  const saveFlow = async () => {
-    await api
-      .post("/flowbuilder/flow", {
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const saveTimeoutRef = useRef(null);
+
+  const saveFlow = async (silent = false) => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    try {
+      await api.post("/flowbuilder/flow", {
         idFlow: id,
         nodes: nodes,
         connections: edges
-      })
-      .then(res => {
-        toast.success("Fluxo salvo com sucesso");
       });
+      
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+      
+      if (!silent) {
+        toast.success("Fluxo salvo com sucesso", {
+          position: "bottom-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } else {
+        // Notificação silenciosa para auto-save
+        toast.success("Fluxo salvo automaticamente", {
+          position: "bottom-right",
+          autoClose: 1500,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao salvar fluxo:", error);
+      if (!silent) {
+        toast.error("Erro ao salvar fluxo", {
+          position: "bottom-right",
+          autoClose: 3000,
+        });
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  // Auto-save a cada 10 segundos se houver mudanças
+  useEffect(() => {
+    if (!id || loading) return;
+
+    // Limpar timeout anterior
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Se houver mudanças não salvas, agendar auto-save
+    if (hasUnsavedChanges && nodes.length > 0) {
+      saveTimeoutRef.current = setTimeout(() => {
+        saveFlow(true); // Salvar silenciosamente
+      }, 10000); // 10 segundos
+    }
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [nodes, edges, hasUnsavedChanges, id, loading]);
+
+  // Detectar mudanças nos nodes e edges (após o carregamento inicial)
+  const isInitialLoad = useRef(true);
+  useEffect(() => {
+    if (loading) {
+      isInitialLoad.current = true;
+      setHasUnsavedChanges(false);
+      return;
+    }
+    
+    // Aguardar um pouco após o carregamento inicial antes de marcar como não salvo
+    if (isInitialLoad.current && nodes.length > 0) {
+      const timer = setTimeout(() => {
+        isInitialLoad.current = false;
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+    
+    // Só marcar como não salvo se não for o carregamento inicial
+    if (!isInitialLoad.current && nodes.length > 0) {
+      setHasUnsavedChanges(true);
+    }
+  }, [nodes, edges, loading]);
 
   const doubleClick = (event, node) => {
     console.log("NODE", node);
@@ -675,7 +757,7 @@ export const FlowBuilderConfig = () => {
   };
 
   return (
-    <Stack sx={{ height: "100vh" }}>
+    <Stack sx={{ height: "100vh", width: "100%", overflow: "hidden" }}>
       <FlowBuilderAddTextModal
         open={modalAddText}
         onSave={textAdd}
@@ -754,70 +836,167 @@ export const FlowBuilderConfig = () => {
           className={classes.mainPaper}
           variant="outlined"
           onScroll={handleScroll}
+          sx={{
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column"
+          }}
         >
-          <Stack>
-            <SpeedDial
-              ariaLabel="SpeedDial basic example"
-              className="flow-speeddial"
-              sx={{
-                position: "absolute",
-                top: isMobile ? 12 : 16,
-                left: isMobile ? 12 : 16,
-                ".MuiSpeedDial-fab": {
+          <SpeedDial
+            ariaLabel="SpeedDial basic example"
+            className="flow-speeddial"
+            sx={{
+              position: "absolute",
+              top: isMobile ? 12 : isTablet ? 14 : 16,
+              left: isMobile ? 12 : isTablet ? 14 : 16,
+              zIndex: 1000,
+              ".MuiSpeedDial-fab": {
+                backgroundColor: colorPrimary(),
+                width: isMobile ? 48 : isTablet ? 52 : 56,
+                height: isMobile ? 48 : isTablet ? 52 : 56,
+                '&:hover': {
                   backgroundColor: colorPrimary(),
-                  width: isMobile ? 48 : 56,
-                  height: isMobile ? 48 : 56,
-                  '&:hover': {
-                    backgroundColor: colorPrimary(),
-                    transform: "scale(1.1)"
-                  },
-                  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
-                }
-              }}
-              icon={<SpeedDialIcon />}
-              direction={"down"}
-            >
-              {actions.map((action, index) => (
-                <SpeedDialAction
-                  key={action.name}
-                  icon={action.icon}
-                  tooltipTitle={action.name}
-                  tooltipOpen={!isMobile}
-                  tooltipPlacement={isMobile ? "left" : "right"}
-                  onClick={() => clickActions(action.type)}
-                  className="flow-speeddial-action"
-                  sx={{
-                    animation: `speedDialAction 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.05}s both`
-                  }}
-                />
-              ))}
-            </SpeedDial>
-          </Stack>
+                  transform: "scale(1.1)"
+                },
+                transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+              }
+            }}
+            icon={<SpeedDialIcon />}
+            direction={"down"}
+          >
+            {actions.map((action, index) => (
+              <SpeedDialAction
+                key={action.name}
+                icon={action.icon}
+                tooltipTitle={action.name}
+                tooltipOpen={!isMobile}
+                tooltipPlacement={isMobile ? "left" : "right"}
+                onClick={() => clickActions(action.type)}
+                className="flow-speeddial-action"
+                sx={{
+                  animation: `speedDialAction 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.05}s both`
+                }}
+              />
+            ))}
+          </SpeedDial>
           <Box className={classes.saveReminder}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              💾 Não se esqueça de salvar seu fluxo!
-            </Typography>
+            {isSaving ? (
+              <Typography variant="body2" sx={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 1, fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                <CircularProgress size={isMobile ? 12 : 14} /> Salvando...
+              </Typography>
+            ) : lastSaved ? (
+              <Typography variant="body2" sx={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 1, fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                ✓ Salvo às {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </Typography>
+            ) : hasUnsavedChanges ? (
+              <Typography variant="body2" sx={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 1, fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                💾 Alterações não salvas - Salvando automaticamente em breve...
+              </Typography>
+            ) : (
+              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                💾 Não se esqueça de salvar seu fluxo!
+              </Typography>
+            )}
           </Box>
           <Zoom in={true}>
-            <Fab
-              color="primary"
-              aria-label="save"
-              className={classes.saveButton}
-              onClick={() => saveFlow()}
-              size={isMobile ? "medium" : "large"}
+            <Box
+              sx={{
+                position: "fixed",
+                bottom: isMobile ? 16 : isTablet ? 20 : 24,
+                right: isMobile ? 16 : isTablet ? 20 : 24,
+                zIndex: 1000,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: 1
+              }}
             >
-              <SaveIcon sx={{ mr: 1 }} />
-              {!isMobile && "Salvar"}
-            </Fab>
+              <Box
+                component="button"
+                onClick={() => !isSaving && saveFlow(false)}
+                disabled={isSaving}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: isMobile ? 0.5 : 1,
+                  padding: isMobile ? "10px 18px" : isTablet ? "11px 22px" : "12px 28px",
+                  backgroundColor: colorPrimary(),
+                  color: "white",
+                  border: "none",
+                  borderRadius: "50px",
+                  fontSize: isMobile ? "0.813rem" : isTablet ? "0.875rem" : "0.938rem",
+                  fontWeight: 600,
+                  cursor: isSaving ? "not-allowed" : "pointer",
+                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1)",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  minWidth: isMobile ? "auto" : "130px",
+                  outline: "none",
+                  userSelect: "none",
+                  WebkitTapHighlightColor: "transparent",
+                  "&:hover:not(:disabled)": {
+                    transform: "translateY(-2px) scale(1.02)",
+                    boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15)",
+                    backgroundColor: colorPrimary(),
+                    filter: "brightness(1.08)"
+                  },
+                  "&:active:not(:disabled)": {
+                    transform: "translateY(0) scale(0.98)",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)"
+                  },
+                  "&:disabled": {
+                    opacity: 0.75,
+                    cursor: "not-allowed",
+                    transform: "none",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)"
+                  },
+                  "&:focus-visible": {
+                    outline: `2px solid ${colorPrimary()}`,
+                    outlineOffset: "2px"
+                  },
+                  "@media (max-width: 480px)": {
+                    padding: "9px 16px",
+                    fontSize: "0.75rem",
+                    minWidth: "auto",
+                    gap: 0.5
+                  }
+                }}
+              >
+                {isSaving ? (
+                  <>
+                    <CircularProgress 
+                      size={isMobile ? 14 : 16} 
+                      sx={{ color: "white", display: "flex" }} 
+                      thickness={4}
+                    />
+                    {!isMobile && (
+                      <span style={{ whiteSpace: "nowrap" }}>Salvando...</span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <SaveIcon sx={{ fontSize: isMobile ? 16 : isTablet ? 18 : 20 }} />
+                    {!isMobile && (
+                      <span style={{ whiteSpace: "nowrap" }}>Salvar</span>
+                    )}
+                  </>
+                )}
+              </Box>
+            </Box>
           </Zoom>
 
           <Box
             className="flow-reactflow-container"
             sx={{
               width: "100%",
-              height: isMobile ? "calc(100vh - 120px)" : "calc(100vh - 180px)",
+              height: isMobile ? "calc(100vh - 120px)" : isTablet ? "calc(100vh - 160px)" : "calc(100vh - 180px)",
               position: "relative",
-              display: "flex"
+              display: "flex",
+              flex: 1,
+              minHeight: 0
             }}
           >
             <ReactFlow
@@ -849,36 +1028,31 @@ export const FlowBuilderConfig = () => {
               <Controls 
                 className="flow-controls"
                 showInteractive={!isMobile}
+                style={{
+                  transform: isMobile ? 'scale(0.85)' : isTablet ? 'scale(0.95)' : 'scale(1)',
+                  transformOrigin: 'bottom right'
+                }}
               />
               <MiniMap 
                 className="flow-minimap"
                 nodeColor={colorPrimary()}
                 maskColor="rgba(0, 0, 0, 0.1)"
                 style={{
-                  width: isMobile ? 120 : 200,
-                  height: isMobile ? 80 : 150
+                  width: isMobile ? 100 : isTablet ? 150 : 200,
+                  height: isMobile ? 70 : isTablet ? 110 : 150,
+                  position: 'absolute',
+                  bottom: isMobile ? 8 : 16,
+                  right: isMobile ? 8 : 16
                 }}
               />
               <Background 
                 variant="dots" 
-                gap={isMobile ? 16 : 20} 
-                size={isMobile ? 0.5 : 1}
+                gap={isMobile ? 12 : isTablet ? 16 : 20} 
+                size={isMobile ? 0.5 : isTablet ? 0.75 : 1} 
                 color={colorPrimary()}
                 style={{ opacity: 0.3 }}
               />
             </ReactFlow>
-
-            <Stack
-              style={{
-                backgroundColor: "#FAFAFA",
-                height: "20px",
-                width: "58px",
-                position: "absolute",
-                bottom: 0,
-                right: 0,
-                zIndex: 1111
-              }}
-            />
           </Box>
             {/* <Stack
                 style={{

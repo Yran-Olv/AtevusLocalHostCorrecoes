@@ -437,11 +437,42 @@
     0 0 0 4px rgba(18, 140, 126, 0.12),
     0 2px 8px rgba(0, 0, 0, 0.08);
   background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+.input-wrapper input:invalid:not(:placeholder-shown) {
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.input-wrapper input:valid:not(:placeholder-shown) {
+  border-color: var(--success);
 }
 
 .input-wrapper.focused input {
   border-color: var(--border-focus);
   background: #fafbfc;
+}
+
+.input-wrapper.error input {
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.05);
+  animation: shake 0.3s ease-in-out;
+}
+
+.input-wrapper.success input {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.input-wrapper.success .input-icon {
+  color: var(--success);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
 }
 
 .input-wrapper label {
@@ -463,6 +494,37 @@
   color: var(--border-focus);
   font-weight: 500;
   background: white;
+}
+
+.input-wrapper.error label {
+  color: var(--error);
+}
+
+.input-wrapper.success label {
+  color: var(--success);
+}
+
+.input-error {
+  position: absolute;
+  bottom: -20px;
+  left: 52px;
+  font-size: 12px;
+  color: var(--error);
+  animation: slideDown 0.2s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-error::before {
+  content: "⚠";
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
 .input-icon {
@@ -540,6 +602,26 @@
   font-family: inherit;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.submit-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.submit-button:hover:not(:disabled)::before {
+  width: 300px;
+  height: 300px;
 }
 
 .submit-button:hover:not(:disabled) {
@@ -586,6 +668,24 @@
   gap: 12px;
   animation: slideDown 0.3s ease-out;
   border-left: 4px solid;
+  position: relative;
+  overflow: hidden;
+}
+
+.alert-box::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: currentColor;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 @keyframes slideDown {

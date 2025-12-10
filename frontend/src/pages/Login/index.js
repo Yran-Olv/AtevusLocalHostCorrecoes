@@ -23,6 +23,8 @@ const Login = () => {
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState({ email: "", password: "" });
+  const [touched, setTouched] = useState({ email: false, password: false });
 
   // Limpar cache ao entrar na tela
   useEffect(() => {
@@ -109,21 +111,62 @@ const Login = () => {
     }
   };
 
+  const validateEmail = (email) => {
+    if (!email) return "Email é obrigatório";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return "Email inválido";
+    return "";
+  };
+
+  const validatePassword = (password) => {
+    if (!password) return "Senha é obrigatória";
+    if (password.length < 5) return "Senha deve ter no mínimo 5 caracteres";
+    return "";
+  };
+
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
-    setUser({ ...user, [name]: name === 'email' ? value.toLowerCase() : value });
+    const newValue = name === 'email' ? value.toLowerCase() : value;
+    setUser({ ...user, [name]: newValue });
+    
+    // Validação em tempo real
+    if (touched[name]) {
+      const error = name === 'email' ? validateEmail(newValue) : validatePassword(newValue);
+      setFieldErrors({ ...fieldErrors, [name]: error });
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched({ ...touched, [name]: true });
+    const error = name === 'email' ? validateEmail(value) : validatePassword(value);
+    setFieldErrors({ ...fieldErrors, [name]: error });
   };
 
   const handlSubmit = async (e) => {
     e.preventDefault();
-    if (!user.email || !user.password) {
+    
+    // Marcar todos os campos como tocados
+    setTouched({ email: true, password: true });
+    
+    // Validar campos
+    const emailError = validateEmail(user.email);
+    const passwordError = validatePassword(user.password);
+    
+    setFieldErrors({
+      email: emailError,
+      password: passwordError
+    });
+    
+    if (emailError || passwordError) {
       setAlert({
         open: true,
-        message: "Por favor, preencha todos os campos.",
+        message: "Por favor, corrija os erros no formulário.",
         severity: "warning",
       });
       return;
     }
+    
     setIsSubmitting(true);
     try {
       await handleLogin(user);
@@ -282,7 +325,7 @@ const Login = () => {
                   <p>Entre com suas credenciais para acessar o sistema</p>
                 </div>
 
-                <div className={`input-wrapper ${focusedEmail || user.email ? 'focused' : ''}`}>
+                <div className={`input-wrapper ${focusedEmail || user.email ? 'focused' : ''} ${touched.email && fieldErrors.email ? 'error' : touched.email && !fieldErrors.email && user.email ? 'success' : ''}`}>
                   <div className="input-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -296,16 +339,25 @@ const Login = () => {
                     value={user.email}
                     onChange={handleChangeInput}
                     onFocus={() => setFocusedEmail(true)}
-                    onBlur={() => setFocusedEmail(false)}
+                    onBlur={(e) => {
+                      setFocusedEmail(false);
+                      handleBlur(e);
+                    }}
                     autoComplete="email"
                     autoFocus
                     required
                     placeholder=" "
+                    aria-label={i18n.t("login.form.email")}
+                    aria-invalid={touched.email && fieldErrors.email ? "true" : "false"}
+                    aria-describedby={touched.email && fieldErrors.email ? "email-error" : undefined}
                   />
                   <label htmlFor="email">{i18n.t("login.form.email")}</label>
+                  {touched.email && fieldErrors.email && (
+                    <div className="input-error" id="email-error" role="alert">{fieldErrors.email}</div>
+                  )}
                 </div>
 
-                <div className={`input-wrapper ${focusedPassword || user.password ? 'focused' : ''}`}>
+                <div className={`input-wrapper ${focusedPassword || user.password ? 'focused' : ''} ${touched.password && fieldErrors.password ? 'error' : touched.password && !fieldErrors.password && user.password ? 'success' : ''}`}>
                   <div className="input-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -319,12 +371,21 @@ const Login = () => {
                     value={user.password}
                     onChange={handleChangeInput}
                     onFocus={() => setFocusedPassword(true)}
-                    onBlur={() => setFocusedPassword(false)}
+                    onBlur={(e) => {
+                      setFocusedPassword(false);
+                      handleBlur(e);
+                    }}
                     autoComplete="current-password"
                     required
                     placeholder=" "
+                    aria-label={i18n.t("login.form.password")}
+                    aria-invalid={touched.password && fieldErrors.password ? "true" : "false"}
+                    aria-describedby={touched.password && fieldErrors.password ? "password-error" : undefined}
                   />
                   <label htmlFor="password">{i18n.t("login.form.password")}</label>
+                  {touched.password && fieldErrors.password && (
+                    <div className="input-error" id="password-error" role="alert">{fieldErrors.password}</div>
+                  )}
                   <button
                     type="button"
                     className="password-toggle"

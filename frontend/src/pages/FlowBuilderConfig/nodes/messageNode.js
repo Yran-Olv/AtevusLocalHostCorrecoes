@@ -14,17 +14,25 @@ export default memo(({ data, isConnectable, id }) => {
 
   return (
     <div
-      style={{ backgroundColor: "#555", padding: "8px", borderRadius: "8px" }}
+      style={{ 
+        backgroundColor: "#555", 
+        padding: "8px", 
+        borderRadius: "8px",
+        minWidth: "140px",
+        maxWidth: "180px",
+        width: "auto",
+        position: "relative"
+      }}
     >
       <Handle
         type="target"
         position="left"
         style={{
           background: "#0000FF",
-          width: "18px",
-          height: "18px",
+          width: "14px",
+          height: "14px",
           top: "20px",
-          left: "-12px",
+          left: "-9px",
           cursor: 'pointer'
         }}
         onConnect={params => console.log("handle onConnect", params)}
@@ -33,9 +41,9 @@ export default memo(({ data, isConnectable, id }) => {
         <ArrowForwardIos
           sx={{
             color: "#ffff",
-            width: "10px",
-            height: "10px",
-            marginLeft: "3.5px",
+            width: "8px",
+            height: "8px",
+            marginLeft: "2.5px",
             marginBottom: "1px",
             pointerEvents: "none"
           }}
@@ -70,22 +78,22 @@ export default memo(({ data, isConnectable, id }) => {
       <div
         style={{
           color: "#ededed",
-          fontSize: "16px",
+          fontSize: "14px",
           flexDirection: "row",
-          display: "flex"
+          display: "flex",
+          alignItems: "center"
         }}
       >
         <Message
           sx={{
-            width: "16px",
-            height: "16px",
-            marginRight: "4px",
-            marginTop: "4px"
+            width: "14px",
+            height: "14px",
+            marginRight: "4px"
           }}
         />
-        <div style={{ color: "#ededed", fontSize: "16px" }}>Mensagem</div>
+        <div style={{ color: "#ededed", fontSize: "14px", fontWeight: 500 }}>Mensagem</div>
       </div>
-      <div style={{ color: "#ededed", fontSize: "12px", width: 180 }}>
+      <div style={{ color: "#ededed", fontSize: "11px", width: "100%", maxWidth: "180px", marginTop: "4px", wordBreak: "break-word" }}>
         {data.label}
       </div>
       <Handle
@@ -94,10 +102,10 @@ export default memo(({ data, isConnectable, id }) => {
         id="a"
         style={{
           background: "#0000FF",
-          width: "18px",
-          height: "18px",
+          width: "14px",
+          height: "14px",
           top: "70%",
-          right: "-11px",
+          right: "-9px",
           cursor: 'pointer'
         }}
         isConnectable={isConnectable}
@@ -105,9 +113,9 @@ export default memo(({ data, isConnectable, id }) => {
         <ArrowForwardIos
           sx={{
             color: "#ffff",
-            width: "10px",
-            height: "10px",
-            marginLeft: "2.9px",
+            width: "8px",
+            height: "8px",
+            marginLeft: "2.5px",
             marginBottom: "1px",
             pointerEvents: "none"
           }}

@@ -24,7 +24,11 @@ export default memo(({ data, isConnectable, id }) => {
         padding: "8px",
         borderRadius: "8px",
         border: "1px solid rgba(236, 88, 88, 0.25)",
-        boxShadow: "rgba(0, 0, 0, 0.05) 0px 3px 5px"
+        boxShadow: "rgba(0, 0, 0, 0.05) 0px 3px 5px",
+        minWidth: "140px",
+        maxWidth: "180px",
+        width: "auto",
+        position: "relative"
       }}
     >
       <Handle
@@ -32,10 +36,10 @@ export default memo(({ data, isConnectable, id }) => {
         position="left"
         style={{
           background: "#0000FF",
-          width: "18px",
-          height: "18px",
+          width: "14px",
+          height: "14px",
           top: "20px",
-          left: "-12px",
+          left: "-9px",
           cursor: 'pointer'
         }}
         onConnect={params => console.log("handle onConnect", params)}
@@ -44,9 +48,9 @@ export default memo(({ data, isConnectable, id }) => {
         <ArrowForwardIos
           sx={{
             color: "#ffff",
-            width: "10px",
-            height: "10px",
-            marginLeft: "3.5px",
+            width: "8px",
+            height: "8px",
+            marginLeft: "2.5px",
             marginBottom: "1px",
             pointerEvents: "none"
           }}
@@ -95,9 +99,9 @@ export default memo(({ data, isConnectable, id }) => {
             color: "#EC5858"
           }}
         />
-        <div style={{ color: "#232323", fontSize: "16px" }}>Conteúdo</div>
+        <div style={{ color: "#232323", fontSize: "14px", fontWeight: 500 }}>Conteúdo</div>
       </div>
-      <div style={{ color: "#232323", fontSize: "12px", width: 180 }}>
+      <div style={{ color: "#232323", fontSize: "12px", width: "100%", maxWidth: "180px" }}>
         {data.seq.map(item => (
           <div
             style={{
@@ -256,10 +260,10 @@ export default memo(({ data, isConnectable, id }) => {
         id="a"
         style={{
           background: "#0000FF",
-          width: "18px",
-          height: "18px",
+          width: "14px",
+          height: "14px",
           top: "90%",
-          right: "-11px",
+          right: "-9px",
           cursor: 'pointer'
         }}
         isConnectable={isConnectable}
@@ -267,9 +271,9 @@ export default memo(({ data, isConnectable, id }) => {
         <ArrowForwardIos
           sx={{
             color: "#ffff",
-            width: "10px",
-            height: "10px",
-            marginLeft: "2.9px",
+            width: "8px",
+            height: "8px",
+            marginLeft: "2.5px",
             marginBottom: "1px",
             pointerEvents: "none"
           }}

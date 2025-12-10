@@ -4,36 +4,35 @@ import * as Yup from "yup";
 import { Formik, FieldArray, Form, Field } from "formik";
 import { toast } from "react-toastify";
 
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import IconButton from "@material-ui/core/IconButton";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Compressor from "compressorjs";
-
-import { i18n } from "../../translate/i18n";
-
-import api from "../../services/api";
-import toastError from "../../errors/toastError";
 import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  IconButton,
+  CircularProgress,
+  Box,
+  useTheme,
+  useMediaQuery,
+  Typography,
   Checkbox,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
-  Stack,
-  Typography
+  Stack
 } from "@mui/material";
+import { Close as CloseIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import Compressor from "compressorjs";
+
+import { i18n } from "../../translate/i18n";
+import api from "../../services/api";
+import toastError from "../../errors/toastError";
 import {
   AccessTime,
   AddCircle,
-  Delete,
   Image,
   KeyboardArrowDown,
   KeyboardArrowUp,
@@ -43,35 +42,7 @@ import {
 } from "@mui/icons-material";
 import { capitalize } from "../../utils/capitalize";
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: "flex",
-    flexWrap: "wrap"
-  },
-  textField: {
-    marginRight: theme.spacing(1),
-    flex: 1
-  },
-
-  extraAttr: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center"
-  },
-
-  btnWrapper: {
-    position: "relative"
-  },
-
-  buttonProgress: {
-    color: green[500],
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    marginTop: -12,
-    marginLeft: -12
-  }
-}));
+import "./FlowBuilderSingleBlockModal.css";
 
 const FlowBuilderSingleBlockModal = ({
   open,
@@ -80,7 +51,9 @@ const FlowBuilderSingleBlockModal = ({
   data,
   close
 }) => {
-  const classes = useStyles();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isMounted = useRef(true);
 
   const [activeModal, setActiveModal] = useState(false);
@@ -543,27 +516,55 @@ const FlowBuilderSingleBlockModal = ({
     return (
       <Stack
         sx={{
-          border: "1px solid #0000FF",
-          borderRadius: "7px",
-          padding: "6px",
-          position: "relative"
+          border: "2px solid",
+          borderColor: "primary.main",
+          borderRadius: 2,
+          padding: 2,
+          position: "relative",
+          backgroundColor: "background.paper",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: 2,
+            borderColor: "primary.dark"
+          }
         }}
         className={`stackImg${number}`}
         key={`stackImg${number}`}
       >
-        <Stack sx={{ position: "absolute", right: 6 }}>
-          <Delete onClick={() => deleteElementsTypeOne(number, "img")} />
-        </Stack>
-        <Typography textAlign={"center"}>Imagem</Typography>
-        <Stack direction={"row"} justifyContent={"center"}>
-          <img
+        <IconButton
+          sx={{ 
+            position: "absolute", 
+            right: 8, 
+            top: 8,
+            color: "error.main",
+            "&:hover": {
+              backgroundColor: "error.light",
+              color: "error.dark"
+            }
+          }}
+          onClick={() => deleteElementsTypeOne(number, "img")}
+          size="small"
+        >
+          <DeleteIcon />
+        </IconButton>
+        <Typography textAlign="center" variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+          Imagem
+        </Typography>
+        <Stack direction="row" justifyContent="center" sx={{ mb: 1 }}>
+          <Box
+            component="img"
             src={
               valueDefault.length > 0
                 ? process.env.REACT_APP_BACKEND_URL + "/public/" + valueDefault
                 : ""
             }
             className={`img${number}`}
-            style={{ width: "200px" }}
+            sx={{ 
+              maxWidth: isMobile ? '100%' : '200px',
+              maxHeight: isMobile ? '200px' : 'auto',
+              borderRadius: 1,
+              objectFit: 'contain'
+            }}
           />
         </Stack>
         {valueDefault.length === 0 && (
@@ -571,6 +572,11 @@ const FlowBuilderSingleBlockModal = ({
             variant="contained"
             component="label"
             className={`btnImg${number}`}
+            fullWidth={isMobile}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 500,
+            }}
           >
             Enviar imagem
             <input
@@ -589,10 +595,17 @@ const FlowBuilderSingleBlockModal = ({
     return (
       <Stack
         sx={{
-          border: "1px solid #0000FF",
-          borderRadius: "7px",
-          padding: "6px",
-          position: "relative"
+          border: "2px solid",
+          borderColor: "primary.main",
+          borderRadius: 2,
+          padding: 2,
+          position: "relative",
+          backgroundColor: "background.paper",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: 2,
+            borderColor: "primary.dark"
+          }
         }}
         className={`stackAudio${number}`}
         key={`stackAudio${number}`}
@@ -610,12 +623,23 @@ const FlowBuilderSingleBlockModal = ({
             onClick={() => moveElementDown(`audio${number}`)}
             sx={{ cursor: "pointer" }}
           /> */}
-          <Delete
-            sx={{ cursor: "pointer" }}
+          <IconButton
+            sx={{ 
+              color: "error.main",
+              "&:hover": {
+                backgroundColor: "error.light",
+                color: "error.dark"
+              }
+            }}
             onClick={() => deleteElementsTypeOne(number, "audio")}
-          />
+            size="small"
+          >
+            <DeleteIcon />
+          </IconButton>
         </Stack>
-        <Typography textAlign={"center"}>Audio</Typography>
+        <Typography textAlign="center" variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+          Áudio
+        </Typography>
         <div
           className={`audio${number}`}
           style={{
@@ -641,11 +665,16 @@ const FlowBuilderSingleBlockModal = ({
             variant="contained"
             component="label"
             className={`btnAudio${number}`}
+            fullWidth={isMobile}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 500,
+            }}
           >
-            Enviar audio
+            Enviar áudio
             <input
               type="file"
-              accept="audio/ogg, audio/mp3, audio/opus"
+              accept="audio/ogg, audio/mp3, audio/opus, audio/mpeg, audio/wav"
               hidden
               onChange={e => handleChangeAudios(e, number)}
             />
@@ -668,18 +697,40 @@ const FlowBuilderSingleBlockModal = ({
     return (
       <Stack
         sx={{
-          border: "1px solid #0000FF",
-          borderRadius: "7px",
-          padding: "6px",
-          position: "relative"
+          border: "2px solid",
+          borderColor: "primary.main",
+          borderRadius: 2,
+          padding: 2,
+          position: "relative",
+          backgroundColor: "background.paper",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: 2,
+            borderColor: "primary.dark"
+          }
         }}
         className={`stackVideo${number}`}
         key={`stackVideo${number}`}
       >
-        <Stack sx={{ position: "absolute", right: 6 }}>
-          <Delete onClick={() => deleteElementsTypeOne(number, "video")} />
-        </Stack>
-        <Typography textAlign={"center"}>Video</Typography>
+        <IconButton
+          sx={{ 
+            position: "absolute", 
+            right: 8, 
+            top: 8,
+            color: "error.main",
+            "&:hover": {
+              backgroundColor: "error.light",
+              color: "error.dark"
+            }
+          }}
+          onClick={() => deleteElementsTypeOne(number, "video")}
+          size="small"
+        >
+          <DeleteIcon />
+        </IconButton>
+        <Typography textAlign="center" variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+          Vídeo
+        </Typography>
         <div
           className={`video${number}`}
           style={{
@@ -703,8 +754,13 @@ const FlowBuilderSingleBlockModal = ({
             variant="contained"
             component="label"
             className={`btnVideo${number}`}
+            fullWidth={isMobile}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 500,
+            }}
           >
-            Enviar video
+            Enviar vídeo
             <input
               type="file"
               accept="video/mp4"
@@ -721,28 +777,55 @@ const FlowBuilderSingleBlockModal = ({
     return (
       <Stack
         sx={{
-          border: "1px solid #0000FF",
-          borderRadius: "7px",
-          padding: "6px",
-          position: "relative"
+          border: "2px solid",
+          borderColor: "primary.main",
+          borderRadius: 2,
+          padding: 2,
+          position: "relative",
+          backgroundColor: "background.paper",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: 2,
+            borderColor: "primary.dark"
+          }
         }}
         className={`stackMessage${number}`}
         key={`stackMessage${number}`}
       >
-        <Stack sx={{ position: "absolute", right: 6 }}>
-          <Delete onClick={() => deleteElementsTypeOne(number, "message")} />
-        </Stack>
-        <Typography textAlign={"center"}>Texto</Typography>
+        <IconButton
+          sx={{ 
+            position: "absolute", 
+            right: 8, 
+            top: 8,
+            color: "error.main",
+            "&:hover": {
+              backgroundColor: "error.light",
+              color: "error.dark"
+            }
+          }}
+          onClick={() => deleteElementsTypeOne(number, "message")}
+          size="small"
+        >
+          <DeleteIcon />
+        </IconButton>
+        <Typography textAlign="center" variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+          Texto
+        </Typography>
         <TextField
-          label={"Mensagem"}
+          label="Mensagem"
           defaultValue={valueDefault}
           multiline
-          rows={7}
+          rows={isMobile ? 4 : 7}
           className={`message${number}`}
           name="text"
           variant="outlined"
           margin="dense"
-          style={{ width: "100%" }}
+          fullWidth
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 1
+            }
+          }}
         />
       </Stack>
     );
@@ -752,27 +835,54 @@ const FlowBuilderSingleBlockModal = ({
     return (
       <Stack
         sx={{
-          border: "1px solid #0000FF",
-          borderRadius: "7px",
-          padding: "6px",
-          position: "relative"
+          border: "2px solid",
+          borderColor: "primary.main",
+          borderRadius: 2,
+          padding: 2,
+          position: "relative",
+          backgroundColor: "background.paper",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: 2,
+            borderColor: "primary.dark"
+          }
         }}
         className={`stackInterval${number}`}
         key={`stackInterval${number}`}
       >
-        <Stack sx={{ position: "absolute", right: 6 }}>
-          <Delete onClick={() => deleteElementsTypeOne(number, "interval")} />
-        </Stack>
-        <Typography textAlign={"center"}>Intervalo</Typography>
+        <IconButton
+          sx={{ 
+            position: "absolute", 
+            right: 8, 
+            top: 8,
+            color: "error.main",
+            "&:hover": {
+              backgroundColor: "error.light",
+              color: "error.dark"
+            }
+          }}
+          onClick={() => deleteElementsTypeOne(number, "interval")}
+          size="small"
+        >
+          <DeleteIcon />
+        </IconButton>
+        <Typography textAlign="center" variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+          Intervalo
+        </Typography>
         <TextField
-          label={"Tempo em segundos"}
+          label="Tempo em segundos"
           className={`interval${number}`}
           defaultValue={valueDefault}
           type="number"
           InputProps={{ inputProps: { min: 0, max: 120 } }}
           variant="outlined"
           margin="dense"
-          style={{ width: "100%" }}
+          fullWidth
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 1
+            }
+          }}
         />
       </Stack>
     );
@@ -1106,29 +1216,71 @@ const FlowBuilderSingleBlockModal = ({
   };
 
   return (
-    <div>
-      <Dialog open={activeModal} fullWidth="md" scroll="paper">
-        {!loading && (
-          <DialogTitle id="form-dialog-title">
-            Adicionar conteúdo ao fluxo
-          </DialogTitle>
-        )}
-        <Stack>
-          <Stack
-            className="body-card"
-            style={{
-              gap: "8px",
-              padding: "16px",
-              overflow: "auto",
-              height: "70vh",
-              scrollBehavior: "smooth",
-              display: loading && "none"
+    <Dialog 
+      open={activeModal} 
+      maxWidth="md" 
+      fullWidth
+      fullScreen={isMobile}
+      PaperProps={{
+        sx: {
+          borderRadius: isMobile ? 0 : 2,
+          maxHeight: isMobile ? '100vh' : '90vh',
+          margin: isMobile ? 0 : 2,
+        }
+      }}
+      className="flowbuilder-modal"
+    >
+      {!loading && (
+        <DialogTitle 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            pb: 1,
+            borderBottom: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+            {labels.title}
+          </Typography>
+          <IconButton
+            onClick={handleClose}
+            size="small"
+            sx={{
+              color: 'text.secondary',
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              }
             }}
           >
-            {elements.map(item => (
-              <>{item}</>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+      )}
+        <DialogContent 
+          sx={{ 
+            pt: 3, 
+            pb: 2,
+            display: loading ? 'none' : 'block',
+            overflow: 'auto',
+            maxHeight: isMobile ? 'calc(100vh - 200px)' : '70vh',
+          }}
+          className="body-card"
+        >
+          <Stack spacing={2}>
+            {elements.map((item, index) => (
+              <Box key={index}>{item}</Box>
             ))}
-            <Stack direction={"row"} gap={1}>
+            <Stack 
+              direction={isMobile ? "column" : "row"} 
+              spacing={1}
+              sx={{
+                flexWrap: 'wrap',
+                gap: 1,
+                pt: 2
+              }}
+            >
               <Button
                 variant="contained"
                 color="primary"
@@ -1149,14 +1301,13 @@ const FlowBuilderSingleBlockModal = ({
                     scrollToBottom(".body-card");
                   }, 100);
                 }}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  flex: isMobile ? 1 : 'auto',
+                }}
+                startIcon={<Message />}
               >
-                <Message
-                  sx={{
-                    width: "16px",
-                    height: "16px",
-                    marginRight: "4px"
-                  }}
-                />
                 Texto
               </Button>
               <Button
@@ -1179,14 +1330,13 @@ const FlowBuilderSingleBlockModal = ({
                     scrollToBottom(".body-card");
                   }, 100);
                 }}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  flex: isMobile ? 1 : 'auto',
+                }}
+                startIcon={<AccessTime />}
               >
-                <AccessTime
-                  sx={{
-                    width: "16px",
-                    height: "16px",
-                    marginRight: "4px"
-                  }}
-                />
                 Intervalo
               </Button>
               <Button
@@ -1206,14 +1356,13 @@ const FlowBuilderSingleBlockModal = ({
                     scrollToBottom(".body-card");
                   }, 100);
                 }}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  flex: isMobile ? 1 : 'auto',
+                }}
+                startIcon={<Image />}
               >
-                <Image
-                  sx={{
-                    width: "16px",
-                    height: "16px",
-                    marginRight: "4px"
-                  }}
-                />
                 Imagem
               </Button>
               <Button
@@ -1233,15 +1382,14 @@ const FlowBuilderSingleBlockModal = ({
                     scrollToBottom(".body-card");
                   }, 100);
                 }}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  flex: isMobile ? 1 : 'auto',
+                }}
+                startIcon={<MicNone />}
               >
-                <MicNone
-                  sx={{
-                    width: "16px",
-                    height: "16px",
-                    marginRight: "4px"
-                  }}
-                />
-                Audio
+                Áudio
               </Button>
               <Button
                 variant="contained"
@@ -1260,25 +1408,39 @@ const FlowBuilderSingleBlockModal = ({
                     scrollToBottom(".body-card");
                   }, 100);
                 }}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  flex: isMobile ? 1 : 'auto',
+                }}
+                startIcon={<Videocam />}
               >
-                <Videocam
-                  sx={{
-                    width: "16px",
-                    height: "16px",
-                    marginRight: "4px"
-                  }}
-                />
-                Video
+                Vídeo
               </Button>
             </Stack>
           </Stack>
+        </DialogContent>
 
-          <DialogActions>
+        {!loading && (
+          <DialogActions 
+            sx={{ 
+              px: 3, 
+              pb: 2, 
+              pt: 2,
+              borderTop: '1px solid',
+              borderColor: 'divider',
+              gap: 1
+            }}
+          >
             <Button
               onClick={handleClose}
-              color="secondary"
+              color="inherit"
               variant="outlined"
-              style={{ display: loading && "none" }}
+              fullWidth={isMobile}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 500,
+              }}
             >
               {i18n.t("contactModal.buttons.cancel")}
             </Button>
@@ -1287,34 +1449,35 @@ const FlowBuilderSingleBlockModal = ({
               color="primary"
               variant="contained"
               onClick={() => handleSaveNode()}
-              style={{ display: loading && "none" }}
+              fullWidth={isMobile}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 500,
+              }}
             >
-              {`${labels.btn}`}
+              {labels.btn}
             </Button>
           </DialogActions>
-        </Stack>
+        )}
+
         {loading && (
-          <Stack
-            style={{
-              gap: "8px",
-              padding: "16px",
-              height: "70vh",
-              alignSelf: "center",
-              justifyContent: "center"
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 2,
+              py: 8
             }}
           >
-            <Stack>
-              <Typography>
-                Subindo os arquivos e criando o conteúdo...
-              </Typography>
-              <Stack style={{ alignSelf: "center", marginTop: "12px" }}>
-                <CircularProgress />
-              </Stack>
-            </Stack>
-          </Stack>
+            <CircularProgress size={isMobile ? 32 : 40} />
+            <Typography variant="body2" color="text.secondary" textAlign="center">
+              Subindo os arquivos e criando o conteúdo...
+            </Typography>
+          </Box>
         )}
       </Dialog>
-    </div>
   );
 };
 

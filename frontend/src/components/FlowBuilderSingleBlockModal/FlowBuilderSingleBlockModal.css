@@ -1,0 +1,40 @@
+/* FlowBuilderSingleBlockModal - Animações e Responsividade */
+.flowbuilder-modal {
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.body-card {
+  scroll-behavior: smooth;
+}
+
+/* Responsividade Mobile */
+@media screen and (max-width: 600px) {
+  .flowbuilder-modal .MuiDialog-paper {
+    margin: 0;
+    max-height: 100vh;
+    height: 100vh;
+  }
+
+  .body-card {
+    max-height: calc(100vh - 200px) !important;
+  }
+}
+
+/* Responsividade Tablet */
+@media screen and (min-width: 601px) and (max-width: 960px) {
+  .flowbuilder-modal .MuiDialog-paper {
+    max-width: 90vw;
+  }
+}
+

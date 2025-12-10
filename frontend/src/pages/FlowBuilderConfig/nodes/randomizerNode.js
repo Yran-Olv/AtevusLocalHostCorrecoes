@@ -19,8 +19,11 @@ export default memo(({ data, isConnectable, id }) => {
         backgroundColor: "#F8FCFD",
         padding: "8px",
         borderRadius: "8px",
-        width: "185px",
-        border: "1px solid rgba(31, 186, 220, 0.25)"
+        minWidth: "140px",
+        maxWidth: "185px",
+        width: "auto",
+        border: "1px solid rgba(31, 186, 220, 0.25)",
+        position: "relative"
       }}
     >
       <Handle
@@ -28,10 +31,10 @@ export default memo(({ data, isConnectable, id }) => {
         position="left"
         style={{
           background: "#0000FF",
-          width: "18px",
-          height: "18px",
+          width: "14px",
+          height: "14px",
           top: "20px",
-          left: "-12px",
+          left: "-9px",
           cursor: 'pointer'
         }}
         onConnect={params => console.log("handle onConnect", params)}
@@ -40,9 +43,9 @@ export default memo(({ data, isConnectable, id }) => {
         <ArrowForwardIos
           sx={{
             color: "#ffff",
-            width: "10px",
-            height: "10px",
-            marginLeft: "3.5px",
+            width: "8px",
+            height: "8px",
+            marginLeft: "2.5px",
             marginBottom: "1px",
             pointerEvents: "none"
           }}
@@ -91,18 +94,19 @@ export default memo(({ data, isConnectable, id }) => {
             color: "#1FBADC"
           }}
         />
-        <div style={{ color: "#232323", fontSize: "16px" }}>Randomizador</div>
+        <div style={{ color: "#232323", fontSize: "14px", fontWeight: 500 }}>Randomizador</div>
       </div>
       <div
         style={{
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
-          fontSize: "16px",
+          fontSize: "12px",
           justifyContent: "end",
           position: "relative",
           display: "flex",
-          color: "#232323"
+          color: "#232323",
+          marginTop: "4px"
         }}
       >
         {`${data.percent}%`}
@@ -113,9 +117,9 @@ export default memo(({ data, isConnectable, id }) => {
         id="a"
         style={{
           background: "#0000FF",
-          width: "18px",
-          height: "18px",
-          right: "-11px",
+          width: "14px",
+          height: "14px",
+          right: "-9px",
           marginTop: "-5px",
           cursor: 'pointer'
         }}
@@ -124,9 +128,9 @@ export default memo(({ data, isConnectable, id }) => {
         <ArrowForwardIos
           sx={{
             color: "#ffff",
-            width: "10px",
-            height: "10px",
-            marginLeft: "2.9px",
+            width: "8px",
+            height: "8px",
+            marginLeft: "2.5px",
             marginBottom: "1px",
             pointerEvents: "none"
           }}
@@ -137,7 +141,7 @@ export default memo(({ data, isConnectable, id }) => {
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
-          fontSize: "16px",
+          fontSize: "12px",
           justifyContent: "end",
           position: "relative",
           display: "flex",
@@ -153,9 +157,9 @@ export default memo(({ data, isConnectable, id }) => {
         id="b"
         style={{
           background: "#0000FF",
-          width: "18px",
-          height: "18px",
-          right: "-11px",
+          width: "14px",
+          height: "14px",
+          right: "-9px",
           top: 73,
           cursor: 'pointer'
         }}
@@ -164,9 +168,9 @@ export default memo(({ data, isConnectable, id }) => {
         <ArrowForwardIos
           sx={{
             color: "#ffff",
-            width: "10px",
-            height: "10px",
-            marginLeft: "2.9px",
+            width: "8px",
+            height: "8px",
+            marginLeft: "2.5px",
             marginBottom: "1px",
             pointerEvents: "none"
           }}

@@ -1,57 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
-
-import * as Yup from "yup";
-import { Formik, FieldArray, Form, Field } from "formik";
 import { toast } from "react-toastify";
-import Select from '@material-ui/core/Select';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Stack,
+  Box,
+  useTheme,
+  useMediaQuery
+} from "@mui/material";
+import { Close as CloseIcon, ConfirmationNumber as TicketIcon } from "@mui/icons-material";
 import { i18n } from "../../translate/i18n";
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
-import { Stack } from "@mui/material";
-
-const useStyles = makeStyles(theme => ({
-    root: {
-        display: "flex",
-        flexWrap: "wrap"
-    },
-    textField: {
-        marginRight: theme.spacing(1),
-        flex: 1
-    },
-
-    extraAttr: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-    },
-
-    btnWrapper: {
-        position: "relative"
-    },
-
-    buttonProgress: {
-        color: green[500],
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        marginTop: -12,
-        marginLeft: -12
-    }
-}));
+import "./FlowBuilderAddTicketModal.css";
 
 const FlowBuilderTicketModal = ({
     open,
@@ -60,134 +30,197 @@ const FlowBuilderTicketModal = ({
     onUpdate,
     close
 }) => {
-    const classes = useStyles();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+    const isTablet = useMediaQuery(theme.breakpoints.down("md"));
     const isMounted = useRef(true);
-    const [activeModal, setActiveModal] = useState(false)
-    const [queues, setQueues] = useState([])
-    const [selectedQueue, setQueueSelected] = useState()
+    const [activeModal, setActiveModal] = useState(false);
+    const [queues, setQueues] = useState([]);
+    const [selectedQueue, setQueueSelected] = useState();
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (open === 'edit') {
             (async () => {
                 try {
+                    setLoading(true);
                     const { data: old } = await api.get("/queue");
-                    setQueues(old)
-                    const queue = old.find((item) => item.id === data.data.id)
-                    console.log('queue', queue)
+                    setQueues(old);
+                    const queue = old.find((item) => item.id === data.data.id);
                     if (queue) {
-                        setQueueSelected(queue.id)
+                        setQueueSelected(queue.id);
                     }
-                    setActiveModal(true)
+                    setActiveModal(true);
                 } catch (error) {
-                    console.log(error)
+                    console.log(error);
+                    toastError(error);
+                } finally {
+                    setLoading(false);
                 }
             })();
-
         } else if (open === 'create') {
             (async () => {
                 try {
+                    setLoading(true);
                     const { data } = await api.get("/queue");
-                    setQueues(data)
-                    setActiveModal(true)
+                    setQueues(data);
+                    setActiveModal(true);
                 } catch (error) {
-                    console.log(error)
+                    console.log(error);
+                    toastError(error);
+                } finally {
+                    setLoading(false);
                 }
-            })()
+            })();
+        } else {
+            setActiveModal(false);
         }
+        
         return () => {
             isMounted.current = false;
         };
     }, [open]);
 
-
     const handleClose = () => {
-        close(null)
-        setActiveModal(false)
+        close(null);
+        setActiveModal(false);
+        setQueueSelected(undefined);
     };
 
     const handleSaveContact = () => {
         if (!selectedQueue) {
-            return toast.error('Adicione uma fila')
+            toast.error('Selecione uma fila', {
+                position: "bottom-right",
+            });
+            return;
         }
+        
+        const queue = queues.find(item => item.id === selectedQueue);
+        
         if (open === 'edit') {
-            const queue = queues.find(item => item.id === selectedQueue)
             onUpdate({
                 ...data,
                 data: queue
             });
         } else if (open === 'create') {
-            const queue = queues.find(item => item.id === selectedQueue)
             onSave({
                 data: queue
-            })
+            });
         }
-        handleClose()
-
+        handleClose();
     };
 
     return (
-        <div className={classes.root}>
-            <Dialog open={activeModal} onClose={handleClose} fullWidth="md" scroll="paper">
-                <DialogTitle id="form-dialog-title">
-                    {open === 'create' ? `Adicionar um intervalo ao fluxo` : `Editar intervalo`}
-                </DialogTitle>
-                <Stack>
-                    <DialogContent dividers>
+        <Dialog
+            open={activeModal}
+            onClose={handleClose}
+            maxWidth="sm"
+            fullWidth
+            fullScreen={isMobile}
+            PaperProps={{
+                sx: {
+                    borderRadius: isMobile ? 0 : 2,
+                    maxHeight: isMobile ? '100vh' : '90vh',
+                    margin: isMobile ? 0 : 2,
+                }
+            }}
+            className="flowbuilder-modal"
+        >
+            <DialogTitle 
+                sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    pb: 1,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider'
+                }}
+            >
+                <Typography variant="h6" component="div" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <TicketIcon fontSize="small" />
+                    {open === 'create' ? 'Adicionar ticket ao fluxo' : 'Editar ticket'}
+                </Typography>
+                <IconButton
+                    onClick={handleClose}
+                    size="small"
+                    sx={{
+                        color: 'text.secondary',
+                        '&:hover': {
+                            backgroundColor: 'action.hover',
+                        }
+                    }}
+                >
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+
+            <DialogContent sx={{ pt: 3, pb: 2 }}>
+                <Stack spacing={3}>
+                    <FormControl fullWidth>
+                        <InputLabel id="queue-select-label">Selecione uma Fila</InputLabel>
                         <Select
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            //   onChange={handleChange}
-                            value={selectedQueue}
-                            style={{ width: "95%" }}
-                            onChange={(e) => { setQueueSelected(e.target.value) }}
-                            MenuProps={{
-                                anchorOrigin: {
-                                    vertical: "bottom",
-                                    horizontal: "left",
-                                },
-                                transformOrigin: {
-                                    vertical: "top",
-                                    horizontal: "left",
-                                },
-                                getContentAnchorEl: null,
-                            }}
-                            renderValue={() => {
-                                if (selectedQueue === "") {
-                                    return "Selecione uma Conexão"
-                                }
-                                const queue = queues.find(w => w.id === selectedQueue)
-                                return queue.name
+                            labelId="queue-select-label"
+                            id="queue-select"
+                            value={selectedQueue || ""}
+                            label="Selecione uma Fila"
+                            onChange={(e) => setQueueSelected(e.target.value)}
+                            disabled={loading}
+                            sx={{
+                                textTransform: 'none',
                             }}
                         >
-
-                            {queues.length > 0 && (
-                                queues.map((queue, index) => (
-                                    <MenuItem dense key={index} value={queue.id}>{queue.name}</MenuItem>
+                            {queues.length > 0 ? (
+                                queues.map((queue) => (
+                                    <MenuItem key={queue.id} value={queue.id}>
+                                        {queue.name}
+                                    </MenuItem>
                                 ))
+                            ) : (
+                                <MenuItem disabled>Nenhuma fila disponível</MenuItem>
                             )}
                         </Select>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button
-                            onClick={handleClose}
-                            color="secondary"
-                            variant="outlined"
-                        >
-                            {i18n.t("contactModal.buttons.cancel")}
-                        </Button>
-                        <Button
-                            type="submit"
-                            color="primary"
-                            variant="contained"
-                            className={classes.btnWrapper}
-                            onClick={handleSaveContact}
-                        >
-                            {open === 'create' ? `Adicionar` : 'Editar'}
-                        </Button>
-                    </DialogActions>
+                    </FormControl>
                 </Stack>
-            </Dialog>
-        </div>
+            </DialogContent>
+
+            <DialogActions 
+                sx={{ 
+                    px: 3, 
+                    pb: 2, 
+                    pt: 2,
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    gap: 1
+                }}
+            >
+                <Button
+                    onClick={handleClose}
+                    color="inherit"
+                    variant="outlined"
+                    fullWidth={isMobile}
+                    sx={{
+                        textTransform: 'none',
+                        fontWeight: 500,
+                    }}
+                >
+                    {i18n.t("contactModal.buttons.cancel")}
+                </Button>
+                <Button
+                    type="submit"
+                    disabled={loading || !selectedQueue}
+                    color="primary"
+                    variant="contained"
+                    onClick={handleSaveContact}
+                    fullWidth={isMobile}
+                    sx={{
+                        textTransform: 'none',
+                        fontWeight: 500,
+                    }}
+                >
+                    {open === 'create' ? 'Adicionar' : 'Salvar'}
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
 };
 

@@ -20,10 +20,12 @@ export default memo(({ data, isConnectable, id }) => {
         backgroundColor: "#FAFBFF",
         padding: "8px",
         borderRadius: "8px",
-        maxWidth: "155px",
+        minWidth: "140px",
+        maxWidth: "180px",
+        width: "auto",
         boxShadow: "0px 3px 5px rgba(0,0,0,.05)",
         border: "1px solid rgba(104, 58, 200, 0.25)",
-        width: 180
+        position: "relative"
       }}
     >
       <Handle
@@ -31,10 +33,10 @@ export default memo(({ data, isConnectable, id }) => {
         position="left"
         style={{
           background: "#0000FF",
-          width: "18px",
-          height: "18px",
+          width: "14px",
+          height: "14px",
           top: "20px",
-          left: "-12px",
+          left: "-9px",
           cursor: 'pointer'
         }}
         onConnect={params => console.log("handle onConnect", params)}
@@ -43,9 +45,9 @@ export default memo(({ data, isConnectable, id }) => {
         <ArrowForwardIos
           sx={{
             color: "#ffff",
-            width: "10px",
-            height: "10px",
-            marginLeft: "3.5px",
+            width: "8px",
+            height: "8px",
+            marginLeft: "2.5px",
             marginBottom: "1px",
             pointerEvents: "none"
           }}
@@ -94,7 +96,7 @@ export default memo(({ data, isConnectable, id }) => {
             color: "#683AC8"
           }}
         />
-        <div style={{ color: "#232323", fontSize: "16px" }}>Menu</div>
+        <div style={{ color: "#232323", fontSize: "14px", fontWeight: 500 }}>Menu</div>
       </div>
       <div>
         <div
@@ -140,9 +142,9 @@ export default memo(({ data, isConnectable, id }) => {
             style={{
               top: 74 + 23 * option.number,
               background: "#0000FF",
-              width: "18px",
-              height: "18px",
-              right: "-11px",
+              width: "14px",
+              height: "14px",
+              right: "-9px",
               cursor: 'pointer'
             }}
             isConnectable={isConnectable}
